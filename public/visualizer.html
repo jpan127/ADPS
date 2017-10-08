@@ -9,14 +9,39 @@
 <body>
 	<img id="play">
  	<div id="logger"></div>
-
+ 	<button id="forward" onclick="goForward()">Forward</button>
+ 	<button id="back" onclick="goBack()">Back</button>
+ 	<button id="stay" onclick="stay()">Stay</button>
+ 	<button id="left" onclick="goLeft()">Left</button>
+ 	<button id="right" onclick="goRight()">Right</button>
  	<script>
  		var socket = io();
  		socket.on('stream', function(image){
  			var img = document.getElementById("play");
  			img.src = image;
- 			$("#logger").text(image);
  		});
+
+ 		function goForward(){
+ 			socket.emit('event', { message: 'Forward!' });
+ 			console.log("Forward");
+ 		}
+ 		function goBack(){
+ 			socket.emit('event', { message: 'Back!' });
+ 			console.log("Back");
+ 		}
+ 		function goLeft(){
+ 			socket.emit('event', { message: 'Left!' });
+ 			console.log("Left");
+ 		}
+ 		function goRight(){
+ 			socket.emit('event', { message: 'Right!' });
+ 			console.log("Right");
+ 		}
+ 		function stay(){
+ 			socket.emit('event', { message: 'Stay!' });
+ 			console.log("Stay");
+ 		}
+
  	</script>
 </body>
 </html>
