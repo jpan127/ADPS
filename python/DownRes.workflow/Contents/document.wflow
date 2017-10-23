@@ -70,19 +70,6 @@
 					<key>promptMessage</key>
 					<string>Choose a Finder Item:</string>
 				</dict>
-				<key>ActionRuntimeParameters</key>
-				<dict>
-					<key>defaultLocation</key>
-					<string>/Users/AviRynderman/Desktop</string>
-					<key>granularity</key>
-					<integer>0</integer>
-					<key>multipleSelection</key>
-					<true/>
-					<key>promptMessage</key>
-					<string>Choose a Finder Item:</string>
-					<key>temporary items path</key>
-					<string>/var/folders/32/fzghns8x42sggx8xn9wdwt_m0000gn/T/73152850-0DEA-4E4E-887D-98B827A4A46D/1/com.apple.Automator.AskForFinderItems</string>
-				</dict>
 				<key>BundleIdentifier</key>
 				<string>com.apple.Automator.AskForFinderItems</string>
 				<key>CFBundleVersion</key>
@@ -172,8 +159,6 @@
 						<string>3</string>
 					</dict>
 				</dict>
-				<key>conversionLabel</key>
-				<integer>0</integer>
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
@@ -234,16 +219,7 @@
 					<key>replaceExisting</key>
 					<false/>
 					<key>toDirectory</key>
-					<string>~/Desktop/Senior Project/Unedited</string>
-				</dict>
-				<key>ActionRuntimeParameters</key>
-				<dict>
-					<key>replaceExisting</key>
-					<false/>
-					<key>temporary items path</key>
-					<string>/var/folders/32/fzghns8x42sggx8xn9wdwt_m0000gn/T/73152850-0DEA-4E4E-887D-98B827A4A46D/1/com.apple.Automator.CopyFiles</string>
-					<key>toDirectory</key>
-					<string>/Users/AviRynderman/Desktop/Senior Project/Unedited</string>
+					<string>~/Desktop/Senior Project/sidewalk-recognition/python/Images</string>
 				</dict>
 				<key>BundleIdentifier</key>
 				<string>com.apple.Automator.CopyFiles</string>
@@ -303,12 +279,10 @@
 						<string>1</string>
 					</dict>
 				</dict>
-				<key>conversionLabel</key>
-				<integer>0</integer>
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>309.000000:313.000000</string>
+				<string>309.000000:261.000000</string>
 				<key>nibPath</key>
 				<string>/System/Library/Automator/Copy Finder Items.action/Contents/Resources/Base.lproj/main.nib</string>
 			</dict>
@@ -369,19 +343,6 @@
 					<integer>0</integer>
 					<key>sizeValue</key>
 					<integer>794</integer>
-				</dict>
-				<key>ActionRuntimeParameters</key>
-				<dict>
-					<key>percentageValue</key>
-					<integer>100</integer>
-					<key>scaleMethod</key>
-					<integer>0</integer>
-					<key>scaleValue</key>
-					<integer>0</integer>
-					<key>sizeValue</key>
-					<integer>794</integer>
-					<key>temporary items path</key>
-					<string>/var/folders/32/fzghns8x42sggx8xn9wdwt_m0000gn/T/73152850-0DEA-4E4E-887D-98B827A4A46D/1/com.apple.Automator.ScaleImage</string>
 				</dict>
 				<key>BundleIdentifier</key>
 				<string>com.apple.Automator.ScaleImage</string>
@@ -469,12 +430,10 @@
 						<string>3</string>
 					</dict>
 				</dict>
-				<key>conversionLabel</key>
-				<integer>0</integer>
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>309.000000:418.000000</string>
+				<string>309.000000:366.000000</string>
 				<key>nibPath</key>
 				<string>/System/Library/Automator/Scale Images.action/Contents/Resources/Base.lproj/main.nib</string>
 			</dict>
@@ -484,19 +443,19 @@
 	</array>
 	<key>connectors</key>
 	<dict>
-		<key>11A87612-6FEB-4954-8FDE-D7A3B76B966F</key>
-		<dict>
-			<key>from</key>
-			<string>A954DC37-E1DE-4D67-9CD5-AB522ACECCB9 - A954DC37-E1DE-4D67-9CD5-AB522ACECCB9</string>
-			<key>to</key>
-			<string>8E950270-6D15-4230-AEA1-5CBB9918D847 - 8E950270-6D15-4230-AEA1-5CBB9918D847</string>
-		</dict>
-		<key>8798BEC5-5B62-4FEB-A0B2-37B06EE80376</key>
+		<key>7DCAD308-C939-4BC6-83C7-7B5174D3D4EE</key>
 		<dict>
 			<key>from</key>
 			<string>7D3849A8-C701-4CF1-93DD-297E8568AB95 - 7D3849A8-C701-4CF1-93DD-297E8568AB95</string>
 			<key>to</key>
 			<string>A954DC37-E1DE-4D67-9CD5-AB522ACECCB9 - A954DC37-E1DE-4D67-9CD5-AB522ACECCB9</string>
+		</dict>
+		<key>BA3EDABB-1CED-44FE-B7FC-B02B42C7AC66</key>
+		<dict>
+			<key>from</key>
+			<string>A954DC37-E1DE-4D67-9CD5-AB522ACECCB9 - A954DC37-E1DE-4D67-9CD5-AB522ACECCB9</string>
+			<key>to</key>
+			<string>8E950270-6D15-4230-AEA1-5CBB9918D847 - 8E950270-6D15-4230-AEA1-5CBB9918D847</string>
 		</dict>
 	</dict>
 	<key>variables</key>
