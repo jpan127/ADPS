@@ -7,41 +7,66 @@
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-	<img id="play">
- 	<div id="logger"></div>
- 	<button id="forward" onclick="goForward()">Forward</button>
- 	<button id="back" onclick="goBack()">Back</button>
- 	<button id="stay" onclick="stay()">Stay</button>
- 	<button id="left" onclick="goLeft()">Left</button>
- 	<button id="right" onclick="goRight()">Right</button>
- 	<script>
- 		var socket = io();
- 		socket.on('stream', function(image){
- 			var img = document.getElementById("play");
- 			img.src = image;
- 		});
+    <img id="play">
+    <div id="logger"></div>
 
- 		function goForward(){
- 			socket.emit('event', { message: 'Forward!' });
- 			console.log("Forward");
- 		}
- 		function goBack(){
- 			socket.emit('event', { message: 'Back!' });
- 			console.log("Back");
- 		}
- 		function goLeft(){
- 			socket.emit('event', { message: 'Left!' });
- 			console.log("Left");
- 		}
- 		function goRight(){
- 			socket.emit('event', { message: 'Right!' });
- 			console.log("Right");
- 		}
- 		function stay(){
- 			socket.emit('event', { message: 'Stay!' });
- 			console.log("Stay");
- 		}
+    <div>
+        <h3> Movement </h3>
+        <button id="forward"    onclick="goForward()">  Forward </button>
+        <button id="back"       onclick="goBack()">     Back    </button>
+        <button id="stay"       onclick="stay()">       Stay    </button>
+        <button id="left"       onclick="goLeft()">     Left    </button>
+        <button id="right"      onclick="goRight()">    Right   </button>
+    </div>
+    <br>
+    <div>
+        <h3> Emergency Exit </h3>
+        <button id="exit"       onclick="exit()">       Close   </button>
+    </div>
+    <div>
+        <h3> Send Packet </h3>
+        <form>
+            <input id="ipAddr"     type="text" placeholder="IP Address"         />
+            <input id="packetBody" type="text" placeholder="Packet Body" size=64/>
+            <button id="send"   onclick="sendPacket()"> Send    </button>
+        </form>
+    <div>
 
- 	</script>
+    <script>
+        var socket = io();
+        socket.on('stream', function(image){
+            var img = document.getElementById("play");
+            img.src = image;
+        });
+
+        function goForward(){
+            socket.emit('event', { message: 'Forward!' });
+            console.log("Forward");
+        }
+        function goBack(){
+            socket.emit('event', { message: 'Back!' });
+            console.log("Back");
+        }
+        function goLeft(){
+            socket.emit('event', { message: 'Left!' });
+            console.log("Left");
+        }
+        function goRight(){
+            socket.emit('event', { message: 'Right!' });
+            console.log("Right");
+        }
+        function stay(){
+            socket.emit('event', { message: 'Stay!' });
+            console.log("Stay");
+        }
+        function exit() {
+            socket.emit('exit');
+        }
+        function sendPacket() {
+            var body = document.getElementById("packetBody").value;
+            var ip   = document.getElementById("ipAddr").value;
+            socket.emit('packet', { ip, body });
+        }
+    </script>
 </body>
 </html>
