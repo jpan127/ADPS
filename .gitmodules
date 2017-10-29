@@ -1,0 +1,4 @@
+[submodule "esp32-drivers"]
+	path = esp32-drivers
+	url = https://github.com/jpan127/esp32-drivers.git
+	branch = master
