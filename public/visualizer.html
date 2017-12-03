@@ -1,36 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>Systems Control</title>
     <meta charset="UTF-8">
-    <title>Visualizer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+        .container {
+            padding: 80px 120px;
+        }
+    </style>
 </head>
 <body>
-    <img id="play">
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span> 
+          </button>
+          <a class="navbar-brand" href="#">ADPS</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="index.html">HOME</a></li>
+            <li><a href="emit.html">CAMERA</a></li>
+            <li><a href="visualizer.html">CONTROL PAGE</a></li>
+            <li><a href="#contact">CONTACT</a></li>
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">MORE
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
+                <li><a href="#">I</a></li>
+                <li><a href="#">Like</a></li>
+                <li><a href="#">Penguins</a></li> 
+              </ul>
+            </li>
+            <li><a href="#"><span class="glyphicon glyphicon-search"></span></a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    
+
+    <div class="row">
+      <div class="col-sm-4 text-center">
+        
+        <div>
+            <br><br><br>
+            <h3> Camera </h3>
+            <img src="cam.png"></img>
+            <br>
+            <button id="camUp"         onclick="camUp()">  Up </button>
+            <button id="camDown"       onclick="camDown()">     Down    </button>
+            <button id="camLeft"       onclick="camLeft()">     Left    </button>
+            <button id="camRight"      onclick="camRight()">    Right   </button>
+            <br>
+        </div>
+        <div>
+            <h3> Motor </h3>
+            <img src="steer.png"></img>
+            <br><br>
+            <button id="forward"    onclick="goForward()">  Forward </button>
+            <button id="back"       onclick="goBack()">     Back    </button>
+            <button id="stay"       onclick="stay()">       Stay    </button>
+            <button id="left"       onclick="goLeft()">     Left    </button>
+            <button id="right"      onclick="goRight()">    Right   </button>
+            <br>
+        </div>
+      </div>
+
+      <div class="col-sm-8 text-center">
+        <img id="play">
+      </div>
+    </div>
+
+    <br><br>
+    <div class="row">
+      <div class="col-sm-4 text-center">
+        <h3> Custom Packet </h3>
+        <form>
+            <input id="ipAddr"  class="form-control"   type="text" placeholder="IP Address"         />
+            <input id="packetBody" class="form-control" type="text" placeholder="Packet Body" size=64/>
+            <button id="send"   onclick="sendPacket()"> Send    </button>
+        </form>
+      </div>
+      <div class="col-sm-4 text-center">
+        <h3> System State </h3>
+        <div>GPS:Latitude=<span  class="gps-lat">1000</span></div>
+        <div>Longitude=<span class="gps-long">1000</span></div>
+        <div>STATE:<span class="state">Found house address 123456</span></div>
+      </div>
+      <div class="col-sm-4 text-center">
+        <h3> Data Log </h3>
+        <textarea class="datalog form-control" rows="4" cols="40">
+        </textarea>
+      </div>
+    </div>
+
+    <div class="container text-center">
+        
+        <h3>ADPS Systems Control</h3>
+
+        <p>The purpose of this page is to allow control and monitoring of the robot's status.
+        This page should include:
+        <br> Motor/Camera control section 
+        <br> Packet Sending
+        <br> Data logging 
+        <br> States / Faults
+        </p>
+    </div>
+
     <div id="logger"></div>
 
-    <div>
-        <h3> Movement </h3>
-        <button id="forward"    onclick="goForward()">  Forward </button>
-        <button id="back"       onclick="goBack()">     Back    </button>
-        <button id="stay"       onclick="stay()">       Stay    </button>
-        <button id="left"       onclick="goLeft()">     Left    </button>
-        <button id="right"      onclick="goRight()">    Right   </button>
-    </div>
     <br>
     <div>
         <h3> Emergency Exit </h3>
         <button id="exit"       onclick="exit()">       Close   </button>
     </div>
-    <div>
-        <h3> Send Packet </h3>
-        <form>
-            <input id="ipAddr"     type="text" placeholder="IP Address"         />
-            <input id="packetBody" type="text" placeholder="Packet Body" size=64/>
-            <button id="send"   onclick="sendPacket()"> Send    </button>
-        </form>
-    <div>
 
     <script>
         var socket = io();
@@ -39,25 +132,44 @@
             img.src = image;
         });
 
+        var myTextArea = $('#datalog');
+        //myTextArea.val(myTextArea.val() + 'goForward\n');
+
         function goForward(){
-            socket.emit('event', { message: 'Forward!' });
-            console.log("Forward");
+            socket.emit('event', { message: 'goForward' });
+            console.log("goForward\n");
         }
         function goBack(){
-            socket.emit('event', { message: 'Back!' });
-            console.log("Back");
+            socket.emit('event', { message: 'goBack' });
+            console.log("goBack\n");
         }
         function goLeft(){
-            socket.emit('event', { message: 'Left!' });
-            console.log("Left");
+            socket.emit('event', { message: 'goLeft' });
+            console.log("goLeft\n");
         }
         function goRight(){
-            socket.emit('event', { message: 'Right!' });
-            console.log("Right");
+            socket.emit('event', { message: 'goRight' });
+            console.log("goRight\n");
         }
         function stay(){
-            socket.emit('event', { message: 'Stay!' });
-            console.log("Stay");
+            socket.emit('event', { message: 'stay' });
+            console.log("Stay\n");
+        }
+        function camUp(){
+            socket.emit('event', { message: 'camUp' });
+            console.log("Forward\n");
+        }
+        function camDown(){
+            socket.emit('event', { message: 'camDown' });
+            console.log("Back\n");
+        }
+        function camLeft(){
+            socket.emit('event', { message: 'camLeft' });
+            console.log("Left\n");
+        }
+        function camRight(){
+            socket.emit('event', { message: 'camRight' });
+            console.log("Right\n");
         }
         function exit() {
             socket.emit('exit');
