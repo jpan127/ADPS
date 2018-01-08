@@ -1,0 +1,17 @@
+credentials.*
+
+*.o
+
+*.d
+
+*.a
+
+*.bin
+
+*.elf
+
+*/build/*
+
+build/*
+
+/build/*
