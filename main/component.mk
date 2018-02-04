@@ -7,12 +7,14 @@
 # please read the ESP-IDF documents if you need to do this.
 #
 
-COMPONENT_SRCDIRS 			:= 	app 			\
-								drivers 		\
-								main 			\
-								tasks		 	
+COMPONENT_SRCDIRS 			:= 	L0_drivers/src 	\
+								L1_io/src 		\
+								L2_app/src		\
+								L3_tasks/tasks	\
+								main
 								
-COMPONENT_ADD_INCLUDEDIRS 	:= 	app 			\
-								drivers 		\
-								main 			\
-								tasks		 	
+COMPONENT_ADD_INCLUDEDIRS 	:= 	L0_drivers 		\
+								L1_io 			\
+								L2_app			\
+								L3_tasks		\
+								main
