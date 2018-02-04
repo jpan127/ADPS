@@ -15,6 +15,7 @@ typedef struct
 void init_server_socket(void);
 
 /// Initialization functions
+void init_task_logger(void);
 void init_task_navigation(void);
 // void Init_RxTask(void);
 

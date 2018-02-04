@@ -39,6 +39,18 @@ typedef struct
     mcpwm_timer_t timer;    ///< Specifies the hardware timer to control the PWM
 } motor_config_S;
 
+/// Struct for storing duty vlaues of left and right PWMs
+typedef struct
+{
+    float left;
+    float right;
+} duty_S;
+
+typedef struct
+{
+    duty_S duty[MOTORS_MAX];   
+} motor_logs_S;
+
 /**
  *  Initializes a motor and stores a pointer to its configuration
  *  @param motor  : Which motor to initialize
@@ -61,7 +73,4 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty);
  */
 void motor_stop(motor_E motor);
 
-/**
- *  Logs motor information
- */
-void motor_log_status(void);
+motor_logs_S * motor_get_logs(void);

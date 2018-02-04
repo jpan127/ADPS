@@ -1,29 +1,31 @@
 #include "server.h"
 // lwIP libraries
-#include "lwip/inet.h"         // inet functions, socket structs
-#include "lwip/sockets.h"      // Sockets
+#include "lwip/inet.h"
+#include "lwip/sockets.h"
 
 
-// Current port number
-static uint32_t tcp_port = 0;
 
-// Current socket handle
-static int tcp_socket = -1;
-
-// Current state of socket
-static socket_state_E tcp_state = UNCONNECTED;
+static tcp_server_logs_S logs =
+{
+    .server_port      = 0,
+    .socket           = -1,
+    .state            = socket_unconnected,
+    .queue_size       = 0,
+    .packets_received = 0,
+};
 
 /**
- *
+ *  Creates a TCP socket configured as a server
+ *  @returns : Success status
  */
 static bool tcp_create_socket(void)
 {
-    if (tcp_socket)
+    if (logs.socket < 0)
     {
         // Create socket
-        tcp_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        logs.socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-        if (tcp_socket == -1) 
+        if (logs.socket == -1) 
         {
             ESP_LOGE("tcp_create_socket", "Error creating socket: %s", strerror(errno));
             return false;
@@ -31,10 +33,10 @@ static bool tcp_create_socket(void)
         else 
         {
             // Set socket option to re-usable
-            int option = 1;
-            setsockopt(tcp_socket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
-            ESP_LOGI("server::tcp_create_socket", "Socket successfully created on port %d", tcp_port);
-            tcp_state = CREATED;
+            const int option = 1;
+            setsockopt(logs.socket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
+            ESP_LOGI("server::tcp_create_socket", "Socket successfully created on port %d", logs.server_port);
+            logs.state = socket_created;
             return true;
         }        
     }
@@ -46,32 +48,35 @@ static bool tcp_create_socket(void)
 }
 
 /**
- *
+ *  Closes the created TCP server socket
  */
 static void tcp_close_socket(void)
 {
-    if (tcp_socket)
+    if (logs.socket > 0)
     {
         // Close socket
-        shutdown(tcp_socket, SHUT_RDWR);
-        close(tcp_socket);
+        shutdown(logs.socket, SHUT_RDWR);
+        close(logs.socket);
         // Reset values
-        tcp_socket = -1;
-        tcp_state  = UNCONNECTED;
+        logs.socket = -1;
+        logs.state  = socket_closed;
     }
 }
 
 /**
- *
+ *  Binds the TCP server socket to a port number
+ *  @returns : Success status
  */
 static bool tcp_bind_socket(void)
 {
-    struct sockaddr_in server_address = { 0 };
-    server_address.sin_family      = AF_INET;
-    server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_address.sin_port        = htons(tcp_port);
+    struct sockaddr_in server_address =
+    {
+        .sin_family      = AF_INET,
+        .sin_addr.s_addr = htonl(INADDR_ANY),
+        .sin_port        = htons(logs.server_port),
+    };
 
-    if (bind(tcp_socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) 
+    if (bind(logs.socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) 
     {
         // If failed, close socket
         tcp_close_socket();
@@ -80,7 +85,7 @@ static bool tcp_bind_socket(void)
     }
     else 
     {
-        tcp_state = BINDED;
+        logs.state = socket_binded;
         ESP_LOGI("server::tcp_bind_socket", "Socket successfully binded.");
         return true;
     }
@@ -91,15 +96,16 @@ static bool tcp_bind_socket(void)
  */
 static bool tcp_start_listening(uint8_t queue_size)
 {
-    if (listen(tcp_socket, queue_size) < 0) 
+    if (listen(logs.socket, queue_size) < 0) 
     {
+        logs.queue_size = queue_size;
         ESP_LOGE("tcp_start_listening", "Error starting to listen on socket. Error: %s", strerror(errno));
         return false;
     }
     else 
     {
-        tcp_state = LISTENING;
-        ESP_LOGI("server::tcp_start_listening", "Listening on socket port %u", tcp_port);
+        logs.state = socket_listening;
+        ESP_LOGI("server::tcp_start_listening", "Listening on socket port %u", logs.server_port);
         return true;
     }
 }
@@ -109,7 +115,7 @@ bool tcp_server_init(uint32_t port, uint8_t queue_size)
     bool success = true;
 
     // Store port
-    tcp_port = port;
+    logs.server_port = port;
 
     // Create socket first
     success &= tcp_create_socket();
@@ -123,9 +129,11 @@ bool tcp_server_init(uint32_t port, uint8_t queue_size)
     // If failed, clear variables
     if (!success)
     {
-        tcp_port   = 0;
-        tcp_socket = -1;
-        tcp_state  = UNCONNECTED;
+        logs.server_port      = 0;
+        logs.socket           = -1;
+        logs.state            = socket_unconnected;
+        logs.queue_size       = 0;
+        logs.packets_received = 0;
     }
 
     return success;
@@ -133,6 +141,8 @@ bool tcp_server_init(uint32_t port, uint8_t queue_size)
 
 bool tcp_server_receive(int client_sock, uint8_t *buffer, uint16_t *size)
 {
+    bool success = true;
+
     *size = 0;
 
     // While there is still data to be read from socket
@@ -146,7 +156,8 @@ bool tcp_server_receive(int client_sock, uint8_t *buffer, uint16_t *size)
         if (size_read < 0) 
         {
             ESP_LOGE("tcp_server_receive", "Error receiving on socket %i. Error: %s", client_sock, strerror(errno));
-            return false;
+            success = false;
+            break;
         }
         // Nothing more to read
         else if (size_read == 0) 
@@ -158,16 +169,21 @@ bool tcp_server_receive(int client_sock, uint8_t *buffer, uint16_t *size)
         *size += size_read;
     }
 
+    if (*size > 0)
+    {
+        logs.packets_received++;
+    }
+
     // ESP_LOGI("server::tcp_server_receive", "Received %i bytes : %s", size, buffer);
-    return true;
+    return success;
 }
 
 int tcp_server_get_socket(void)
 {
-    return tcp_socket;
+    return logs.socket;
 }
 
-socket_state_E tcp_server_get_state(void)
+tcp_server_logs_S * tcp_server_get_logs(void)
 {
-    return tcp_state;
+    return &logs;
 }

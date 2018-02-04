@@ -42,16 +42,6 @@ enum
 #define _32KB   (8192)
 #define _64KB   (16384)
 
-// State of socket
-typedef enum 
-{
-    UNCONNECTED, 
-    CREATED, 
-    BINDED, 
-    CONNECTED, 
-    LISTENING
-} socket_state_E;
-
 // Helper macros for logging to server
 // Use these instead of directly using log_to_server()
 #define LOG_INFO(message, ...)   (log_to_server(PACKET_TYPE_INFO,   message, ## __VA_ARGS__))

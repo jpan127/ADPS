@@ -35,6 +35,7 @@ void app_main(void)
     // Init_RxTask();
     // Init_ScissorTask();
     // Init_ServoTask();
+    init_task_logger();
     init_task_navigation();
 
     // /*/////////////////////////////

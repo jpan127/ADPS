@@ -4,6 +4,15 @@
 #include "lwip/sockets.h"      // Sockets
 
 
+
+static tcp_client_logs_S logs =
+{
+    .sockets_created    = 0,
+    .sockets_closed     = 0,
+    .server_connections = 0,
+    .packets_sent       = 0,
+};
+
 bool tcp_client_create_socket(int *tcp_socket, uint32_t port)
 {
     // Create socket
@@ -20,6 +29,7 @@ bool tcp_client_create_socket(int *tcp_socket, uint32_t port)
         int option = 1;
         setsockopt(*tcp_socket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
         // ESP_LOGI("tcp_create_socket", "Socket successfully created.");
+        logs.sockets_created++;
         return true;
     }
 }
@@ -31,6 +41,7 @@ void tcp_client_close_socket(int *tcp_socket)
         // Close socket
         shutdown(*tcp_socket, SHUT_RDWR);
         close(*tcp_socket);
+        logs.sockets_closed++;
         // Reset value
         *tcp_socket = -1;
     }
@@ -60,6 +71,7 @@ bool tcp_client_connect_to_server(int *tcp_socket, char *server_ip, uint16_t ser
         // ESP_LOGI("tcp_connect_to_server", "Successfully connected to server at %s port %i.",
         //                                                                             server_ip, 
         //                                                                             server_port);
+        logs.server_connections++;
         return true;
     }
 }
@@ -80,6 +92,12 @@ bool tcp_client_send_packet(int *tcp_socket, uint8_t *packet, uint8_t size)
     else 
     {
         // ESP_LOGI("tcp_send_packet", "Packet sent: %s", packet);
+        logs.packets_sent++;
         return true;
     }
+}
+
+tcp_client_logs_S * tcp_client_get_logs(void)
+{
+    return &logs;
 }

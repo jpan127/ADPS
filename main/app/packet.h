@@ -3,29 +3,37 @@
 #include "common.h"
 
 
+
 /**
  *  @module      : packet
  *  @description : Handles parsing command packets and sending diagnostic packets
  */
 
-
-// Max size of diagnostic packet payload
+/// Max size of diagnostic packet payload
 #define MAX_PACKET_SIZE (128)
 
 extern QueueHandle_t MessageTxQueue;
 
-// Denotes the type of the packet
+/// Denotes the type of the packet
 typedef enum
 {
-    PACKET_TYPE_INFO          = 0,  // System starting/finishing/initializing something, x bytes were sent
-    PACKET_TYPE_ERROR         = 1,  // Something failed
-    PACKET_TYPE_STATUS        = 2,  // Something successful, something complete
-    PACKET_TYPE_LOG           = 3,  // Data logging
-    PACKET_TYPE_COMMAND_READ  = 4,  // Get commands
-    PACKET_TYPE_COMMAND_WRITE = 5,  // Set commands
+    PACKET_TYPE_INFO          = 0,  ///< System starting/finishing/initializing something, x bytes were sent
+    PACKET_TYPE_ERROR         = 1,  ///< Something failed
+    PACKET_TYPE_STATUS        = 2,  ///< Something successful, something complete
+    PACKET_TYPE_LOG           = 3,  ///< Data logging
+    PACKET_TYPE_COMMAND_READ  = 4,  ///< Get commands
+    PACKET_TYPE_COMMAND_WRITE = 5,  ///< Set commands
+
+    log_type_client = 0x80,
+    log_type_server = 0x81,
+    log_type_packet = 0x82,
+    log_type_motor  = 0x83,
+    log_type_wifi   = 0x84,
+
+    PACKET_TYPE_LAST_INVALID,
 } packet_type_E;
 
-// Denotes the opcode for command packets
+/// Denotes the opcode for command packets
 typedef enum
 {
     COMMAND_SET_FORWARD   = 0,    /// @TODO : This should be in a universal JSON
@@ -38,7 +46,7 @@ typedef enum
     COMMAND_GET_RIGHT     = 7,
 } packet_opcode_E;
 
-// Denotes the current state of the parser
+/// Denotes the current state of the parser
 typedef enum
 {
     PARSER_IDLE,
@@ -47,7 +55,7 @@ typedef enum
     PARSER_ERROR
 } parser_status_E;
 
-// Diagnostic Packet structure
+/// Diagnostic Packet structure
 typedef struct
 {
     uint8_t type;                       ///< Type of packet
@@ -56,11 +64,11 @@ typedef struct
 
 } __attribute__((packed)) diagnostic_packet_S;
 
-// Command Packet structure
+/// Command Packet structure
 typedef struct
 {
-    uint8_t type;   // Type of packet
-    uint8_t opcode; // Opcode of command
+    uint8_t type;                       ///< Type of packet
+    uint8_t opcode;                     ///< Opcode of command
 
     union
     {
@@ -70,23 +78,42 @@ typedef struct
 
 } __attribute__((packed)) command_packet_S;
 
-// @description  : State machine to parse a command packet
-// @param byte   : The next byte to be parsed
-// @param packet : Pointer to the packet to be modified
-// @returns      : Status of parser state machine
+/// Struct for logging packet information
+typedef struct
+{
+    uint32_t rx_packets;
+    uint32_t tx_packets;
+    uint32_t packet_errors;
+    uint32_t packet_counts[PACKET_TYPE_LAST_INVALID];
+} packet_logs_S;
+
+/**
+ *  State machine to parse a command packet
+ *  @param byte   : The next byte to be parsed
+ *  @param packet : Pointer to the packet to be modified
+ *  @returns      : Status of parser state machine
+ */
 parser_status_E command_packet_parser(uint8_t byte, command_packet_S *packet);
 
-// @description   : Printf-style printing a formatted string to the server
-//                  1. log_to_server
-//                  2. log_vsprintf
-//                  3. create_diagnostic_packet
-//                  4. msg_enqueue_no_timeout
-// @param type    : The type of the packet
-// @param message : The string format 
+/**
+ *  Printf-style printing a formatted string to the server
+ *      1. log_to_server
+ *      2. log_vsprintf
+ *      3. create_diagnostic_packet
+ *      4. msg_enqueue_no_timeout
+ * @param type    : The type of the packet
+ * @param message : The string format 
+ */
 void log_to_server(packet_type_E type, const char *message, ...);
 
 /**
- *  Logging data must have this format : { category, sub_category, data1, data2 }
- *
+ *  Inline wrappers for logging log data
+ *      - uint32_t
+ *      - float
+ *      - const char *
  */
-void log_data(const char *category, uint8_t sub_category, uint32_t data1, uint32_t data2);
+inline void log_data(const char *message, uint8_t category, uint32_t *data)          { if (data) LOG_LOG(message, category, *data); }
+inline void log_data_float(const char *message, uint8_t category, float *data)       { if (data) LOG_LOG(message, category, *data); }
+inline void log_data_string(const char *message, uint8_t category, const char *data) { if (data) LOG_LOG(message, category,  data); }
+
+packet_logs_S * packet_get_logs(void);

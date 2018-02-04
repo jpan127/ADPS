@@ -14,6 +14,14 @@
 // Extern
 EventGroupHandle_t StatusEventGroup;
 
+static wifi_logs_S logs =
+{
+    .device_ip    = DEVICE_IP,
+    .device_gw    = DEVICE_GW,
+    .device_sn    = DEVICE_SN,
+    .station_ssid = NETWORK_SSID,
+};
+
 static void EventHandler(void *ctx, system_event_t *event)
 {
     static const char *TAG = "WifiEventHandler";
@@ -112,4 +120,9 @@ void init_wifi(void)
                         true,               // Clear on exit
                         true,               // Wait for all bits
                         TICK_MS(ONE_MIN));  // Ticks to wait
+}
+
+wifi_logs_S * wifi_get_logs(void)
+{
+    return &logs;
 }

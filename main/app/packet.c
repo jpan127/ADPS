@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 
-// Current state/status of the parser
+/// Current state/status of the parser
 typedef enum
 {
     TYPE     = 0,
@@ -12,6 +12,14 @@ typedef enum
     COMMAND1 = 2,
     COMMAND2 = 3,
 } parser_state_E;
+
+static packet_logs_S logs =
+{
+    .rx_packets    = 0,
+    .tx_packets    = 0,
+    .packet_errors = 0,
+    .packet_counts = { 0 },
+};
 
 static void log_vsnprintf(packet_type_E type, const char *message, va_list arg_list)
 {
@@ -39,6 +47,9 @@ static void log_vsnprintf(packet_type_E type, const char *message, va_list arg_l
     // Send to TX queue
     xQueueSend(MessageTxQueue, packet, MAX_DELAY);
 #endif
+
+    logs.tx_packets++;
+    logs.packet_counts[type]++;
 }
 
 void log_to_server(packet_type_E type, const char *message, ...)
@@ -78,7 +89,7 @@ parser_status_E command_packet_parser(uint8_t byte, command_packet_S *packet)
     }
 }
 
-void log_data(const char *message, uint8_t sub_category, uint32_t data1, uint32_t data2)
+packet_logs_S * packet_get_logs(void)
 {
-    LOG_LOG(message, sub_category, data1, data2);
+    return &logs;
 }
