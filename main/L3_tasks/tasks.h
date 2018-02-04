@@ -14,10 +14,17 @@ typedef struct
 /// Initializes a single server socket
 void init_server_socket(void);
 
-/// Initialization functions
+/// Creates all queues
+void init_create_all_queues(void);
+
+/*/////////////////////////////
+ *                            *
+ *    Tasks Initialization    *
+ *                            *
+ *////////////////////////////*/
+
 void init_task_logger(void);
 void init_task_navigation(void);
-// void Init_RxTask(void);
 
 /*/////////////////////////////
  *                            *
@@ -36,4 +43,4 @@ void task_navigation(void *p);
  */
 void task_tx(void *p);
 
-// void RxTask(void *p);
+void task_rx(void *p);

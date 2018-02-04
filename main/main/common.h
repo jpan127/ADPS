@@ -71,6 +71,3 @@ enum
 
 // Global event group for status communication
 extern EventGroupHandle_t StatusEventGroup;
-
-// Queue for accepted socket connections
-extern QueueHandle_t ServerQueue;

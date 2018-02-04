@@ -14,6 +14,7 @@
 
 // Each task has its own port number + task ID
 static task_tx_params_S task_tx_params[THREAD_POOL_SIZE] = { 0 };
+static uint8_t task_rx_params[16] = { 0 };
 
 /// No tasks need input parameters or handles, so simplify with an inline function
 static inline void CREATE_TASK_LOW(TaskFunction_t  function, const uint32_t stack)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_LOW,  NULL); }
@@ -25,7 +26,7 @@ static void create_tx_thread_pool(void)
     // Each task has a unique name, postfixed by its task ID
     const char * const task_tx_base_name = "task_tx";
     char task_tx_names[THREAD_POOL_SIZE][16] = { 0 };
-    const uint16_t stack_size = 3000;
+    const uint16_t _12KB = 3000;
 
     // Create task pool of task_tx_params to transmit packets to remote server
     for (int i=0; i<THREAD_POOL_SIZE; i++)
@@ -37,36 +38,35 @@ static void create_tx_thread_pool(void)
         task_tx_params[i].port    = CLIENT_PORT + i;
         xTaskCreate(&task_tx, 
                     task_tx_names[i], 
-                    stack_size, 
+                    _12KB, 
                     (void *)(&task_tx_params[i]), 
                     PRIORITY_LOW, 
                     NULL);
     }
 }
 
-// static void create_rx_thread_pool(void)
-// {
-//     // Each task has a unique name, postfixed by its task ID
-//     const char * const task_tx_base_name = "task_tx";
-//     char task_tx_names[THREAD_POOL_SIZE][16] = { 0 };
-//     const uint16_t stack_size = 3000;
+static void create_rx_thread_pool(void)
+{
+    // Each task has a unique name, postfixed by its task ID
+    const char * const task_rx_base_name = "task_rx";
+    char task_rx_names[THREAD_POOL_SIZE][16] = { 0 };
+    const uint16_t _12KB = 3000;
 
-//     // Create task pool of task_tx_params to transmit packets to remote server
-//     for (int i=0; i<THREAD_POOL_SIZE; i++)
-//     {
-//         const char task_id = i + '0';
-//         strncpy(task_tx_names[i], task_tx_base_name, strlen(task_tx_base_name));
-//         strcat(task_tx_names[i], &task_id);
-//         task_tx_params[i].task_id = i;
-//         task_tx_params[i].port    = CLIENT_PORT + i;
-//         xTaskCreate(&task_tx, 
-//                     task_tx_names[i], 
-//                     stack_size, 
-//                     (void *)(&task_tx_params[i]), 
-//                     PRIORITY_LOW, 
-//                     NULL);
-//     }
-// }
+    // Create task pool of task_tx_params to transmit packets to remote server
+    for (int i=0; i<THREAD_POOL_SIZE; i++)
+    {
+        const char task_id = i + '0';
+        strncpy(task_rx_names[i], task_rx_base_name, strlen(task_rx_base_name));
+        strcat(task_rx_names[i], &task_id);
+        task_rx_params[i] = i;
+        xTaskCreate(&task_rx, 
+                    task_rx_names[i], 
+                    _12KB, 
+                    (void *)(&task_rx_params[i]),
+                    PRIORITY_LOW, 
+                    NULL);
+    }
+}
 
 /// MAIN
 void app_main(void)
@@ -86,17 +86,12 @@ void app_main(void)
     // Initialize gpios
     gpio_init();
 
-    // Init_RxTask();
+    // Create all queues
+    init_create_all_queues();
+
+    // Initialize tasks
     init_task_logger();
     init_task_navigation();
-
-    /*/////////////////////////////
-     *                            *
-     *     Client Thread Pool     *
-     *                            *
-     *//////////////////////////////
-
-    create_tx_thread_pool();
 
     /*/////////////////////////////
      *                            *
@@ -104,7 +99,8 @@ void app_main(void)
      *                            *
      *//////////////////////////////
 
-    CREATE_TASK_LOW(task_navigation, _4KB);
+    create_tx_thread_pool();
+    create_rx_thread_pool();
 
     /*/////////////////////////////
      *                            *
@@ -112,12 +108,11 @@ void app_main(void)
      *                            *
      *//////////////////////////////
 
-    // CREATE_TASK_LOW(RxTask,         _4KB);
+    CREATE_TASK_MED(task_navigation, _4KB);
 
     /*//////////////////////////////
      *                             *
      *     High Priority Tasks     *
      *                             *
      *///////////////////////////////
-
 }

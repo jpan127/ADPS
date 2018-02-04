@@ -10,12 +10,6 @@
  *  Each static function here is independent of the calling task and will be used by all
  */
 
-/// Extern
-QueueHandle_t MessageTxQueue = NULL;
-
-/// Size of MessageTxQueue
-static const uint8_t message_tx_queue_size = 5;
-
 /**
  *  Opens a socket with a timeout
  *  @param client_socket : The socket handle
@@ -91,9 +85,6 @@ static bool connect_socket_with_timeout(int *client_socket, uint32_t port, uint8
 static bool init_task_tx(int *client_socket, uint32_t port, uint8_t task_id)
 {
     bool success = false;
-
-    // Create queue
-    MessageTxQueue = xQueueCreate(sizeof(diagnostic_packet_S), message_tx_queue_size);
 
     success = open_socket_with_timeout(client_socket, port, task_id);
 

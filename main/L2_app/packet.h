@@ -13,6 +13,7 @@
 #define MAX_PACKET_SIZE (128)
 
 extern QueueHandle_t MessageTxQueue;
+extern QueueHandle_t MessageRxQueue;
 
 /// Denotes the type of the packet
 typedef enum
@@ -36,14 +37,20 @@ typedef enum
 /// Denotes the opcode for command packets
 typedef enum
 {
-    COMMAND_SET_FORWARD   = 0,    /// @TODO : This should be in a universal JSON
-    COMMAND_SET_BACKWARD  = 1,
-    COMMAND_SET_LEFT      = 2,
-    COMMAND_SET_RIGHT     = 3,
-    COMMAND_GET_FORWARD   = 4,
-    COMMAND_GET_BACKWARD  = 5,
-    COMMAND_GET_LEFT      = 6,
-    COMMAND_GET_RIGHT     = 7,
+    command_move_forward   = 0,
+    command_move_backward  = 1,
+    command_move_left      = 2,
+    command_move_right     = 3,
+
+    command_incr_forward   = 4,
+    command_incr_backward  = 5,
+    command_incr_left      = 6,
+    command_incr_right     = 7,
+
+    command_decr_forward   = 8,
+    command_decr_backward  = 9,
+    command_decr_left      = 10,
+    command_decr_right     = 11,
 } packet_opcode_E;
 
 /// Denotes the current state of the parser
