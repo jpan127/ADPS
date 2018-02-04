@@ -78,7 +78,7 @@ typedef struct
 
 } __attribute__((packed)) command_packet_S;
 
-/// Struct for logging packet information
+/// Packet logging struct
 typedef struct
 {
     uint32_t rx_packets;
@@ -116,4 +116,5 @@ inline void log_data(const char *message, uint8_t category, uint32_t *data)     
 inline void log_data_float(const char *message, uint8_t category, float *data)       { if (data) LOG_LOG(message, category, *data); }
 inline void log_data_string(const char *message, uint8_t category, const char *data) { if (data) LOG_LOG(message, category,  data); }
 
+/// Returns a pointer to the packet logging struct
 packet_logs_S * packet_get_logs(void);

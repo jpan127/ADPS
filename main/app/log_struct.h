@@ -14,6 +14,7 @@
  *  @description : A structure of all loggable information
  */
 
+/// Integrated logging struct with pointers to all other logging structs
 typedef struct
 {
     tcp_client_logs_S * tcp_client_logs;

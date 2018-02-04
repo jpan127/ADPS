@@ -1,7 +1,21 @@
-### ADPS-Robot
+### ADPS-Firmware
 
-Holds firmware for the ESP32 microcontroller, and the programs for the Jetson.
+    Firmware for the ESP32 microcontroller
 
-## Instructions
+### Tasks
 
-This repository contains a submodule which links to jpan127/esp32-drivers.  When cloning use `git clone --recursive <link>`
+logger
+
+    Logs useful information from all modules
+
+rx
+
+    Pool of tasks to service incoming client connections
+    
+tx
+
+    Pool of client tasks to connect to a remote server
+
+navigation
+
+    Handles driving the motors of the wheels of the robot

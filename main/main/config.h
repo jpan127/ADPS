@@ -1,11 +1,11 @@
 #pragma once
 
 
+
 /**
  *  @module      : config
  *  @description : Configuration defines
  */
-
 
 // Enables testing code
 #define TESTING          (1)

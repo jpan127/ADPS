@@ -3,18 +3,20 @@
 #include "gpio.h"
 
 
+
 /**
  *  @module      : main
  *  @description : Setup all drivers and tasks for the rtos scheduler
  */
 
-
+/// Stringifies something
 #define STRINGIFY(s) (#s)
-// No tasks need input parameters or handles, so simplify with an inline function
+/// No tasks need input parameters or handles, so simplify with an inline function
 static inline void CREATE_TASK_LOW(TaskFunction_t  function, const uint32_t stack)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_LOW,  NULL); }
 static inline void CREATE_TASK_MED(TaskFunction_t  function, const uint32_t stack)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_MED,  NULL); }
 static inline void CREATE_TASK_HIGH(TaskFunction_t function, const uint32_t stack)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_HIGH, NULL); }
 
+/// MAIN
 void app_main(void)
 {
     /*/////////////////////////////
@@ -33,8 +35,6 @@ void app_main(void)
     gpio_init();
 
     // Init_RxTask();
-    // Init_ScissorTask();
-    // Init_ServoTask();
     init_task_logger();
     init_task_navigation();
 
