@@ -74,6 +74,3 @@ extern EventGroupHandle_t StatusEventGroup;
 
 // Queue for accepted socket connections
 extern QueueHandle_t ServerQueue;
-
-// Queue for diagnostic packets
-extern QueueHandle_t ClientQueue;

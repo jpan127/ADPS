@@ -13,6 +13,7 @@ typedef enum
     COMMAND2 = 3,
 } parser_state_E;
 
+/// Logging struct for packet
 static packet_logs_S logs =
 {
     .rx_packets    = 0,
@@ -29,7 +30,7 @@ static void log_vsnprintf(packet_type_E type, const char *message, va_list arg_l
     // Print warning if larger than the max packet size
     if (strlen(message) > MAX_PACKET_SIZE + 2)
     {
-        ESP_LOGE("[log_vsnprintf]", "Message over max buffer size.\n");
+        ESP_LOGE("log_vsnprintf", "Message over max buffer size.\n");
     }
 
     // Prints formatted message to buffer with null-termination
@@ -42,7 +43,7 @@ static void log_vsnprintf(packet_type_E type, const char *message, va_list arg_l
     buffer[1] = strlen(buffer) - 2;
 
     // Convert buffer to diagnostic packet
-    diagnostic_packet_S *packet = (diagnostic_packet_S *)(&buffer);
+    diagnostic_packet_S * const packet = (diagnostic_packet_S *)(&buffer);
 
     // Send to TX queue
     xQueueSend(MessageTxQueue, packet, MAX_DELAY);
@@ -56,7 +57,9 @@ void log_to_server(packet_type_E type, const char *message, ...)
 {
     va_list arg_list;
     va_start(arg_list, message);
-    log_vsnprintf(type, message, arg_list);
+    {
+        log_vsnprintf(type, message, arg_list);
+    }
     va_end(arg_list);
 }
 
@@ -83,7 +86,7 @@ parser_status_E command_packet_parser(uint8_t byte, command_packet_S *packet)
             state = TYPE;
             return PARSER_COMPLETE;
         default:
-            printf("[command_packet_parser] Reached impossible state: %d!\n", state);
+            ESP_LOGE("command_packet_parser", "Reached impossible state: %d!\n", state);
             state = TYPE;
             return PARSER_ERROR;
     }
