@@ -5,6 +5,7 @@
 // Project libraries
 #include "server.h"
 #include "packet.h"
+#include "motor.h"
 
 
 #define RECV_BUFFER_SIZE (256)
@@ -99,6 +100,50 @@ void RxTask(void *p)
             // Close client socket
             shutdown(client_socket, SHUT_RDWR);
             close(client_socket);
+        }
+    }
+}
+
+static void service_read_command(command_packet_S *packet)
+{
+    switch (packet->opcode)
+    {
+        case COMMAND_GET_FORWARD:  motor_move(MOTOR_WHEELS, MOTOR_DIRECTION_FORWARD,  packet->command.bytes[0]); break;
+        case COMMAND_GET_BACKWARD: motor_move(MOTOR_WHEELS, MOTOR_DIRECTION_BACKWARD, packet->command.bytes[0]); break;
+        case COMMAND_GET_LEFT:     motor_move(MOTOR_WHEELS, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]); break;
+        case COMMAND_GET_RIGHT:    motor_move(MOTOR_WHEELS, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]); break;
+    }
+}
+static void service_write_command(command_packet_S *packet)
+{
+    switch (packet->opcode)
+    {
+        case COMMAND_SET_FORWARD:  motor_move(MOTOR_WHEELS, MOTOR_DIRECTION_FORWARD,  packet->command.bytes[0]); break;
+        case COMMAND_SET_BACKWARD: motor_move(MOTOR_WHEELS, MOTOR_DIRECTION_BACKWARD, packet->command.bytes[0]); break;
+        case COMMAND_SET_LEFT:     motor_move(MOTOR_WHEELS, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]); break;
+        case COMMAND_SET_RIGHT:    motor_move(MOTOR_WHEELS, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]); break;
+    }
+}
+
+void CommandTask(void *p)
+{
+    // Command packet
+    command_packet_S packet = { 0 };
+
+    // Main Loop
+    while (1)
+    {
+        // Receive from RxTask
+        xQueueReceive(ServerQueue, &packet, MAX_DELAY);
+
+        // Service command
+        if (PACKET_TYPE_COMMAND_READ == packet.type)
+        {
+            service_read_command(&packet);
+        }
+        else
+        {
+            service_write_command(&packet);
         }
     }
 }

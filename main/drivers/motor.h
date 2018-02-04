@@ -3,20 +3,22 @@
 #include "driver/mcpwm.h"
 
 
+
 /**
  *  @module      : motor
  *  @description : Configures and drives PWM motors
  */
 
-
+/// Enumerates each PWM motor
 typedef enum
 {
-    MOTOR_0, // TODO : Change naming to be explicit
-    MOTOR_1,
-    MOTOR_2,
+    MOTOR_FIRST_INVALID = 0,
+    MOTOR_WHEELS,
+    MOTOR_SHAFT,
     MOTORS_MAX
-} motor_controller_E;
+} motor_E;
 
+/// Enumerates the type of movement
 typedef enum
 {
     MOTOR_DIRECTION_FORWARD,
@@ -26,18 +28,40 @@ typedef enum
     MOTOR_DIRECTION_STOP
 } motor_direction_E;
 
+/// Struct to configure each motor and to use for enabling / disabling
 typedef struct
 {
-    gpio_num_t en_a;
-    gpio_num_t en_b;
-    gpio_num_t pwm_a;
-    gpio_num_t pwm_b;
-    mcpwm_unit_t pwm_unit;
-    mcpwm_timer_t timer;
-} motor_S;
+    gpio_num_t en_a;        ///< GPIO for left wheel enable
+    gpio_num_t en_b;        ///< GPIO for right wheel enable
+    gpio_num_t pwm_a;       ///< GPIO for left wheel PWM
+    gpio_num_t pwm_b;       ///< GPIO for right wheel PWM
+    mcpwm_unit_t pwm_unit;  ///< Specifies the PWM unit
+    mcpwm_timer_t timer;    ///< Specifies the hardware timer to control the PWM
+} motor_config_S;
 
-void motor_init(motor_controller_E controller, motor_S *motor);
+/**
+ *  Initializes a motor and stores a pointer to its configuration
+ *  @param motor  : Which motor to initialize
+ *  @param config : Configuration struct
+ *  @returns      : Success status
+ */
+bool motor_init(motor_E motor, motor_config_S *config);
 
-void motor_move(motor_controller_E controller, motor_direction_E direction, float duty);
+/**
+ *  Sets the PWM to move in a specific direction or pattern
+ *  @param motor     : The motor to move
+ *  @param direction : The type of movement
+ *  @param duty      : The duty percentage
+ */
+void motor_move(motor_E motor, motor_direction_E direction, float duty);
 
-void motor_stop(motor_controller_E controller);
+/**
+ *  Stops the motor by setting duty to 0%
+ *  @param motor : The motor to stop
+ */
+void motor_stop(motor_E motor);
+
+/**
+ *  Logs motor information
+ */
+void motor_log_status(void);

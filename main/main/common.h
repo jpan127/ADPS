@@ -22,7 +22,9 @@
  */
 
 
-// Divide tasks into three priorities
+#define TERMINAL_TESTING 1
+
+/// Divide tasks into three priorities
 enum
 {
     PRIORITY_LOW  = 5,
@@ -49,6 +51,17 @@ typedef enum
     CONNECTED, 
     LISTENING
 } socket_state_E;
+
+// Helper macros for logging to server
+// Use these instead of directly using log_to_server()
+#define LOG_INFO(message, ...)   (log_to_server(PACKET_TYPE_INFO,   message, ## __VA_ARGS__))
+#define LOG_ERROR(message, ...)  (log_to_server(PACKET_TYPE_ERROR,  message, ## __VA_ARGS__))
+#define LOG_STATUS(message, ...) (log_to_server(PACKET_TYPE_STATUS, message, ## __VA_ARGS__))
+#define LOG_LOG(message, ...)    (log_to_server(PACKET_TYPE_LOG,    message, ## __VA_ARGS__))
+
+// Helper macros for size comparison or related
+#define MAX(a, b)   ((a > b) ? (a) : (b))
+#define MIN(a, b)   ((a < b) ? (a) : (b))
 
 // Tick/time macros
 #define TICK_MS(ms)         (ms / portTICK_PERIOD_MS)

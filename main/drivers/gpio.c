@@ -11,12 +11,10 @@ typedef struct
 // Array of flags to show which gpios are initialized
 static gpio_S gpio_map[GPIO_NUM_MAX] = 
 {
-    [gpio_left_wheel_pwm]   = { .pin=GPIO_NUM_4,  .mode=GPIO_MODE_OUTPUT },
-    [gpio_left_wheel_en]    = { .pin=GPIO_NUM_17, .mode=GPIO_MODE_OUTPUT },
-    [gpio_right_wheel_pwm]  = { .pin=GPIO_NUM_0,  .mode=GPIO_MODE_OUTPUT },
-    [gpio_right_wheel_en]   = { .pin=GPIO_NUM_16, .mode=GPIO_MODE_OUTPUT },
-    [gpio_delivery_pwm]     = { .pin=GPIO_NUM_1,  .mode=GPIO_MODE_OUTPUT },
-    [gpio_delivery_en]      = { .pin=GPIO_NUM_2,  .mode=GPIO_MODE_OUTPUT },
+    [gpio_wheels_en_a]  = { .pin=GPIO_NUM_17, .mode=GPIO_MODE_OUTPUT },
+    [gpio_wheels_en_b]  = { .pin=GPIO_NUM_16, .mode=GPIO_MODE_OUTPUT },
+    [gpio_wheels_pwm_a] = { .pin=GPIO_NUM_4,  .mode=GPIO_MODE_OUTPUT },
+    [gpio_wheels_pwm_b] = { .pin=GPIO_NUM_0,  .mode=GPIO_MODE_OUTPUT },
 };
 
 void gpio_init(void)
@@ -36,6 +34,11 @@ void gpio_init(void)
         config.pin_bit_mask = (1 << (uint32_t)gpio_map[gpio].pin);
         ESP_ERROR_CHECK(gpio_config(&config));
     }
+}
+
+uint32_t gpio_get_pin_number(gpios_E gpio)
+{
+    return (uint32_t)gpio_map[gpio].pin;
 }
 
 void gpio_set_interrupt(gpio_num_t pin, gpio_int_type_t type)

@@ -3,28 +3,22 @@
 #include "common.h"
 
 
-// Macro to ensure each task has the same prototype
-// Is this really necessary?
-#define TASK_PROTOTYPE(name) void name(void *p)
-#define INIT_PROTOTYPE(name) void name(void)
 
+/// Struct for storing an ID to enumerate socket pool tasks, and a unique port number
 typedef struct
 {
-    uint8_t task_id;
-    uint32_t port;
+    uint8_t task_id;    ///< Task ID for enumeration
+    uint32_t port;      ///< Unique port number for each task
 } socket_tx_task_params_S;
 
+/// Initializes a single server socket
 void init_server_socket(void);
 
-// Initialization functions
-INIT_PROTOTYPE(Init_RxTask);
-INIT_PROTOTYPE(Init_ScissorTask);
-INIT_PROTOTYPE(Init_ServoTask);
-INIT_PROTOTYPE(Init_NavigationTask);
+/// Initialization functions
+void init_task_navigation(void);
+// void Init_RxTask(void);
 
-// Tasks
-TASK_PROTOTYPE(NavigationTask);
-TASK_PROTOTYPE(ScissorTask);
-TASK_PROTOTYPE(ServoTask);
-TASK_PROTOTYPE(TxTask);
-TASK_PROTOTYPE(RxTask);
+/// Tasks
+void task_navigation(void *p);
+// void TxTask(void *p);
+// void RxTask(void *p);

@@ -20,15 +20,22 @@ typedef enum
     PACKET_TYPE_INFO          = 0,  // System starting/finishing/initializing something, x bytes were sent
     PACKET_TYPE_ERROR         = 1,  // Something failed
     PACKET_TYPE_STATUS        = 2,  // Something successful, something complete
-    PACKET_TYPE_COMMAND_READ  = 3,  // Get commands
-    PACKET_TYPE_COMMAND_WRITE = 4,  // Set commands
+    PACKET_TYPE_LOG           = 3,  // Data logging
+    PACKET_TYPE_COMMAND_READ  = 4,  // Get commands
+    PACKET_TYPE_COMMAND_WRITE = 5,  // Set commands
 } packet_type_E;
 
 // Denotes the opcode for command packets
 typedef enum
 {
-    PACKET_OPCODE_SET = 1,  // @TBD
-    PACKET_OPCODE_GET = 2,
+    COMMAND_SET_FORWARD   = 0,    /// @TODO : This should be in a universal JSON
+    COMMAND_SET_BACKWARD  = 1,
+    COMMAND_SET_LEFT      = 2,
+    COMMAND_SET_RIGHT     = 3,
+    COMMAND_GET_FORWARD   = 4,
+    COMMAND_GET_BACKWARD  = 5,
+    COMMAND_GET_LEFT      = 6,
+    COMMAND_GET_RIGHT     = 7,
 } packet_opcode_E;
 
 // Denotes the current state of the parser
@@ -43,10 +50,9 @@ typedef enum
 // Diagnostic Packet structure
 typedef struct
 {
-    uint8_t type;   // Type of packet
-    uint8_t length; // Size of payload in bytes
-
-    uint8_t payload[MAX_PACKET_SIZE];
+    uint8_t type;                       ///< Type of packet
+    uint8_t length;                     ///< Size of payload in bytes
+    uint8_t payload[MAX_PACKET_SIZE];   ///< Data
 
 } __attribute__((packed)) diagnostic_packet_S;
 
@@ -78,3 +84,9 @@ parser_status_E command_packet_parser(uint8_t byte, command_packet_S *packet);
 // @param type    : The type of the packet
 // @param message : The string format 
 void log_to_server(packet_type_E type, const char *message, ...);
+
+/**
+ *  Logging data must have this format : { category, sub_category, data1, data2 }
+ *
+ */
+void log_data(const char *category, uint8_t sub_category, uint32_t data1, uint32_t data2);
