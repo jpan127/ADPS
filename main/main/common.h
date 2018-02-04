@@ -16,13 +16,11 @@
 #include "credentials.h"    // Must include this to connect to wifi, @NOTE : create your own as it is gitignored
 
 
+
 /**
  *  @module      : common
  *  @description : Common enums, defines, queues, and semaphores
  */
-
-
-#define TERMINAL_TESTING 1
 
 /// Divide tasks into three priorities
 enum

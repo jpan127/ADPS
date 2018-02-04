@@ -35,7 +35,7 @@ static void log_vsnprintf(packet_type_E type, const char *message, va_list arg_l
     // Prints formatted message to buffer with null-termination
     vsnprintf(buffer+2, sizeof(diagnostic_packet_S), message, arg_list);
 
-#if TERMINAL_TESTING
+#if TESTING
     ESP_LOGI("", "%s", buffer+2);
 #else
     buffer[0] = (uint8_t)type;

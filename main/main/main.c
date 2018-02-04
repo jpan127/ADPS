@@ -72,8 +72,6 @@ void app_main(void)
     //  *//////////////////////////////
 
     CREATE_TASK_LOW(task_navigation, _4KB);
-    // CREATE_TASK_LOW(ScissorTask,    _4KB);
-    // CREATE_TASK_LOW(ServoTask,      _4KB);
 
     // /*/////////////////////////////
     //  *                            *

@@ -46,6 +46,7 @@ typedef struct
     float right;
 } duty_S;
 
+/// Struct for logging duty percentages of all motors
 typedef struct
 {
     duty_S duty[MOTORS_MAX];   
@@ -68,9 +69,26 @@ bool motor_init(motor_E motor, motor_config_S *config);
 void motor_move(motor_E motor, motor_direction_E direction, float duty);
 
 /**
+ *  Adjusts the duty cycle by incrementing by a step size
+ *  @param motor     : The motor to move
+ *  @param direction : The type of movement
+ *  @param step      : The step size
+ */
+void motor_increment(motor_E motor, motor_direction_E direction, float step);
+
+/**
+ *  Adjusts the duty cycle by decrementing by a step size
+ *  @param motor     : The motor to move
+ *  @param direction : The type of movement
+ *  @param step      : The step size
+ */
+void motor_deccrement(motor_E motor, motor_direction_E direction, float step);
+
+/**
  *  Stops the motor by setting duty to 0%
  *  @param motor : The motor to stop
  */
 void motor_stop(motor_E motor);
 
+/// Returns a pointer to the motor logging struct
 motor_logs_S * motor_get_logs(void);
