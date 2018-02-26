@@ -18,10 +18,14 @@ typedef enum
 
     gpio_wheels_en_a,
     gpio_wheels_en_b,
-    gpio_wheels_pwm_a,
-    gpio_wheels_pwm_b,
 
     gpio_last_invalid,
+
+    /// Do not initialize as gpio
+    gpio_wheels_pwm_a,
+    gpio_wheels_pwm_b,
+    gpio_servo_pwm,
+
 } gpios_E;
 
 /// Initializes all the gpios in [gpios_E]

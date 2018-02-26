@@ -9,6 +9,9 @@
  *  @description : Driver for controlling the chip's PWM peripherals
  */
 
+/// Setting the gpio config value to this means don't initialize it
+#define GPIO_NOT_USING (GPIO_NUM_MAX)
+
 /// Enumerate which PWM of each module to target
 typedef enum 
 {
@@ -17,35 +20,60 @@ typedef enum
     PWM_AB
 } pwm_E;
 
+/// Enumerate whether to generate pwm using percentage duty or time based duty
+typedef enum
+{
+    pwm_duty_percent = 0,
+    pwm_duty_us,
+} pwm_duty_type_E;
+
+typedef union
+{
+    float percent;
+    uint32_t us;
+} pwm_duty_U;
+
+/// Struct to package configuration parameters
+typedef struct
+{
+    mcpwm_unit_t pwm_unit;  ///< The unit to initialize
+    gpio_num_t gpio_a;      ///< GPIO to output for PWM A
+    gpio_num_t gpio_b;      ///< GPIO to output for PWM B
+    mcpwm_timer_t timer;    ///< The timer to control the PWM signals
+    uint32_t frequency;     ///< Frequency of PWM signal
+} pwm_config_S;
+
+/// Pair of unit and timer which are required for every pwm operation
+typedef struct
+{
+    mcpwm_unit_t pwm_unit;  ///< The pwm unit
+    mcpwm_timer_t timer;    ///< The timer to control the PWM signals
+} pwm_S;
+
 /**
  *  Initialize a PWM module
- *  @param pwm_unit : The unit to initialize
- *  @param gpio_a   : GPIO to output for PWM A
- *  @param gpio_b   : GPIO to output for PWM B
- *  @param timer    : The timer to control the PWM signals
+ *  @param config : Configuration parameters
  */
-void pwm_init(mcpwm_unit_t pwm_unit, gpio_num_t gpio_a, gpio_num_t gpio_b, mcpwm_timer_t timer);
+void pwm_init(const pwm_config_S * config);
 
 /**
  *  Starts a PWM module
- *  @param pwm_unit : The unit to start
- *  @param timer    : The timer to control the PWM signals
+ *  @param pwm_pair : Pair of unit and timer specific to the chosen pwm
  */
-void pwm_start(mcpwm_unit_t pwm_unit, mcpwm_timer_t timer);
+void pwm_start(pwm_S * pwm_pair);
 
 /**
  *  Generate a duty cycle for the specified PWM module
- *  @param pwm_unit : The unit to initialize
- *  @param timer    : The timer to control the PWM signals
- *  @param pwm      : Which PWM of the specified module to target
- *  @param duty     : A duty percentage 0.00f - 100.00f
+ *  @param pwm_pair   : Pair of unit and timer specific to the chosen pwm
+ *  @param pwm        : Which PWM of the specified module to target
+ *  @param duty       : A duty percentage 0.00f - 100.00f or a microsecond whole number
+ *  @param percentage : True to interpret duty as a float, false to interpret as uint32_t microseconds
  */
-void pwm_generate(mcpwm_unit_t pwm_unit, mcpwm_timer_t timer, pwm_E pwm, float duty);
+void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E duty_type);
 
 /**
  *  Initialize a PWM module
- *  @param pwm_unit : The unit to initialize
- *  @param timer    : The timer to control the PWM signals
+ *  @param pwm_pair : Pair of unit and timer specific to the chosen pwm
  *  @param pwm      : Which PWM of the specified module to target
  */
-void pwm_stop(mcpwm_unit_t pwm_unit, mcpwm_timer_t timer, pwm_E pwm);
+void pwm_stop(pwm_S * pwm_pair, pwm_E pwm);

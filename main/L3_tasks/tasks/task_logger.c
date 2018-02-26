@@ -21,7 +21,7 @@ void init_task_logger(void)
     log_struct_init();
 }
 
-void task_logger(void *p)
+void task_logger(task_param_T params)
 {
     // Pointer to the single log struct instance
     const log_struct_S * ptr = log_struct_get_pointer();
@@ -47,6 +47,7 @@ void task_logger(void *p)
         switch (mux)
         {
             case mux_client:
+
                 log_data("%u:sockets_created:%u",       log_type_client,    &ptr->tcp_client_logs->sockets_created);
                 log_data("%u:sockets_closed:%u",        log_type_client,    &ptr->tcp_client_logs->sockets_closed);
                 log_data("%u:server_connections:%u",    log_type_client,    &ptr->tcp_client_logs->server_connections);
@@ -54,6 +55,7 @@ void task_logger(void *p)
                 break;
 
             case mux_server:
+
                 log_data("%u:server_port:%u",           log_type_server,    &ptr->tcp_server_logs->server_port);
                 log_data("%u:state:%u",                 log_type_server,    &ptr->tcp_server_logs->state);
                 log_data("%u:queue_size:%u",            log_type_server,    &ptr->tcp_server_logs->queue_size);
@@ -61,6 +63,7 @@ void task_logger(void *p)
                 break;
 
             case mux_packet:
+
                 log_data("%u:rx_packets:%u",            log_type_packet,    &ptr->packet_logs->rx_packets);
                 log_data("%u:tx_packets:%u",            log_type_packet,    &ptr->packet_logs->tx_packets);
                 log_data("%u:packet_errors:%u",         log_type_packet,    &ptr->packet_logs->packet_errors);
@@ -72,17 +75,19 @@ void task_logger(void *p)
                 break;
 
             case mux_motor:
-                for (uint8_t i=0; i<MOTORS_MAX; i++)
-                {
-                    snprintf(buffer, sizeof(buffer), "%%u:duty_left[%u]:%%f", i);
-                    log_data_float(buffer, log_type_motor, &ptr->motor_logs->duty[i].left);
 
-                    snprintf(buffer, sizeof(buffer), "%%u:duty_right[%u]:%%f", i);
-                    log_data_float(buffer, log_type_motor, &ptr->motor_logs->duty[i].right);
+                for (uint8_t i=0; i<motor_max; i++)
+                {
+                    snprintf(buffer, sizeof(buffer), "%%u:duty_a[%u]:%%f", i);
+                    log_data_float(buffer, log_type_motor, &ptr->motor_logs->duty[i].a.percent);
+
+                    snprintf(buffer, sizeof(buffer), "%%u:duty_b[%u]:%%f", i);
+                    log_data_float(buffer, log_type_motor, &ptr->motor_logs->duty[i].b.percent);
                 }
                 break;
 
             case mux_wifi:
+
                 log_data_string("%u:device_ip:%s",      log_type_wifi,    ptr->wifi_logs->device_ip);
                 log_data_string("%u:device_gw:%s",      log_type_wifi,    ptr->wifi_logs->device_gw);
                 log_data_string("%u:device_sn:%s",      log_type_wifi,    ptr->wifi_logs->device_sn);
@@ -90,6 +95,7 @@ void task_logger(void *p)
                 break;
 
             default:
+            
                 break;
         }
 

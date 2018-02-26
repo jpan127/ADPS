@@ -1,6 +1,9 @@
 #pragma once
+/// Framework libraries
 #include "driver/gpio.h"
 #include "driver/mcpwm.h"
+// Project libraries
+#include "pwm.h"
 
 
 
@@ -12,21 +15,29 @@
 /// Enumerates each PWM motor
 typedef enum
 {
-    MOTOR_FIRST_INVALID = 0,
-    MOTOR_WHEELS,
-    MOTOR_SHAFT,
-    MOTORS_MAX
+    motor_wheels = 0,
+    motor_shaft,
+    motor_servo,
+    motor_max,
 } motor_E;
 
 /// Enumerates the type of movement
 typedef enum
 {
-    MOTOR_DIRECTION_FORWARD,
-    MOTOR_DIRECTION_BACKWARD,
-    MOTOR_DIRECTION_LEFT,
-    MOTOR_DIRECTION_RIGHT,
-    MOTOR_DIRECTION_STOP
+    motor_dir_both_forward = 0,
+    motor_dir_both_backward,
+    motor_dir_a_forward,
+    motor_dir_a_backward,
+    motor_dir_b_forward,
+    motor_dir_b_backward,
 } motor_direction_E;
+
+/// Enumerates whether to increment or decrement duty
+typedef enum
+{
+    duty_increment = 0,
+    duty_decrement,
+} duty_adjust_E;
 
 /// Struct to configure each motor and to use for enabling / disabling
 typedef struct
@@ -37,19 +48,21 @@ typedef struct
     gpio_num_t pwm_b;       ///< GPIO for right wheel PWM
     mcpwm_unit_t pwm_unit;  ///< Specifies the PWM unit
     mcpwm_timer_t timer;    ///< Specifies the hardware timer to control the PWM
+    pwm_S pwm;              ///< Combines pwm_unit and timer
+    uint32_t frequency;     ///< Frequency of PWM signal
 } motor_config_S;
 
-/// Struct for storing duty vlaues of left and right PWMs
+/// Struct for storing duty values of both PWM A and PWM B
 typedef struct
 {
-    float left;
-    float right;
+    pwm_duty_U a;
+    pwm_duty_U b;
 } duty_S;
 
 /// Struct for logging duty percentages of all motors
 typedef struct
 {
-    duty_S duty[MOTORS_MAX];   
+    duty_S duty[motor_max];   
 } motor_logs_S;
 
 /**
@@ -69,20 +82,13 @@ bool motor_init(motor_E motor, motor_config_S *config);
 void motor_move(motor_E motor, motor_direction_E direction, float duty);
 
 /**
- *  Adjusts the duty cycle by incrementing by a step size
- *  @param motor     : The motor to move
- *  @param direction : The type of movement
- *  @param step      : The step size
- */
-void motor_increment(motor_E motor, motor_direction_E direction, float step);
-
-/**
  *  Adjusts the duty cycle by decrementing by a step size
- *  @param motor     : The motor to move
- *  @param direction : The type of movement
- *  @param step      : The step size
+ *  @param motor       : The motor to move
+ *  @param direction   : The type of movement
+ *  @param step        : The step size
+ *  @param adjust_type : Increment or decrement
  */
-void motor_deccrement(motor_E motor, motor_direction_E direction, float step);
+void motor_adjust_duty(motor_E motor, motor_direction_E direction, float step, duty_adjust_E adjust_type);
 
 /**
  *  Stops the motor by setting duty to 0%

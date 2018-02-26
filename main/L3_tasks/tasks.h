@@ -11,6 +11,8 @@ typedef struct
     uint32_t port;      ///< Unique port number for each task
 } task_tx_params_S;
 
+typedef void * task_param_T;
+
 /// Initializes a single server socket
 void init_server_socket(void);
 
@@ -32,7 +34,7 @@ void init_task_navigation(void);
  *                            *
  *////////////////////////////*/
 
-void task_navigation(void *p);
+void task_navigation(task_param_T params);
 
 /**
  *  A pool of [task_tx] receives packets from a queue and sends it out to the server
@@ -41,6 +43,14 @@ void task_navigation(void *p);
  *  @note : All print statements will be sent out over this task, unless [TESTING] is defined
  *          then it will just print to terminal
  */
-void task_tx(void *p);
+void task_tx(task_param_T params);
 
-void task_rx(void *p);
+void task_rx(task_param_T params);
+
+/**
+ *  Controls the servo that swivels the camera left and right
+ *      1. Waits for servo position command from server
+ *      2. Adjusts the servo position
+ *      3. Sends servo position acknowledge to the server
+ */
+void task_servo(task_param_T params);

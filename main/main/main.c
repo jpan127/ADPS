@@ -21,6 +21,9 @@ static inline void CREATE_TASK_LOW(TaskFunction_t  function, const uint32_t stac
 static inline void CREATE_TASK_MED(TaskFunction_t  function, const uint32_t stack)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_MED,  NULL); }
 static inline void CREATE_TASK_HIGH(TaskFunction_t function, const uint32_t stack)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_HIGH, NULL); }
 
+/**
+ *  Creates THREAD_POOL_SIZE many [task_tx]s
+ */
 static void create_tx_thread_pool(void)
 {
     // Each task has a unique name, postfixed by its task ID
@@ -45,6 +48,9 @@ static void create_tx_thread_pool(void)
     }
 }
 
+/**
+ *  Creates THREAD_POOL_SIZE many [task_rx]s
+ */
 static void create_rx_thread_pool(void)
 {
     // Each task has a unique name, postfixed by its task ID
@@ -77,12 +83,14 @@ void app_main(void)
      *                            *
      *//////////////////////////////
 
+#if 0
     // Initialize wifi
     init_wifi();
 
     // Initialize server socket
     init_server_socket();
-
+#endif
+    
     // Initialize gpios
     gpio_init();
 
@@ -99,8 +107,8 @@ void app_main(void)
      *                            *
      *//////////////////////////////
 
-    create_tx_thread_pool();
-    create_rx_thread_pool();
+    // create_tx_thread_pool();
+    // create_rx_thread_pool();
 
     /*/////////////////////////////
      *                            *
@@ -108,7 +116,7 @@ void app_main(void)
      *                            *
      *//////////////////////////////
 
-    CREATE_TASK_MED(task_navigation, _4KB);
+    CREATE_TASK_MED(task_navigation, _8KB);
 
     /*//////////////////////////////
      *                             *

@@ -107,21 +107,21 @@ static bool reopen_socket(int *client_socket, uint32_t port, uint8_t task_id)
     return init_task_tx(client_socket, port, task_id);
 }
 
-void task_tx(void *p)
+void task_tx(task_param_T params)
 {
     // Each task_tx has its own input parameter with its designated task ID and port number
-    const task_tx_params_S params = *((task_tx_params_S *)p);
+    const task_tx_params_S task_params = *((task_tx_params_S *)params);
 
     // Initialize the client socket first
     int client_socket = -1;
-    if (!init_task_tx(&client_socket, params.port, params.task_id))
+    if (!init_task_tx(&client_socket, task_params.port, task_params.task_id))
     {
-        ESP_LOGE("task_tx", "[%d] Client task failed to initialize socket and is terminating...", params.task_id);
+        ESP_LOGE("task_tx", "[%d] Client task failed to initialize socket and is terminating...", task_params.task_id);
         vTaskSuspend(NULL);
     }
     else
     {
-        ESP_LOGI("task_tx", "[%d] Task initialized", params.task_id);
+        ESP_LOGI("task_tx", "[%d] Task initialized", task_params.task_id);
     }
 
     // Diagnostic packet
@@ -144,7 +144,7 @@ void task_tx(void *p)
         tcp_client_send_packet(&client_socket, buffer, current_packet_size);
 
         // Close and reopen socket, also prints its own error message, nothing to handle
-        reopen_socket(&client_socket, params.port, params.task_id);
+        reopen_socket(&client_socket, task_params.port, task_params.task_id);
 
         // Clear buffer so data doesnt overlap
         // Only need to clear current_packet_size because other bytes are untouched

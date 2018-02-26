@@ -3,13 +3,13 @@
 
 
 
-void pwm_init(mcpwm_unit_t pwm_unit, gpio_num_t gpio_a, gpio_num_t gpio_b, mcpwm_timer_t timer)
+void pwm_init(const pwm_config_S * config)
 {
     // Set the PWM IO signals
     mcpwm_io_signals_t io_a = MCPWM0A;
     mcpwm_io_signals_t io_b = MCPWM0B;
 
-    switch (timer)
+    switch (config->timer)
     {
         case MCPWM_TIMER_0: io_a = MCPWM0A; io_b = MCPWM0B; break;
         case MCPWM_TIMER_1: io_a = MCPWM1A; io_b = MCPWM1B; break;
@@ -17,79 +17,109 @@ void pwm_init(mcpwm_unit_t pwm_unit, gpio_num_t gpio_a, gpio_num_t gpio_b, mcpwm
         default:                                            return;
     }
 
-    // Initialize GPIO
-    ESP_ERROR_CHECK(mcpwm_gpio_init(pwm_unit, io_a, gpio_a));
-    // If gpio_b is GPIO_NUM_MAX, meaning only need gpio_a, dont use
-    if (gpio_b < GPIO_NUM_MAX)
+    // Initialize GPIO A if it is populated
+    if (GPIO_NOT_USING != config->gpio_a)
     {
-        ESP_ERROR_CHECK(mcpwm_gpio_init(pwm_unit, io_b, gpio_b))        
+        ESP_ERROR_CHECK(mcpwm_gpio_init(config->pwm_unit, io_a, config->gpio_a));
     }
 
-    const mcpwm_config_t config =
+    // Initialize GPIO B if it is populated
+    if (GPIO_NOT_USING != config->gpio_b)
     {
-        .frequency    = 1000,
-        .cmpr_a       = 0,
-        .cmpr_b       = 0,
-        .duty_mode    = MCPWM_DUTY_MODE_0,
-        .counter_mode = MCPWM_UP_COUNTER,
+        ESP_ERROR_CHECK(mcpwm_gpio_init(config->pwm_unit, io_b, config->gpio_b))        
+    }
+
+    const mcpwm_config_t mcpwm_config =
+    {
+        .frequency    = config->frequency,  ///< Frequency of PWM signal
+        .cmpr_a       = 0,                  ///< Start off with no duty cycle
+        .cmpr_b       = 0,                  ///< Start off with no duty cycle
+        .duty_mode    = MCPWM_DUTY_MODE_0,  ///< Active high duty
+        .counter_mode = MCPWM_UP_COUNTER,   ///< Counts up
     };
 
     // Initialize PWM
-    ESP_ERROR_CHECK(mcpwm_init(pwm_unit, timer, &config));
+    ESP_ERROR_CHECK(mcpwm_init(config->pwm_unit, config->timer, &mcpwm_config));
     ESP_LOGI("pwm_init", "Initialized PWM Configuration.");
 }
 
-void pwm_start(mcpwm_unit_t pwm_unit, mcpwm_timer_t timer)
+void pwm_start(pwm_S * pwm_pair)
 {
-    ESP_ERROR_CHECK(mcpwm_start(pwm_unit, timer));
+    ESP_ERROR_CHECK(mcpwm_start(pwm_pair->pwm_unit, pwm_pair->timer));
 }
 
-void pwm_generate(mcpwm_unit_t pwm_unit, mcpwm_timer_t timer, pwm_E pwm, float duty)
+void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E duty_type)
 {
     // Make sure duty is less than 100
-    duty = MIN(100.0f, duty);
+    duty.percent = MIN(100.0f, duty.percent);
     
     switch (pwm)
     {
         // Only for MCPWMXA
         case PWM_A:
-            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_unit, timer, MCPWM_OPR_A));
-            ESP_ERROR_CHECK(mcpwm_set_duty(pwm_unit, timer, MCPWM_OPR_A, duty));
-            ESP_LOGI("pwm_generate", "Generating MCPWMXA : %f", duty);
+            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_A));
+            if (pwm_duty_percent == duty_type)
+            {
+                ESP_ERROR_CHECK(mcpwm_set_duty(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_A, duty.percent));
+            }
+            else
+            {
+                ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_A, duty.us));
+            }
+            ESP_LOGI("pwm_generate", "Generating MCPWMXA : %f or %u", duty.percent, duty.us);
             break;
         // Only for MCPWMXB
         case PWM_B:
-            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_unit, timer, MCPWM_OPR_B));
-            ESP_ERROR_CHECK(mcpwm_set_duty(pwm_unit, timer, MCPWM_OPR_B, duty));
-            ESP_LOGI("pwm_generate", "Generating MCPWMXB : %f", duty);
+            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_B));
+            if (pwm_duty_percent == duty_type)
+            {
+                ESP_ERROR_CHECK(mcpwm_set_duty(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_B, duty.percent));
+            }
+            else
+            {
+                ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_B, duty.us));
+            }
+            ESP_LOGI("pwm_generate", "Generating MCPWMXB : %f or %u", duty.percent, duty.us);
             break;
         // Both MCPWMXA and MCPWMXB
         case PWM_AB:
-            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_unit, timer, MCPWM_OPR_A));
-            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_unit, timer, MCPWM_OPR_B));
-            ESP_ERROR_CHECK(mcpwm_set_duty(pwm_unit, timer, MCPWM_OPR_A, duty));
-            ESP_ERROR_CHECK(mcpwm_set_duty(pwm_unit, timer, MCPWM_OPR_B, duty));
-            ESP_LOGI("pwm_generate", "Generating MCPWMXA + MCPWMXB : %f", duty);
+            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_A));
+            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_B));
+            if (pwm_duty_percent == duty_type)
+            {
+                ESP_ERROR_CHECK(mcpwm_set_duty(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_A, duty.percent));
+                ESP_ERROR_CHECK(mcpwm_set_duty(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_B, duty.percent));
+            }
+            else
+            {
+                ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_A, duty.us));
+                ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_B, duty.us));
+            }
+            ESP_LOGI("pwm_generate", "Generating MCPWMXA + MCPWMXB : %f or %u", duty.percent, duty.us);
+            break;
+        default:
             break;
     }
 }
 
-void pwm_stop(mcpwm_unit_t pwm_unit, mcpwm_timer_t timer, pwm_E pwm)
+void pwm_stop(pwm_S * pwm_pair, pwm_E pwm)
 {
     switch (pwm)
     {
         case PWM_A:
-            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_unit, timer, MCPWM_OPR_A));
+            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_A));
             ESP_LOGI("pwm_stop", "Stopping MCPWMXA.");
             break;
         case PWM_B:
-            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_unit, timer, MCPWM_OPR_B));
+            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_B));
             ESP_LOGI("pwm_stop", "Stopping MCPWMXB.");
             break;
         case PWM_AB:
-            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_unit, timer, MCPWM_OPR_A));
-            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_unit, timer, MCPWM_OPR_B));
+            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_A));
+            ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->pwm_unit, pwm_pair->timer, MCPWM_OPR_B));
             ESP_LOGI("pwm_stop", "Stopping MCPWMXA + MCPWMXB.");
+            break;
+        default:
             break;
     }
 }

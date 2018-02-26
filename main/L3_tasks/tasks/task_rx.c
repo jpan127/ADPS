@@ -46,34 +46,34 @@ static int accept_blocking(uint8_t task_id, const int server_socket)
  */
 static void service_command(command_packet_S *packet)
 {
-    const motor_E motor = MOTOR_WHEELS;
+    // const motor_E motor = motor_wheels;
 
-    switch (packet->opcode)
-    {
-        case command_move_forward  : motor_move(motor, MOTOR_DIRECTION_FORWARD,  packet->command.bytes[0]);         break;
-        case command_move_backward : motor_move(motor, MOTOR_DIRECTION_BACKWARD, packet->command.bytes[0]);         break;
-        case command_move_left     : motor_move(motor, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]);         break;
-        case command_move_right    : motor_move(motor, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]);         break;
+    // switch (packet->opcode)
+    // {
+    //     case command_move_forward  : motor_move(motor, MOTOR_DIRECTION_FORWARD,       packet->command.bytes[0]);    break;
+    //     case command_move_backward : motor_move(motor, MOTOR_DIRECTION_BACKWARD,      packet->command.bytes[0]);    break;
+    //     case command_move_left     : motor_move(motor, MOTOR_DIRECTION_LEFT,          packet->command.bytes[0]);    break;
+    //     case command_move_right    : motor_move(motor, MOTOR_DIRECTION_RIGHT,         packet->command.bytes[0]);    break;
 
-        case command_incr_forward  : motor_increment(motor, MOTOR_DIRECTION_FORWARD,  packet->command.bytes[0]);    break;
-        case command_incr_backward : motor_increment(motor, MOTOR_DIRECTION_BACKWARD, packet->command.bytes[0]);    break;
-        case command_incr_left     : motor_increment(motor, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]);    break;
-        case command_incr_right    : motor_increment(motor, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]);    break;
+    //     case command_incr_forward  : motor_increment(motor, MOTOR_DIRECTION_FORWARD,  packet->command.bytes[0]);    break;
+    //     case command_incr_backward : motor_increment(motor, MOTOR_DIRECTION_BACKWARD, packet->command.bytes[0]);    break;
+    //     case command_incr_left     : motor_increment(motor, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]);    break;
+    //     case command_incr_right    : motor_increment(motor, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]);    break;
 
-        case command_decr_forward  : motor_deccrement(motor, MOTOR_DIRECTION_FORWARD,  packet->command.bytes[0]);   break;
-        case command_decr_backward : motor_deccrement(motor, MOTOR_DIRECTION_BACKWARD, packet->command.bytes[0]);   break;
-        case command_decr_left     : motor_deccrement(motor, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]);   break;
-        case command_decr_right    : motor_deccrement(motor, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]);   break;
+    //     case command_decr_forward  : motor_decrement(motor, MOTOR_DIRECTION_FORWARD,  packet->command.bytes[0]);    break;
+    //     case command_decr_backward : motor_decrement(motor, MOTOR_DIRECTION_BACKWARD, packet->command.bytes[0]);    break;
+    //     case command_decr_left     : motor_decrement(motor, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]);    break;
+    //     case command_decr_right    : motor_decrement(motor, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]);    break;
 
-        default:                                                                                                    break;
-    }
+    //     default:                                                                                                    break;
+    // }
 }
 
 /// @TODO : Change all logging to go through [packet]
-void task_rx(void *p)
+void task_rx(task_param_T params)
 {
     // This task takes an input parameter which designates its task ID
-    const uint8_t task_id = *((uint8_t *)p);
+    const uint8_t task_id = *((uint8_t *)params);
 
     // Wait for server to be created before starting
     if (!xEventGroupWaitBits(StatusEventGroup,   ///< Event group handle
