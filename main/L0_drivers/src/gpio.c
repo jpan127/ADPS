@@ -13,11 +13,11 @@ static gpio_S gpio_map[GPIO_NUM_MAX] =
 {
     /// Initialize
     [gpio_wheels_en_a]  = { .pin=GPIO_NUM_17, .mode=GPIO_MODE_OUTPUT },
-    [gpio_wheels_en_b]  = { .pin=GPIO_NUM_16, .mode=GPIO_MODE_OUTPUT },
+    [gpio_wheels_en_b]  = { .pin=GPIO_NUM_4,  .mode=GPIO_MODE_OUTPUT },
 
     /// Don't initialize
     [gpio_servo_pwm]    = { .pin=GPIO_NUM_5 },
-    [gpio_wheels_pwm_a] = { .pin=GPIO_NUM_4 },
+    [gpio_wheels_pwm_a] = { .pin=GPIO_NUM_16 },
     [gpio_wheels_pwm_b] = { .pin=GPIO_NUM_0 },
 };
 

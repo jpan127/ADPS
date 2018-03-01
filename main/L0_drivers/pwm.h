@@ -33,22 +33,21 @@ typedef union
     uint32_t us;
 } pwm_duty_U;
 
-/// Struct to package configuration parameters
-typedef struct
-{
-    mcpwm_unit_t pwm_unit;  ///< The unit to initialize
-    gpio_num_t gpio_a;      ///< GPIO to output for PWM A
-    gpio_num_t gpio_b;      ///< GPIO to output for PWM B
-    mcpwm_timer_t timer;    ///< The timer to control the PWM signals
-    uint32_t frequency;     ///< Frequency of PWM signal
-} pwm_config_S;
-
 /// Pair of unit and timer which are required for every pwm operation
 typedef struct
 {
-    mcpwm_unit_t pwm_unit;  ///< The pwm unit
+    mcpwm_unit_t unit;      ///< The pwm unit
     mcpwm_timer_t timer;    ///< The timer to control the PWM signals
 } pwm_S;
+
+/// Struct to package configuration parameters
+typedef struct
+{
+    gpio_num_t pwm_a;       ///< GPIO to output for PWM A
+    gpio_num_t pwm_b;       ///< GPIO to output for PWM B
+    pwm_S pwm;              ///< Pair of pwm unit and timer
+    uint32_t frequency;     ///< Frequency of PWM signal
+} pwm_config_S;
 
 /**
  *  Initialize a PWM module

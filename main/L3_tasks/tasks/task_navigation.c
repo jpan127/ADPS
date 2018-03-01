@@ -8,15 +8,17 @@ static const motor_E motor = motor_wheels;
 
 void init_task_navigation(void)
 {
-    motor_config_S config =
+    const motor_config_S config =
     {
-        .en_a      = gpio_get_pin_number(gpio_wheels_en_a),
-        .en_b      = gpio_get_pin_number(gpio_wheels_en_b),
-        .pwm_a     = gpio_get_pin_number(gpio_wheels_pwm_a),
-        .pwm_b     = gpio_get_pin_number(gpio_wheels_pwm_b),
-        .pwm_unit  = MCPWM_UNIT_0,
-        .timer     = MCPWM_TIMER_0,
-        .frequency = 1000,
+        .dir_a  = gpio_get_pin_number(gpio_wheels_en_a),
+        .dir_b  = gpio_get_pin_number(gpio_wheels_en_b),
+        .config = 
+        {
+            .pwm_a     = gpio_get_pin_number(gpio_wheels_pwm_a),
+            .pwm_b     = gpio_get_pin_number(gpio_wheels_pwm_b),
+            .pwm       =  { .unit = MCPWM_UNIT_0, .timer = MCPWM_TIMER_0, },
+            .frequency = 1000,
+        },
     };
 
     if (!motor_init(motor, &config))

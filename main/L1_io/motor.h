@@ -42,14 +42,9 @@ typedef enum
 /// Struct to configure each motor and to use for enabling / disabling
 typedef struct
 {
-    gpio_num_t en_a;        ///< GPIO for left wheel enable
-    gpio_num_t en_b;        ///< GPIO for right wheel enable
-    gpio_num_t pwm_a;       ///< GPIO for left wheel PWM
-    gpio_num_t pwm_b;       ///< GPIO for right wheel PWM
-    mcpwm_unit_t pwm_unit;  ///< Specifies the PWM unit
-    mcpwm_timer_t timer;    ///< Specifies the hardware timer to control the PWM
-    pwm_S pwm;              ///< Combines pwm_unit and timer
-    uint32_t frequency;     ///< Frequency of PWM signal
+    gpio_num_t dir_a;       ///< GPIO for PWM operator A direction
+    gpio_num_t dir_b;       ///< GPIO for PWM operator B direction
+    pwm_config_S config;    ///< Configuration for PWM
 } motor_config_S;
 
 /// Struct for storing duty values of both PWM A and PWM B
@@ -71,7 +66,7 @@ typedef struct
  *  @param config : Configuration struct
  *  @returns      : Success status
  */
-bool motor_init(motor_E motor, motor_config_S *config);
+bool motor_init(const motor_E motor, const motor_config_S * config);
 
 /**
  *  Sets the PWM to move in a specific direction or pattern
