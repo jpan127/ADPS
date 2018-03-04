@@ -23,3 +23,5 @@
 #define DEVICE_IP        ("192.168.1.250")
 #define DEVICE_GW        ("192.168.1.1")
 #define DEVICE_SN        ("255.255.255.0")
+
+#define MAX_TASKS        (50)

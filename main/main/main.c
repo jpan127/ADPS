@@ -16,10 +16,10 @@
 static task_tx_params_S task_tx_params[THREAD_POOL_SIZE] = { 0 };
 static uint8_t task_rx_params[16] = { 0 };
 
-/// No tasks need input parameters or handles, so simplify with an inline function
-static inline void CREATE_TASK_LOW(TaskFunction_t  function, const uint32_t stack)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_LOW,  NULL); }
-static inline void CREATE_TASK_MED(TaskFunction_t  function, const uint32_t stack)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_MED,  NULL); }
-static inline void CREATE_TASK_HIGH(TaskFunction_t function, const uint32_t stack)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_HIGH, NULL); }
+// /// No tasks need input parameters or handles, so simplify with an inline function
+// static inline void CREATE_TASK_LOW(TaskFunction_t  function, const uint32_t stack, TaskHandle_t * handle)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_LOW,  handle); register_task_handle(*handle); }
+// static inline void CREATE_TASK_MED(TaskFunction_t  function, const uint32_t stack, TaskHandle_t * handle)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_MED,  handle); register_task_handle(*handle); }
+// static inline void CREATE_TASK_HIGH(TaskFunction_t function, const uint32_t stack, TaskHandle_t * handle)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_HIGH, handle); register_task_handle(*handle); }
 
 /**
  *  Creates THREAD_POOL_SIZE many [task_tx]s
@@ -39,12 +39,11 @@ static void create_tx_thread_pool(void)
         strcat(task_tx_names[i], &task_id);
         task_tx_params[i].task_id = i;
         task_tx_params[i].port    = CLIENT_PORT + i;
-        xTaskCreate(&task_tx, 
-                    task_tx_names[i], 
-                    _12KB, 
-                    (void *)(&task_tx_params[i]), 
-                    PRIORITY_LOW, 
-                    NULL);
+        rtos_create_task_with_params(&task_tx, 
+                                    task_tx_names[i], 
+                                    _12KB,
+                                    PRIORITY_LOW,
+                                    (void *)(&task_tx_params[i]));
     }
 }
 
@@ -65,12 +64,11 @@ static void create_rx_thread_pool(void)
         strncpy(task_rx_names[i], task_rx_base_name, strlen(task_rx_base_name));
         strcat(task_rx_names[i], &task_id);
         task_rx_params[i] = i;
-        xTaskCreate(&task_rx, 
-                    task_rx_names[i], 
-                    _12KB, 
-                    (void *)(&task_rx_params[i]),
-                    PRIORITY_LOW, 
-                    NULL);
+        rtos_create_task_with_params(&task_rx,
+                                    task_rx_names[i], 
+                                    _12KB,
+                                    PRIORITY_LOW,
+                                    (void *)(&task_rx_params[i]));
     }
 }
 
@@ -117,8 +115,8 @@ void app_main(void)
      *                            *
      *//////////////////////////////
 
-    // CREATE_TASK_MED(task_navigation , _8KB);
-    CREATE_TASK_MED(task_servo      , _8KB);
+    rtos_create_task(&task_navigation , "task_navigation" , _8KB , PRIORITY_MED);
+    rtos_create_task(&task_servo      , "task_servo"      , _8KB , PRIORITY_MED);
 
     /*//////////////////////////////
      *                             *

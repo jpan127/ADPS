@@ -30,6 +30,7 @@ typedef enum
     log_type_packet = 0x82,
     log_type_motor  = 0x83,
     log_type_wifi   = 0x84,
+    log_type_wmark  = 0x85,
 
     PACKET_TYPE_LAST_INVALID,
 } packet_type_E;

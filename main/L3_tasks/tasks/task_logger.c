@@ -17,7 +17,7 @@ typedef enum
     mux_packet,
     mux_motor,
     mux_wifi,
-    // mux_task_watermarks, ///// @TODO : Add logging for task watermarks
+    mux_task_watermarks,
     mux_last_invalid,
 } logging_mux_E;
 
@@ -49,6 +49,11 @@ void task_logger(task_param_T params)
     logging_mux_E mux = mux_client;
 
     char buffer[32] = { 0 };
+
+    // Get task handles to check watermarks
+    TaskHandle_t * task_handles = NULL;
+    size_t num_tasks = 0;
+    tasks_get_task_handles(&task_handles, &num_tasks);
 
     // Main loop
     while (1)
@@ -110,8 +115,22 @@ void task_logger(task_param_T params)
                 log_data_string("%u:station_ssid:%s",   log_type_wifi,    logs.wifi_logs->station_ssid);
                 break;
 
+            case mux_task_watermarks:
+
+                for (size_t i=0; i<num_tasks; i++)
+                {
+                    // Get watermark
+                    uint32_t watermark = uxTaskGetStackHighWaterMark(task_handles[i]);
+                    // Lookup task name from handle
+                    const char * task_name = pcTaskGetTaskName(task_handles[i]);
+                    snprintf(buffer, sizeof(buffer), "%%u:%s:%%u", task_name);
+                    log_data(buffer, log_type_wmark, &watermark);
+                }
+                break;
+
             default:
             
+                ESP_LOGE("task_logger", "Undefined logger mux specified");
                 break;
         }
 

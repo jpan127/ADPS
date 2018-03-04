@@ -23,12 +23,12 @@
  */
 
 /// Divide tasks into three priorities
-enum
+typedef enum
 {
     PRIORITY_LOW  = 5,
     PRIORITY_MED  = 6,
     PRIORITY_HIGH = 7,
-};
+} rtos_priority_E;
 
 // Task creation stack sizes
 #define _512B   (128)
