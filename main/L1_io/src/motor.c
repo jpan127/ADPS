@@ -29,7 +29,7 @@ static uint16_t servo_degree_to_pulse_width(uint8_t degree)
     // Limit to max_degree
     degree = MIN(degree, max_degree);
     
-    const float percentage       = degree / max_degree;
+    const float percentage       = (float)degree / max_degree;
     const uint16_t duty_ratio_us = MIN_DUTY_RATIO_US + (percentage * duty_ratio_range_us);
 
     return duty_ratio_us;
@@ -58,6 +58,7 @@ bool motor_init(const motor_E motor, const motor_config_S * config)
 
 void motor_move(motor_E motor, motor_direction_E direction, float duty)
 {
+    // Handle conversion from float to microsecond duty
     const pwm_duty_type_E duty_type = (motor_servo == motor) ? (pwm_duty_us) : (pwm_duty_percent);
     const pwm_duty_U percent        = { .percent = duty };
     const pwm_duty_U us             = { .us = servo_degree_to_pulse_width(duty) };
@@ -115,6 +116,15 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty)
 
             ESP_LOGE("motor_move", "Impossible direction selected: %d", direction);
             break;
+    }
+
+    if (pwm_duty_percent == duty_type)
+    {
+        ESP_LOGI("motor_move", "Duty : %f %f%%", duty, percent.percent);
+    }
+    else
+    {
+        ESP_LOGI("motor_move", "Duty : %f %uus", duty, us.us);
     }
 }
 

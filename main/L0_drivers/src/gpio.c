@@ -16,9 +16,9 @@ static gpio_S gpio_map[GPIO_NUM_MAX] =
     [gpio_wheels_en_b]  = { .pin=GPIO_NUM_4,  .mode=GPIO_MODE_OUTPUT },
 
     /// Don't initialize
-    [gpio_servo_pwm]    = { .pin=GPIO_NUM_5 },
+    [gpio_servo_pwm]    = { .pin=GPIO_NUM_5  },
     [gpio_wheels_pwm_a] = { .pin=GPIO_NUM_16 },
-    [gpio_wheels_pwm_b] = { .pin=GPIO_NUM_0 },
+    [gpio_wheels_pwm_b] = { .pin=GPIO_NUM_0  },
 };
 
 void gpio_init(void)
@@ -56,7 +56,10 @@ void gpio_set_resistor_mode(gpio_num_t pin, gpio_pull_mode_t mode)
     ESP_ERROR_CHECK(gpio_set_pull_mode(pin, mode));
 }
 
-void gpio_set_output_value(gpio_num_t pin, bool value)
+void gpio_set_output_value(gpios_E gpio, bool value)
 {
-    ESP_ERROR_CHECK(gpio_set_level(pin, value));
+    if (gpio_last_invalid != gpio)
+    {
+        ESP_ERROR_CHECK(gpio_set_level(gpio_map[gpio].pin, value));
+    }
 }

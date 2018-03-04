@@ -6,6 +6,7 @@
 
 
 static const motor_E motor = motor_servo;
+static bool initialized = true;
 
 void init_task_servo(void)
 {
@@ -15,7 +16,7 @@ void init_task_servo(void)
         .dir_b  = GPIO_NOT_USING,
         .config = 
         {
-            .pwm_a     = gpio_get_pin_number(gpio_servo_pwm),
+            .pwm_a     = gpio_servo_pwm,
             .pwm_b     = GPIO_NOT_USING,
             .pwm       = { .unit = MCPWM_UNIT_1, .timer = MCPWM_TIMER_0 },
             .frequency = 50,
@@ -25,14 +26,36 @@ void init_task_servo(void)
     if (!motor_init(motor, &config))
     {
         ESP_LOGE("init_task_servo", "Motor servo was not properly initialized.");
+        initialized = false;
     }
 }
 
 void task_servo(task_param_T params)
 {
+    if (!initialized)
+    {
+        vTaskSuspend(NULL);
+    }
+
     // Main loop
     while(1)
     {
+        for (float duty = 0; duty < 180; duty++)
+        {
+            motor_move(motor, motor_dir_a_forward, duty);
+            DELAY_MS(20);
+        }
 
+        motor_stop(motor);
+        DELAY_MS(2000);
+
+        for (float duty = 180; duty >= 0; duty--)
+        {
+            motor_move(motor, motor_dir_a_forward, duty);
+            DELAY_MS(20);
+        }
+
+        motor_stop(motor);
+        DELAY_MS(2000);
     }
 }

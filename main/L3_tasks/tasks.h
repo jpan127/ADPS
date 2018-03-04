@@ -27,6 +27,7 @@ void init_create_all_queues(void);
 
 void init_task_logger(void);
 void init_task_navigation(void);
+void init_task_servo(void);
 
 /*/////////////////////////////
  *                            *

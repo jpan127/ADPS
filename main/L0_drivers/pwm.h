@@ -1,6 +1,8 @@
 #pragma once
 // Framework libraries
 #include "driver/mcpwm.h"
+// Project libraries
+#include "gpio.h"
 
 
 
@@ -8,9 +10,6 @@
  *  @module      : pwm
  *  @description : Driver for controlling the chip's PWM peripherals
  */
-
-/// Setting the gpio config value to this means don't initialize it
-#define GPIO_NOT_USING (GPIO_NUM_MAX)
 
 /// Enumerate which PWM of each module to target
 typedef enum 
@@ -43,8 +42,8 @@ typedef struct
 /// Struct to package configuration parameters
 typedef struct
 {
-    gpio_num_t pwm_a;       ///< GPIO to output for PWM A
-    gpio_num_t pwm_b;       ///< GPIO to output for PWM B
+    gpios_E pwm_a;          ///< GPIO to output for PWM A
+    gpios_E pwm_b;          ///< GPIO to output for PWM B
     pwm_S pwm;              ///< Pair of pwm unit and timer
     uint32_t frequency;     ///< Frequency of PWM signal
 } pwm_config_S;

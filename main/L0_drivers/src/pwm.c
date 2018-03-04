@@ -1,5 +1,4 @@
 #include "pwm.h"
-#include "gpio.h"
 
 
 
@@ -18,15 +17,15 @@ void pwm_init(const pwm_config_S * config)
     }
 
     // Initialize PWM A if it is populated
-    if (GPIO_NOT_USING != config->pwm_a)
+    if (GPIO_NOT_USING != gpio_get_pin_number(config->pwm_a))
     {
-        ESP_ERROR_CHECK(mcpwm_gpio_init(config->pwm.unit, io_a, config->pwm_a));
+        ESP_ERROR_CHECK(mcpwm_gpio_init(config->pwm.unit, io_a, gpio_get_pin_number(config->pwm_a)));
     }
 
     // Initialize PWM B if it is populated
-    if (GPIO_NOT_USING != config->pwm_b)
+    if (GPIO_NOT_USING != gpio_get_pin_number(config->pwm_b))
     {
-        ESP_ERROR_CHECK(mcpwm_gpio_init(config->pwm.unit, io_b, config->pwm_b))        
+        ESP_ERROR_CHECK(mcpwm_gpio_init(config->pwm.unit, io_b, gpio_get_pin_number(config->pwm_b)))        
     }
 
     const mcpwm_config_t mcpwm_config =
@@ -67,6 +66,7 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
                 ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A, duty.us));
             }
             // ESP_LOGI("pwm_generate", "Generating MCPWMXA : %f or %u", duty.percent, duty.us);
+            ESP_ERROR_CHECK(mcpwm_set_duty_type(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A, MCPWM_DUTY_MODE_0));
             break;
         // Only for MCPWMXB
         case PWM_B:
@@ -80,6 +80,7 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
                 ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B, duty.us));
             }
             // ESP_LOGI("pwm_generate", "Generating MCPWMXB : %f or %u", duty.percent, duty.us);
+            ESP_ERROR_CHECK(mcpwm_set_duty_type(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B, MCPWM_DUTY_MODE_0));
             break;
         // Both MCPWMXA and MCPWMXB
         case PWM_AB:
@@ -104,8 +105,15 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
             break;
     }
 
-    ESP_LOGI("pwm_generate", "Duty: %f %f", mcpwm_get_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A),
-                                            mcpwm_get_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B));
+    if (pwm_duty_percent == duty_type)
+    {
+        ESP_LOGI("pwm_generate", "Duty: %f %f", mcpwm_get_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A),
+                                                mcpwm_get_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B));
+    }
+    else
+    {
+        ESP_LOGI("pwm_generate", "Duty: %uus", duty.us);     
+    }
 }
 
 void pwm_stop(pwm_S * pwm_pair, pwm_E pwm)

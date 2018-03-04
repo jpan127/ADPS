@@ -100,6 +100,7 @@ void app_main(void)
     // Initialize tasks
     init_task_logger();
     init_task_navigation();
+    init_task_servo();
 
     /*/////////////////////////////
      *                            *
@@ -116,7 +117,8 @@ void app_main(void)
      *                            *
      *//////////////////////////////
 
-    CREATE_TASK_MED(task_navigation, _8KB);
+    // CREATE_TASK_MED(task_navigation , _8KB);
+    CREATE_TASK_MED(task_servo      , _8KB);
 
     /*//////////////////////////////
      *                             *

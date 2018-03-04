@@ -11,6 +11,9 @@
  *  @description : Handles configuring and interfacing with gpios, some wrappers over [driver/gpio.h]
  */
 
+/// Setting the gpio config value to this means don't initialize it
+#define GPIO_NOT_USING (gpio_last_invalid)
+
 /// Enumerate all used GPIOs
 typedef enum
 {
@@ -54,7 +57,7 @@ void gpio_set_resistor_mode(gpio_num_t pin, gpio_pull_mode_t mode);
 
 /**
  *  Sets the state of an output GPIO
- *  @param pin   : The gpio to configure
+ *  @param gpi   : The gpio to configure
  *  @param value : The state to set to
  */
-void gpio_set_output_value(gpio_num_t pin, bool value);
+void gpio_set_output_value(gpios_E gpio, bool value);
