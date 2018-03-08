@@ -25,7 +25,7 @@ void init_task_servo(void)
 
     if (!motor_init(motor, &config))
     {
-        ESP_LOGE("init_task_servo", "Motor servo was not properly initialized.");
+        LOG_ERROR("init_task_servo", "Motor servo was not properly initialized.");
         initialized = false;
     }
 }

@@ -57,11 +57,18 @@ void task_navigation(task_param_T params);
  *  A pool of [task_tx] receives packets from a queue and sends it out to the server
  *      1. Receives a packet from [MessageTxQueue]
  *      2. Sends packet out
- *  @note : All print statements will be sent out over this task, unless [TESTING] is defined
- *          then it will just print to terminal
+ *  @param : A [task_tx_params_S] struct of the task ID and the port number to create a client socket with
+ *  @note  : All print statements will be sent out over this task, unless [TESTING] is defined
+ *           then it will just print to terminal
  */
 void task_tx(task_param_T params);
 
+/**
+ *  A pool of [task_rx] receives packets from lwip and services the command
+ *      1. Receives packet from lwip
+ *      2. Services the command 
+ *  @param : A task ID (uint32_t)
+ */
 void task_rx(task_param_T params);
 
 /**
@@ -71,3 +78,16 @@ void task_rx(task_param_T params);
  *      3. Sends servo position acknowledge to the server
  */
 void task_servo(task_param_T params);
+
+/**
+ *  Logs all useful information about the system over sockets to the server
+ *  A series of multiplexed logging data is sent out, spread out evenly over the course of a second
+ *  Muxes included:
+ *      - mux_client
+ *      - mux_server
+ *      - mux_packet
+ *      - mux_motor
+ *      - mux_wifi
+ *      - mux_task_watermarks
+ */
+void task_logger(task_param_T params);

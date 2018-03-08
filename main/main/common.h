@@ -1,6 +1,6 @@
 #pragma once
 // Standard libraries
-#include "stdint.h"
+#include <stdint.h>
 // FreeRTOS libraries
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -14,6 +14,8 @@
 // Project settings
 #include "config.h"
 #include "credentials.h"    // Must include this to connect to wifi, @NOTE : create your own as it is gitignored
+// Project libraries
+#include "packet.h"
 
 
 
@@ -39,13 +41,6 @@ typedef enum
 #define _16KB   (4096)
 #define _32KB   (8192)
 #define _64KB   (16384)
-
-// Helper macros for logging to server
-// Use these instead of directly using log_to_server()
-#define LOG_INFO(message, ...)   (log_to_server(PACKET_TYPE_INFO,   message, ## __VA_ARGS__))
-#define LOG_ERROR(message, ...)  (log_to_server(PACKET_TYPE_ERROR,  message, ## __VA_ARGS__))
-#define LOG_STATUS(message, ...) (log_to_server(PACKET_TYPE_STATUS, message, ## __VA_ARGS__))
-#define LOG_LOG(message, ...)    (log_to_server(PACKET_TYPE_LOG,    message, ## __VA_ARGS__))
 
 // Helper macros for size comparison or related
 #define MAX(a, b)   ((a > b) ? (a) : (b))

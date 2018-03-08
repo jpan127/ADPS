@@ -88,7 +88,7 @@ void task_logger(task_param_T params)
                 log_data("%u:rx_packets:%u",            log_type_packet,    &logs.packet_logs->rx_packets);
                 log_data("%u:tx_packets:%u",            log_type_packet,    &logs.packet_logs->tx_packets);
                 log_data("%u:packet_errors:%u",         log_type_packet,    &logs.packet_logs->packet_errors);
-                for (uint8_t i=0; i<PACKET_TYPE_LAST_INVALID; i++)
+                for (uint8_t i=0; i<packet_type_last_invalid; i++)
                 {
                     snprintf(buffer, sizeof(buffer), "%%u:packet_counts[%u]:%%u", i);
                     log_data(buffer, log_type_packet, &logs.packet_logs->packet_counts[i]);
@@ -130,7 +130,7 @@ void task_logger(task_param_T params)
 
             default:
             
-                ESP_LOGE("task_logger", "Undefined logger mux specified");
+                LOG_ERROR("task_logger", "Undefined logger mux specified");
                 break;
         }
 

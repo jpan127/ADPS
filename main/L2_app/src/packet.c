@@ -7,10 +7,10 @@
 /// Current state/status of the parser
 typedef enum
 {
-    TYPE     = 0,
-    OPCODE   = 1,
-    COMMAND1 = 2,
-    COMMAND2 = 3,
+    parser_state_type     = 0,
+    parser_state_opcode   = 1,
+    parser_state_command1 = 2,
+    parser_state_command2 = 3,
 } parser_state_E;
 
 /// Logging struct for packet
@@ -37,7 +37,11 @@ static void log_vsnprintf(packet_type_E type, const char *message, va_list arg_l
     vsnprintf(buffer+2, sizeof(diagnostic_packet_S), message, arg_list);
 
 #if TESTING
-    ESP_LOGI("", "%s", buffer+2);
+    switch (type)
+    {
+        case packet_type_error : ESP_LOGE("", "%s", buffer+2); break;   ///< Errors go to LOGE
+        default                : ESP_LOGI("", "%s", buffer+2); break;   ///< All else goes to LOGI
+    }
 #else
     buffer[0] = (uint8_t)type;
     buffer[1] = strlen(buffer) - 2;
@@ -65,30 +69,39 @@ void log_to_server(packet_type_E type, const char *message, ...)
 
 parser_status_E command_packet_parser(uint8_t byte, command_packet_S *packet)
 {
-    static parser_state_E state = TYPE;
+    static parser_state_E state = parser_state_type;
 
     switch (state)
     {
-        case TYPE:
+        case parser_state_type:
+
             packet->type = byte;
-            state = OPCODE;
-            return PARSER_IN_PROGRESS;
-        case OPCODE:
+            state = parser_state_opcode;
+            return parser_status_in_progress;
+        
+        case parser_state_opcode:
+        
             packet->opcode = byte;
-            state = COMMAND1;
-            return PARSER_IN_PROGRESS;
-        case COMMAND1:
+            state = parser_state_command1;
+            return parser_status_in_progress;
+        
+        case parser_state_command1:
+        
             packet->command.bytes[0] = byte;
-            state = COMMAND2;
-            return PARSER_IN_PROGRESS;
-        case COMMAND2:
+            state = parser_state_command2;
+            return parser_status_in_progress;
+        
+        case parser_state_command2:
+        
             packet->command.bytes[1] = byte;
-            state = TYPE;
-            return PARSER_COMPLETE;
+            state = parser_state_type;
+            return parser_status_complete;
+        
         default:
+        
             ESP_LOGE("command_packet_parser", "Reached impossible state: %d!\n", state);
-            state = TYPE;
-            return PARSER_ERROR;
+            state = parser_state_type;
+            return parser_status_error;
     }
 }
 

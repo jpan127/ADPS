@@ -16,11 +16,6 @@
 static task_tx_params_S task_tx_params[THREAD_POOL_SIZE] = { 0 };
 static uint8_t task_rx_params[16] = { 0 };
 
-// /// No tasks need input parameters or handles, so simplify with an inline function
-// static inline void CREATE_TASK_LOW(TaskFunction_t  function, const uint32_t stack, TaskHandle_t * handle)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_LOW,  handle); register_task_handle(*handle); }
-// static inline void CREATE_TASK_MED(TaskFunction_t  function, const uint32_t stack, TaskHandle_t * handle)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_MED,  handle); register_task_handle(*handle); }
-// static inline void CREATE_TASK_HIGH(TaskFunction_t function, const uint32_t stack, TaskHandle_t * handle)  { xTaskCreate(function, STRINGIFY(function), stack, NULL, PRIORITY_HIGH, handle); register_task_handle(*handle); }
-
 /**
  *  Creates THREAD_POOL_SIZE many [task_tx]s
  */
@@ -108,6 +103,8 @@ void app_main(void)
 
     // create_tx_thread_pool();
     // create_rx_thread_pool();
+
+    rtos_create_task(&task_logger     , "task_logger"     , _8KB , PRIORITY_LOW);   ///< Profile how much stack is actually needed
 
     /*/////////////////////////////
      *                            *

@@ -12,27 +12,34 @@
 /// Max size of diagnostic packet payload
 #define MAX_PACKET_SIZE (128)
 
+// Helper macros for logging to server
+// Use these instead of directly using log_to_server()
+#define LOG_INFO(message, ...)   (log_to_server(packet_type_info,   message, ## __VA_ARGS__))
+#define LOG_ERROR(message, ...)  (log_to_server(packet_type_error,  message, ## __VA_ARGS__))
+#define LOG_STATUS(message, ...) (log_to_server(packet_type_status, message, ## __VA_ARGS__))
+#define LOG_LOG(message, ...)    (log_to_server(packet_type_log,    message, ## __VA_ARGS__))
+
 extern QueueHandle_t MessageTxQueue;
 extern QueueHandle_t MessageRxQueue;
 
 /// Denotes the type of the packet
 typedef enum
 {
-    PACKET_TYPE_INFO          = 0,  ///< System starting/finishing/initializing something, x bytes were sent
-    PACKET_TYPE_ERROR         = 1,  ///< Something failed
-    PACKET_TYPE_STATUS        = 2,  ///< Something successful, something complete
-    PACKET_TYPE_LOG           = 3,  ///< Data logging
-    PACKET_TYPE_COMMAND_READ  = 4,  ///< Get commands
-    PACKET_TYPE_COMMAND_WRITE = 5,  ///< Set commands
+    packet_type_info          = 0,  ///< System starting/finishing/initializing something, x bytes were sent
+    packet_type_error         = 1,  ///< Something failed
+    packet_type_status        = 2,  ///< Something successful, something complete
+    packet_type_log           = 3,  ///< Data logging
+    packet_type_command_read  = 4,  ///< Get commands
+    packet_type_command_write = 5,  ///< Set commands
 
-    log_type_client = 0x80,
-    log_type_server = 0x81,
-    log_type_packet = 0x82,
-    log_type_motor  = 0x83,
-    log_type_wifi   = 0x84,
-    log_type_wmark  = 0x85,
+    log_type_client = 0x80,         ///< For logging to server
+    log_type_server = 0x81,         ///< For logging to server
+    log_type_packet = 0x82,         ///< For logging to server
+    log_type_motor  = 0x83,         ///< For logging to server
+    log_type_wifi   = 0x84,         ///< For logging to server
+    log_type_wmark  = 0x85,         ///< For logging to server
 
-    PACKET_TYPE_LAST_INVALID,
+    packet_type_last_invalid,
 } packet_type_E;
 
 /// Denotes the opcode for command packets
@@ -57,10 +64,10 @@ typedef enum
 /// Denotes the current state of the parser
 typedef enum
 {
-    PARSER_IDLE,
-    PARSER_IN_PROGRESS,
-    PARSER_COMPLETE,
-    PARSER_ERROR
+    parser_status_idle,
+    parser_status_in_progress,
+    parser_status_complete,
+    parser_status_error,
 } parser_status_E;
 
 /// Diagnostic Packet structure
@@ -89,10 +96,10 @@ typedef struct
 /// Packet logging struct
 typedef struct
 {
-    uint32_t rx_packets;
-    uint32_t tx_packets;
-    uint32_t packet_errors;
-    uint32_t packet_counts[PACKET_TYPE_LAST_INVALID];
+    uint32_t rx_packets;                                ///< Number of received packets
+    uint32_t tx_packets;                                ///< Number of transmitted packets
+    uint32_t packet_errors;                             ///< Number of packet errors
+    uint32_t packet_counts[packet_type_last_invalid];   ///< Number of packets for each type
 } packet_logs_S;
 
 /**

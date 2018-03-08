@@ -65,7 +65,7 @@ static void service_command(command_packet_S *packet)
     //     case command_decr_left     : motor_decrement(motor, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]);    break;
     //     case command_decr_right    : motor_decrement(motor, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]);    break;
 
-    //     default:                                                                                                    break;
+    //     default                    : LOG_ERROR("Undefined opcode found: %d", packet->opcode);                       break;
     // }
 }
 
@@ -94,7 +94,7 @@ void task_rx(task_param_T params)
     uint16_t size = 0;
 
     // Parser status
-    parser_status_E status = PARSER_IDLE;
+    parser_status_E status = parser_status_idle;
 
     // Command packet
     command_packet_S packet = { 0 };
@@ -118,7 +118,7 @@ void task_rx(task_param_T params)
             for (uint16_t i=0; i<size; i++)
             {
                 status = command_packet_parser(buffer[i], &packet);
-                if (PARSER_COMPLETE == status)
+                if (parser_status_complete == status)
                 {
                     // // Send to task_command
                     // xQueueSend(MessageRxQueue, &packet, MAX_DELAY);
