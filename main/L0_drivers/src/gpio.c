@@ -8,17 +8,18 @@ typedef struct
     gpio_mode_t mode;
 } gpio_S;
 
-// Array of flags to show which gpios are initialized
+// Array of GPIOs to initialize and enumerate all used pins
 static gpio_S gpio_map[GPIO_NUM_MAX] = 
 {
     /// Initialize
-    [gpio_wheels_en_a]  = { .pin=GPIO_NUM_17, .mode=GPIO_MODE_OUTPUT },
-    [gpio_wheels_en_b]  = { .pin=GPIO_NUM_4,  .mode=GPIO_MODE_OUTPUT },
+    [gpio_wheels_en_a]  = { .pin = GPIO_NUM_17 , .mode = GPIO_MODE_OUTPUT },
+    [gpio_wheels_en_b]  = { .pin = GPIO_NUM_4  , .mode = GPIO_MODE_OUTPUT },
 
     /// Don't initialize
-    [gpio_servo_pwm]    = { .pin=GPIO_NUM_5  },
-    [gpio_wheels_pwm_a] = { .pin=GPIO_NUM_16 },
-    [gpio_wheels_pwm_b] = { .pin=GPIO_NUM_0  },
+    [gpio_servo_pwm]    = { .pin = GPIO_NUM_5  },
+    [gpio_wheels_pwm_a] = { .pin = GPIO_NUM_16 },
+    [gpio_wheels_pwm_b] = { .pin = GPIO_NUM_0  },
+    [gpio_adc_infrared] = { .pin = GPIO_NUM_36 },
 };
 
 void gpio_init(void)
@@ -32,7 +33,7 @@ void gpio_init(void)
     };
 
     // Initialize gpio
-    for (gpios_E gpio = gpio_first_invalid + 1; gpio < gpio_last_invalid; gpio++)
+    for (gpio_E gpio = gpio_first_invalid + 1; gpio < gpio_last_invalid; gpio++)
     {
         config.mode = gpio_map[gpio].mode;
         config.pin_bit_mask = (1 << (uint32_t)gpio_map[gpio].pin);
@@ -40,7 +41,7 @@ void gpio_init(void)
     }
 }
 
-uint32_t gpio_get_pin_number(gpios_E gpio)
+uint32_t gpio_get_pin_number(gpio_E gpio)
 {
     return (uint32_t)gpio_map[gpio].pin;
 }
@@ -56,7 +57,7 @@ void gpio_set_resistor_mode(gpio_num_t pin, gpio_pull_mode_t mode)
     ESP_ERROR_CHECK(gpio_set_pull_mode(pin, mode));
 }
 
-void gpio_set_output_value(gpios_E gpio, bool value)
+void gpio_set_output_value(gpio_E gpio, bool value)
 {
     if (gpio_last_invalid != gpio)
     {

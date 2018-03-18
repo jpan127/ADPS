@@ -11,6 +11,7 @@
 #include "errno.h"
 #include "esp_log.h"
 #include "esp_err.h"
+#include "rom/ets_sys.h"
 // Project settings
 #include "config.h"
 #include "credentials.h"    // Must include this to connect to wifi, @NOTE : create your own as it is gitignored
@@ -49,6 +50,7 @@ typedef enum
 // Tick/time macros
 #define TICK_MS(ms)         (ms / portTICK_PERIOD_MS)
 #define DELAY_MS(ms)        (vTaskDelay(ms / portTICK_PERIOD_MS))
+#define DELAY_US(us)        (ets_delay_us(us))
 #define MAX_DELAY           (portMAX_DELAY)
 #define NO_DELAY            (0)
 #define ONE_MIN             (60*1000)

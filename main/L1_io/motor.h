@@ -42,8 +42,8 @@ typedef enum
 /// Struct to configure each motor and to use for enabling / disabling
 typedef struct
 {
-    gpios_E dir_a;          ///< GPIO for PWM operator A direction
-    gpios_E dir_b;          ///< GPIO for PWM operator B direction
+    gpio_E dir_a;          ///< GPIO for PWM operator A direction
+    gpio_E dir_b;          ///< GPIO for PWM operator B direction
     pwm_config_S config;    ///< Configuration for PWM
 } motor_config_S;
 

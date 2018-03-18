@@ -28,10 +28,11 @@ typedef enum
     gpio_wheels_pwm_a,
     gpio_wheels_pwm_b,
     gpio_servo_pwm,
+    gpio_adc_infrared,
 
-} gpios_E;
+} gpio_E;
 
-/// Initializes all the gpios in [gpios_E]
+/// Initializes all the gpios in [gpio_E]
 void gpio_init(void);
 
 /**
@@ -39,7 +40,7 @@ void gpio_init(void);
  *  @param gpio : The gpio to lookup
  *  @returns    : The pin number as as integer
  */
-uint32_t gpio_get_pin_number(gpios_E gpio);
+uint32_t gpio_get_pin_number(gpio_E gpio);
 
 /**
  *  Sets a GPIO for interrupt mode
@@ -60,4 +61,4 @@ void gpio_set_resistor_mode(gpio_num_t pin, gpio_pull_mode_t mode);
  *  @param gpi   : The gpio to configure
  *  @param value : The state to set to
  */
-void gpio_set_output_value(gpios_E gpio, bool value);
+void gpio_set_output_value(gpio_E gpio, bool value);

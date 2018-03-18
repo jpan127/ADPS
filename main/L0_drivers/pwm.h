@@ -42,8 +42,8 @@ typedef struct
 /// Struct to package configuration parameters
 typedef struct
 {
-    gpios_E pwm_a;          ///< GPIO to output for PWM A
-    gpios_E pwm_b;          ///< GPIO to output for PWM B
+    gpio_E pwm_a;          ///< GPIO to output for PWM A
+    gpio_E pwm_b;          ///< GPIO to output for PWM B
     pwm_S pwm;              ///< Pair of pwm unit and timer
     uint32_t frequency;     ///< Frequency of PWM signal
 } pwm_config_S;

@@ -91,3 +91,9 @@ void task_servo(task_param_T params);
  *      - mux_task_watermarks
  */
 void task_logger(task_param_T params);
+
+/**
+ *  Reads the infrared sensor through the ADC module
+ *  @param : [gpio_E] GPIO number that is connected to the sensor
+ */
+void task_detection(task_param_T params);
