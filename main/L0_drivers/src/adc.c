@@ -2,8 +2,14 @@
 
 
 
+/// Stores a map of bools to keep track of which ADC 1 channels has been initialized
 static bool adc_init_map[ADC1_CHANNEL_MAX] = { 0 };
 
+/**
+ *  Converts a GPIO enumeration to an ADC 1 channel enumeration
+ *  @param gpio : The input to convert
+ *  @returns    : An ADC 1 channel
+ */
 static adc1_channel_t adc_gpio_to_channel(const gpio_E gpio)
 {
     switch (gpio_get_pin_number(gpio))
@@ -20,12 +26,13 @@ static adc1_channel_t adc_gpio_to_channel(const gpio_E gpio)
     }
 }
 
-void adc1_initialize(const gpio_E gpio)
+bool adc1_initialize(const gpio_E gpio)
 {
     const adc1_channel_t channel = adc_gpio_to_channel(gpio);
-    
+    bool success = false;
+
     // If not already initialized
-    if (!adc_init_map[channel])
+    if (channel < ADC1_CHANNEL_MAX && !adc_init_map[channel])
     {
         // Enable GPIO
         const adc_unit_t adc_unit = ADC_UNIT_1;
@@ -39,7 +46,11 @@ void adc1_initialize(const gpio_E gpio)
         const adc_atten_t full_scale_attenuation = ADC_ATTEN_11db;
         ESP_ERROR_CHECK(adc1_config_channel_atten(channel, full_scale_attenuation));
         adc_init_map[channel] = true;
+
+        success = true;
     }
+
+    return success;
 }
 
 int32_t acd1_sample(const gpio_E gpio)
@@ -47,7 +58,7 @@ int32_t acd1_sample(const gpio_E gpio)
     const adc1_channel_t channel = adc_gpio_to_channel(gpio);
     int32_t adc_voltage_v = -1;
 
-    if (adc_init_map[channel])
+    if (channel < ADC1_CHANNEL_MAX && adc_init_map[channel])
     {
         adc_voltage_v = adc1_get_raw(channel);
     }

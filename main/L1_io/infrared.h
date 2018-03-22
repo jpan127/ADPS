@@ -5,11 +5,29 @@
 
 
 /**
- *  Initializes the infrared and performs a quick self test
- *  @param gpio : The ADC GPIO to initialize
- *  @returns    : True for self test passed, false for self test failed
+ *  @module : infrared
+ *
+ *  A simple API to read from an infrared sensor
+ *  The sensors must be initialized with a gpio array of [infrared_max] size prior to any sampling
+ *  The samples are bursted by a specified size and then are averaged
  */
-bool infrared_initialize(const gpio_E gpio);
+
+/// Enumerate the 3 infrared sensors
+typedef enum
+{
+    infrared_1,
+    infrared_2,
+    infrared_3,
+    infrared_max,
+} infrared_E;
+
+/**
+ *  Initializes the infrared and performs a quick self test
+ *  @param gpio       : The ADC GPIOs to initialize, expects a size of [infrared_max]
+ *  @param functional : An array of pass/fail results of self testing each sensor, expects a size of [infrared_max]
+ *  @returns          : True for self test passed, false for self test failed
+ */
+void infrared_initialize(const gpio_E * gpio, bool * functional);
 
 /**
  *  Samples the ADC value multiple times with a delay in between sampling
