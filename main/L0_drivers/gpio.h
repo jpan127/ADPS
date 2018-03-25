@@ -28,8 +28,9 @@ typedef enum
     gpio_wheels_pwm_a,
     gpio_wheels_pwm_b,
     gpio_servo_pwm,
-    gpio_adc_infrared,
-
+    gpio_adc_infrared_bottom,
+    gpio_adc_infrared_top_left,
+    gpio_adc_infrared_top_right,
 } gpio_E;
 
 /// Initializes all the gpios in [gpio_E]

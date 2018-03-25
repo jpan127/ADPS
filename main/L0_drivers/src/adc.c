@@ -32,7 +32,11 @@ bool adc1_initialize(const gpio_E gpio)
     bool success = false;
 
     // If not already initialized
-    if (channel < ADC1_CHANNEL_MAX && !adc_init_map[channel])
+    if (adc_init_map[channel])
+    {
+        success = true;
+    }
+    else if (channel < ADC1_CHANNEL_MAX)
     {
         // Enable GPIO
         const adc_unit_t adc_unit = ADC_UNIT_1;
@@ -43,11 +47,15 @@ bool adc1_initialize(const gpio_E gpio)
         ESP_ERROR_CHECK(adc1_config_width(adc_resolution));
 
         // Enable ADC and set attenuation
-        const adc_atten_t full_scale_attenuation = ADC_ATTEN_11db;
+        const adc_atten_t full_scale_attenuation = ADC_ATTEN_DB_6;
         ESP_ERROR_CHECK(adc1_config_channel_atten(channel, full_scale_attenuation));
         adc_init_map[channel] = true;
 
         success = true;
+    }
+    else
+    {
+        ESP_LOGE("adc1_initialize", "Incorrect channel %d", channel);
     }
 
     return success;

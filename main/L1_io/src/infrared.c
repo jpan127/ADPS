@@ -11,7 +11,7 @@ static gpio_E infrared_map[infrared_max] = { 0 };
  *  @param ir : The sensor to test
  *  @returns  : True for pass, false for fail
  */
-static bool infrared_self_test(const infarred_E ir)
+static bool infrared_self_test(const infrared_E ir)
 {
     const uint8_t minimum_value_to_not_fault = 10;
     const uint8_t num_tests = 10;
@@ -69,18 +69,27 @@ void infrared_initialize(const gpio_E * gpio, bool * functional)
     {
         // Save to map
         infrared_map[ir] = gpio[ir];
-        
+     
+        // Start off as passed test   
+        functional[ir] = true;
+     
         // Initialize the ADC channel
         if (!adc1_initialize(infrared_map[ir]))
         {
             ESP_LOGE("infrared_initialize", "Failed to initialize infrared sensor %d", ir);
+            functional[ir] = false;
             continue;
         }
         
         // Run self test on the sensor
-        if ((function[ir] = infrared_self_test(ir)) == false)
+        if ((functional[ir] = infrared_self_test(ir)) == false)
         {
             ESP_LOGE("infrared_initialize", "Failed self test infrared sensor %d", ir);
+        }
+
+        if (functional[ir])
+        {
+            ESP_LOGI("infrared_initialize", "Successfully initialized infrared sensor %d", ir);
         }
     }
 }
@@ -97,7 +106,7 @@ uint32_t infrared_burst_sample(const gpio_E gpio, const uint8_t samples, const u
             if (reading >= 0)
             {
                 average += reading;
-                ESP_LOGI("infrared_burst_sample", "Sample : %d", reading);
+                // ESP_LOGI("infrared_burst_sample", "Sample : %d", reading);
                 DELAY_US(delay_us);
             }
 #if TESTING

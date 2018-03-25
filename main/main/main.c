@@ -9,9 +9,6 @@
  *  @description : Setup all drivers and tasks for the rtos scheduler
  */
 
-/// Stringifies something
-#define STRINGIFY(s) (#s)
-
 // Each task has its own port number + task ID
 static task_tx_params_S task_tx_params[THREAD_POOL_SIZE] = { 0 };
 static uint8_t task_rx_params[16] = { 0 };
@@ -119,7 +116,7 @@ void app_main(void)
                                 "task_detection",
                                 _8KB,
                                 PRIORITY_MED,
-                                (void *)(gpio_adc_infrared));
+                                (void *)(gpio_adc_infrared_bottom));
 
     /*//////////////////////////////
      *                             *

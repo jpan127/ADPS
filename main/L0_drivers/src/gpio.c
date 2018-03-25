@@ -9,17 +9,19 @@ typedef struct
 } gpio_S;
 
 // Array of GPIOs to initialize and enumerate all used pins
-static gpio_S gpio_map[GPIO_NUM_MAX] = 
+static gpio_S gpio_map[GPIO_NUM_MAX] =
 {
     /// Initialize
     [gpio_wheels_en_a]  = { .pin = GPIO_NUM_17 , .mode = GPIO_MODE_OUTPUT },
     [gpio_wheels_en_b]  = { .pin = GPIO_NUM_4  , .mode = GPIO_MODE_OUTPUT },
 
     /// Don't initialize
-    [gpio_servo_pwm]    = { .pin = GPIO_NUM_5  },
-    [gpio_wheels_pwm_a] = { .pin = GPIO_NUM_16 },
-    [gpio_wheels_pwm_b] = { .pin = GPIO_NUM_0  },
-    [gpio_adc_infrared] = { .pin = GPIO_NUM_36 },
+    [gpio_servo_pwm]              = { .pin = GPIO_NUM_5  },
+    [gpio_wheels_pwm_a]           = { .pin = GPIO_NUM_16 },
+    [gpio_wheels_pwm_b]           = { .pin = GPIO_NUM_0  },
+    [gpio_adc_infrared_bottom]    = { .pin = GPIO_NUM_35 }, ///< GPIO_NUM_36 is busted, gets residual ADC readings from nearby GPIO
+    [gpio_adc_infrared_top_left]  = { .pin = GPIO_NUM_39 },
+    [gpio_adc_infrared_top_right] = { .pin = GPIO_NUM_34 },
 };
 
 void gpio_init(void)

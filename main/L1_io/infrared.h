@@ -15,7 +15,7 @@
 /// Enumerate the 3 infrared sensors
 typedef enum
 {
-    infrared_1,
+    infrared_1 = 0,
     infrared_2,
     infrared_3,
     infrared_max,
