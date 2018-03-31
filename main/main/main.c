@@ -75,10 +75,10 @@ void app_main(void)
      *//////////////////////////////
 
     // Initialize wifi
-    // init_wifi();
+    init_wifi();
 
     // Initialize server socket
-    // init_server_socket();
+    init_server_socket();
     
     // Initialize gpios
     gpio_init();
@@ -88,7 +88,7 @@ void app_main(void)
 
     // Initialize tasks
     // init_task_logger();
-    init_task_navigation();
+    // init_task_navigation();
     // init_task_servo();
 
     /*/////////////////////////////
@@ -97,8 +97,8 @@ void app_main(void)
      *                            *
      *//////////////////////////////
 
-    // create_tx_thread_pool();
-    // create_rx_thread_pool();
+    create_tx_thread_pool();
+    create_rx_thread_pool();
 
     // rtos_create_task(&task_logger, "task_logger", _8KB , PRIORITY_LOW);   ///< Profile how much stack is actually needed
 
@@ -108,7 +108,7 @@ void app_main(void)
      *                            *
      *//////////////////////////////
 
-    rtos_create_task(&task_navigation , "task_navigation" , _8KB , PRIORITY_MED);
+    // rtos_create_task(&task_navigation , "task_navigation" , _8KB , PRIORITY_MED);
     // rtos_create_task(&task_servo      , "task_servo"      , _8KB , PRIORITY_MED);
 
     // rtos_create_task_with_params(&task_detection, 

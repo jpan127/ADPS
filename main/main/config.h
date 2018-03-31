@@ -25,3 +25,6 @@
 #define DEVICE_SN        ("255.255.255.0")
 
 #define MAX_TASKS        (50)
+
+/// Buffer size for [task_rx]
+#define RECV_BUFFER_SIZE (256)

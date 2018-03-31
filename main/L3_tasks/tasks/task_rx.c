@@ -10,9 +10,6 @@
 
 
 
-/// Buffer size for [task_rx]
-#define RECV_BUFFER_SIZE (256)
-
 /**
  *  Accepts an incoming client connection
  *  @param task_id       : ID of the calling task
@@ -130,14 +127,8 @@ void task_rx(task_param_T params)
             //         // service_command(&packet);
             //     }
             // }
-
-            for (uint8_t i=0; i<size; i++)
-            {
-                printf("%c", buffer[i]);
-            }
-            printf("\n");
     
-            // tcp_client_close_socket(&client_socket);
+            tcp_client_close_socket(&client_socket);
         }
     }
 }

@@ -28,9 +28,9 @@ typedef enum
     packet_type_info          = 0,  ///< System starting/finishing/initializing something, x bytes were sent
     packet_type_error         = 1,  ///< Something failed
     packet_type_status        = 2,  ///< Something successful, something complete
-    packet_type_log           = 3,  ///< Data logging
-    packet_type_command_read  = 4,  ///< Get commands
-    packet_type_command_write = 5,  ///< Set commands
+    packet_type_command_read  = 3,  ///< Get commands
+    packet_type_command_write = 4,  ///< Set commands
+    packet_type_log = 5,
 
     log_type_client = 0x80,         ///< For logging to server
     log_type_server = 0x81,         ///< For logging to server
@@ -59,6 +59,8 @@ typedef enum
     command_decr_backward  = 9,
     command_decr_left      = 10,
     command_decr_right     = 11,
+    command_servo_duty     = 12,
+    command_manual_mode    = 13,    ///< Unless this is enabled, all commands will be ignored
 } packet_opcode_E;
 
 /// Denotes the current state of the parser

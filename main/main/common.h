@@ -63,8 +63,5 @@ typedef enum
 #define BIT_SERVER_READY    (1 << 4)
 #define BIT_CLIENT_READY    (1 << 5)
 
-// Maximum size of recv buffer
-#define MAX_BUFFER_SIZE     (1024)
-
 // Global event group for status communication
 extern EventGroupHandle_t StatusEventGroup;

@@ -159,6 +159,6 @@ void task_tx(task_param_T params)
         // Only need to clear current_packet_size because other bytes are untouched
         // memset(&packet, 0, current_packet_size);
 
-        DELAY_MS(1000);
+        DELAY_MS(5000);
     }
 }

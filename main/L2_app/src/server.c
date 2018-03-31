@@ -164,10 +164,10 @@ bool tcp_server_receive(int client_sock, uint8_t *buffer, uint16_t *size)
     while (size_read > 0)
     {
         // Read data from socket
-        size_read = recv(client_sock,     ///< Socket
-                         buffer + *size,  ///< Address in buffer to start writing to
-                         MAX_BUFFER_SIZE, ///< Size to read
-                         0);              ///< Flags
+        size_read = recv(client_sock,      ///< Socket
+                         buffer + *size,   ///< Address in buffer to start writing to
+                         RECV_BUFFER_SIZE, ///< Size to read
+                         0);               ///< Flags
 
         // Add number of bytes read
         *size += size_read;
@@ -183,6 +183,16 @@ bool tcp_server_receive(int client_sock, uint8_t *buffer, uint16_t *size)
     if (*size > 0)
     {
         logs.packets_received++;
+    }
+
+    // Make sure the buffer is null terminated for printing afterwards
+    if (*size >= RECV_BUFFER_SIZE)
+    {
+        buffer[RECV_BUFFER_SIZE - 1] = '\0';
+    }
+    else
+    {
+        buffer[*size] = '\0';
     }
 
     ESP_LOGI("server::tcp_server_receive", "Received %i bytes : %s", *size, buffer);
