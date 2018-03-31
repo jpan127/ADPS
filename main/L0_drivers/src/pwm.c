@@ -95,7 +95,6 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
             {
                 ESP_ERROR_CHECK(mcpwm_set_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A, duty.percent));
                 ESP_ERROR_CHECK(mcpwm_set_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B, duty.percent));
-                printf("Setting duty %f%%\n", duty.percent);
             }
             else
             {

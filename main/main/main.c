@@ -5,22 +5,25 @@
 
 
 /**
- *  @module      : main
- *  @description : Setup all drivers and tasks for the rtos scheduler
+ *  @module : main
+ *
+ *  Setup all drivers and tasks for the rtos scheduler
+ *  Initializes and allocates all queues, semaphores, and dynamically allocated memory first
  */
 
-// Each task has its own port number + task ID
+/// Maximum characters a task name can be
+#define MAX_TASK_NAME_CHARS (16)
+
+/// Each task has its own port number + task ID
 static task_tx_params_S task_tx_params[THREAD_POOL_SIZE] = { 0 };
-static uint8_t task_rx_params[16] = { 0 };
+static uint8_t task_rx_params[THREAD_POOL_SIZE]          = { 0 };
 
-/**
- *  Creates THREAD_POOL_SIZE many [task_tx]s
- */
+///Creates <THREAD_POOL_SIZE> many [task_tx]s
 static void create_tx_thread_pool(void)
 {
     // Each task has a unique name, postfixed by its task ID
     const char * const task_tx_base_name = "task_tx";
-    char task_tx_names[THREAD_POOL_SIZE][16] = { 0 };
+    char task_tx_names[THREAD_POOL_SIZE][MAX_TASK_NAME_CHARS] = { 0 };
     const uint16_t _12KB = 3000;
 
     // Create task pool of task_tx_params to transmit packets to remote server
@@ -39,14 +42,12 @@ static void create_tx_thread_pool(void)
     }
 }
 
-/**
- *  Creates THREAD_POOL_SIZE many [task_rx]s
- */
+/// Creates <THREAD_POOL_SIZE> many [task_rx]s
 static void create_rx_thread_pool(void)
 {
     // Each task has a unique name, postfixed by its task ID
     const char * const task_rx_base_name = "task_rx";
-    char task_rx_names[THREAD_POOL_SIZE][16] = { 0 };
+    char task_rx_names[THREAD_POOL_SIZE][MAX_TASK_NAME_CHARS] = { 0 };
     const uint16_t _12KB = 3000;
 
     // Create task pool of task_tx_params to transmit packets to remote server
@@ -73,13 +74,11 @@ void app_main(void)
      *                            *
      *//////////////////////////////
 
-#if 0
     // Initialize wifi
-    init_wifi();
+    // init_wifi();
 
     // Initialize server socket
-    init_server_socket();
-#endif
+    // init_server_socket();
     
     // Initialize gpios
     gpio_init();
@@ -88,9 +87,9 @@ void app_main(void)
     init_create_all_queues();
 
     // Initialize tasks
-    init_task_logger();
+    // init_task_logger();
     init_task_navigation();
-    init_task_servo();
+    // init_task_servo();
 
     /*/////////////////////////////
      *                            *
@@ -109,14 +108,14 @@ void app_main(void)
      *                            *
      *//////////////////////////////
 
-    // rtos_create_task(&task_navigation , "task_navigation" , _8KB , PRIORITY_MED);
+    rtos_create_task(&task_navigation , "task_navigation" , _8KB , PRIORITY_MED);
     // rtos_create_task(&task_servo      , "task_servo"      , _8KB , PRIORITY_MED);
 
-    rtos_create_task_with_params(&task_detection, 
-                                "task_detection",
-                                _8KB,
-                                PRIORITY_MED,
-                                (void *)(gpio_adc_infrared_bottom));
+    // rtos_create_task_with_params(&task_detection, 
+    //                             "task_detection",
+    //                             _8KB,
+    //                             PRIORITY_MED,
+    //                             (void *)(gpio_adc_infrared_bottom));
 
     /*//////////////////////////////
      *                             *

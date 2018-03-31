@@ -72,8 +72,8 @@ static void set_config(const char ssid[32], const char password[64])
 {
     wifi_config_t config;
     config.sta.bssid_set = false;
-    strncpy((char *)config.sta.ssid,        (char *)ssid,     32);
-    strncpy((char *)config.sta.password,    (char *)password, 64);
+    strncpy((char *)config.sta.ssid,     (char *)ssid,     32);
+    strncpy((char *)config.sta.password, (char *)password, 64);
 
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &config));
 }

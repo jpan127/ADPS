@@ -49,6 +49,7 @@ void tcp_client_close_socket(int *tcp_socket)
         // Reset value
         *tcp_socket = -1;
     }
+    ESP_LOGI("tcp_client_close_socket", "Closing socket %d", *tcp_socket);
 }
 
 bool tcp_client_connect_to_server(int *tcp_socket, char *server_ip, uint16_t server_port)

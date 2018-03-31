@@ -134,8 +134,17 @@ void task_tx(task_param_T params)
     // Main loop
     while (1)
     {
-        // Block until received packet from queue
-        xQueueReceive(MessageTxQueue, &packet, MAX_DELAY);
+        // // Block until received packet from queue
+        // xQueueReceive(MessageTxQueue, &packet, MAX_DELAY);
+
+        packet.type = 5;
+        packet.length = 5;
+        packet.payload[0] = 'h';
+        packet.payload[1] = 'e';
+        packet.payload[2] = 'l';
+        packet.payload[3] = 'l';
+        packet.payload[4] = 'o';
+        current_packet_size = 5;
 
         // Size of packet to send is 1 (type) + 1 (length) + length
         current_packet_size = 2 + packet.length;
@@ -148,6 +157,8 @@ void task_tx(task_param_T params)
 
         // Clear buffer so data doesnt overlap
         // Only need to clear current_packet_size because other bytes are untouched
-        memset(&packet, 0, current_packet_size);
+        // memset(&packet, 0, current_packet_size);
+
+        DELAY_MS(1000);
     }
 }

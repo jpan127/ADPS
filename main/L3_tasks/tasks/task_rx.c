@@ -36,6 +36,10 @@ static int accept_blocking(uint8_t task_id, const int server_socket)
     {
         ESP_LOGE("accept_blocking", "[%d] Error accepting from client | Server Socket: %i | Error: %s", task_id, server_socket, strerror(errno));
     }
+    else
+    {
+        ESP_LOGI("accept_blocking", "[%d] Accepted from client | Server Socket: %i", task_id, server_socket);
+    }
 
     return client_socket;
 }
@@ -114,20 +118,26 @@ void task_rx(task_param_T params)
             // Receive into buffer
             tcp_server_receive(client_socket, buffer, &size);
 
-            // Parse each byte from buffer
-            for (uint16_t i=0; i<size; i++)
-            {
-                status = command_packet_parser(buffer[i], &packet);
-                if (parser_status_complete == status)
-                {
-                    // // Send to task_command
-                    // xQueueSend(MessageRxQueue, &packet, MAX_DELAY);
+            // // Parse each byte from buffer
+            // for (uint16_t i=0; i<size; i++)
+            // {
+            //     status = command_packet_parser(buffer[i], &packet);
+            //     if (parser_status_complete == status)
+            //     {
+            //         // // Send to task_command
+            //         // xQueueSend(MessageRxQueue, &packet, MAX_DELAY);
+            //         ESP_LOGI("task_rx", "%u %u %u", packet.type, packet.opcode, packet.command.half_word);
+            //         // service_command(&packet);
+            //     }
+            // }
 
-                    service_command(&packet);
-                }
+            for (uint8_t i=0; i<size; i++)
+            {
+                printf("%c", buffer[i]);
             }
+            printf("\n");
     
-            tcp_client_close_socket(&client_socket);
+            // tcp_client_close_socket(&client_socket);
         }
     }
 }

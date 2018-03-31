@@ -58,5 +58,23 @@ void task_navigation(task_param_T params)
 
         motor_stop(motor);
         DELAY_MS(2000);
+
+        for (float duty=0; duty<100; duty++)
+        {
+            motor_move(motor, motor_dir_b_forward, duty);
+            DELAY_MS(delay_between_duty_changes_ms);
+        }
+
+        motor_stop(motor);
+        DELAY_MS(2000);
+
+        for (float duty=0; duty<100; duty++)
+        {
+            motor_move(motor, motor_dir_a_forward, duty);
+            DELAY_MS(delay_between_duty_changes_ms);
+        }
+
+        motor_stop(motor);
+        DELAY_MS(2000);
     }
 }
