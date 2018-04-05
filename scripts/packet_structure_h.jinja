@@ -1,0 +1,55 @@
+#pragma once
+// Project libraries
+#include "common.h"
+
+
+
+/// Max size of diagnostic packet payload
+#define MAX_PACKET_SIZE ({{MAX_PACKET_SIZE}})
+
+/// Denotes the type of the packet
+typedef enum
+{
+{% for enumeration, value in PACKET_TYPES.items() %}
+    {{enumeration}} = {{value}},
+{% endfor  %}
+
+    packet_type_last_invalid,
+} packet_type_E;
+
+/// Denotes the opcode for command packets
+typedef enum
+{
+{% for enumeration, value in PACKET_OPCODES.items() %}
+    {{enumeration}} = {{value}},
+{% endfor  %}
+
+    packet_opcode_last_invalid,
+} packet_opcode_E;
+
+/// Diagnostic Packet structure
+typedef struct
+{
+{% for field, bytes in DIAGNOSTIC_STRUCTURE.items() %}
+{% if bytes == "1" %}
+    uint8_t {{field}};
+{% else %}
+    uint8_t {{field}}[{{bytes}}];
+{% endif %}
+{% endfor  %}
+
+} __attribute__((packed)) diagnostic_packet_S;
+
+/// Command Packet structure
+typedef struct
+{
+{% for field, bytes in COMMAND_STRUCTURE.items() %}
+{% if bytes == "1" %}
+    uint8_t {{field}};
+{% else %}
+    uint8_t {{field}}[{{bytes}}];
+{% endif %}
+{% endfor  %}
+
+} __attribute__((packed)) command_packet_S;
+

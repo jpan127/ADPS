@@ -1,0 +1,16 @@
+Command Structure,,Diagnostic Structure,,Packet Types,,Packet Opcodes,
+Name,Bytes,Name,Bytes,Name,Value,Name,Value
+Type,1,Type,1,Info,0,Move Forward,0
+Opcode,1,Length,1,Error,1,Move Backward,1
+Byte 1,1,Payload,128,Status,2,Move Left,2
+Byte 2,1,,,Command Read,3,Move Right,3
+,,,,Command Write,4,Incr Forward,4
+,,,,Log Client,0x80,Incr Backward,5
+,,,,Log Server,0x81,Incr Left,6
+,,,,Log Packet,0x82,Incr Right,7
+,,,,Log Motor,0x83,Decr Forward,8
+,,,,Log Wifi,0x84,Decr Backward,9
+,,,,Log Wmark,0x85,Decr Left,10
+,,,,,,Decr Right,11
+,,,,,,Servo Duty,12
+,,,,,,Manual Mode,13
