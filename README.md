@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ### ADPS-Firmware
 
     Firmware for the ESP32 microcontroller
@@ -90,3 +91,10 @@ Client -> Host: Robot directional control
 ## Changelog
 * 19-Oct-2017 Added README
 >>>>>>> server/master
+=======
+# House Address Digit Detection
+
+## Dataset
+    SVHN (Street View House Numbers)
+    http://ufldl.stanford.edu/housenumbers/
+>>>>>>> nn/master
