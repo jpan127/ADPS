@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 credentials.*
 
 *.o
@@ -16,6 +15,5 @@ credentials.*
 build/*
 
 /build/*
-=======
+
 data/*
->>>>>>> nn/master
