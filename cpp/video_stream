@@ -1,0 +1,454 @@
+#include <cmath>
+#include <iostream>
+
+#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/gpu/gpu.hpp"
+
+using namespace std;
+using namespace cv;
+using namespace cv::gpu;
+
+Scalar BLACK = Scalar(0,0,0);
+Scalar WHITE = Scalar(255,255,255);
+Scalar RED = Scalar(0,0,255);
+Scalar GREEN = Scalar(0,255,0);
+Scalar BLUE = Scalar(255,0,0);
+
+//========================================#
+//              Configuration             #
+//========================================#
+ bool SHOW_GRIDS = false;               //#
+ bool LINE       = true;                //#
+ bool FILTER     = true;                //#
+ bool PAUSE      = false;               //#
+//========================================#
+
+int xpos = 0;
+int ypos = 0;
+
+float direction_angle = 90;
+
+float frame1_dim[2] = {0,0};
+float frame2_dim[2] = {0,0};
+
+vector<Point> intersections;
+vector<Vec4i> hough_lines;
+vector<Vec4i> random_samples;
+
+
+//=====================================================================================
+//         	     Step 1: Find all relevant edges and create lines
+//
+//=====================================================================================
+
+int calculate_line_angle(Mat img, Vec4i line)
+{
+	float margin_percent = 0.15;
+	int rise = line[3] - line[1];
+	int run = line[2] - line[0];
+	//cout << "rise  = " << rise << " run  = " << run << endl;
+	if( run == 0)
+	{
+		return 0;
+	}
+	else 
+	{
+		float slope = rise / (run * 1.0);
+		float y_intercept = line[1] - slope * line[0];
+
+		float y_middle = img.rows / 2;
+		float margin = img.rows * margin_percent;
+		
+		if(abs(y_intercept - y_middle) < margin)
+		{
+			return 0;
+		} 
+		else
+		{
+			int theta = int((atan(slope))* (180.0 / CV_PI));
+			return theta;
+		}
+	}
+}
+
+int hough_transform(Mat img)
+{
+	// These parameters change performance
+	int canny_threshhold = 50;
+	int hough_threshhold = 75;
+
+	// Gray
+	Mat gray;
+	cvtColor(img, gray, CV_BGR2GRAY);
+	// Erode and Dilate
+	Mat opening,kernel;
+	kernel = getStructuringElement(MORPH_RECT,Size(15,15),Point(-1,-1));
+	morphologyEx(gray, opening, MORPH_OPEN, kernel);
+	// Canny Edge Detect
+	Mat edges;
+	Canny(opening, edges, canny_threshhold, 150); //aperturesize 3
+	// Hough transform
+	GpuMat d_edges(edges);
+	GpuMat d_lines;
+	HoughLinesBuf d_buf;
+	gpu::HoughLines(d_edges,d_lines, 1.0f, float(CV_PI/180.0f) , hough_threshhold);
+	//gpu::HoughLinesP(d_edges, d_lines, d_buf, 1.0f, (float) (CV_PI / 180.0f), 75, 5,150);
+	vector<Vec2f> lines_gpu;
+	hough_lines.erase(hough_lines.begin(),hough_lines.end());
+	hough_lines.begin();
+	if (!d_lines.empty())
+	{
+		lines_gpu.resize(d_lines.cols);
+		Mat h_lines(0, d_lines.cols, CV_32SC4, &lines_gpu[0]);
+		d_lines.download(h_lines);
+	}
+	cout << "# Lines_GPU found  = " << lines_gpu.size() << " Lines" << endl;
+	for (size_t i = 0; i< lines_gpu.size(); i++)
+	{
+		//cout << "Lines_GPU = " << lines_gpu[i] << " / " <<  lines_gpu.size() << endl;
+		
+		//Vec4i l = lines_gpu[i];
+		///*
+		Vec2f gpu_line = lines_gpu[i];
+		int rho = gpu_line[0];
+		int theta = gpu_line[1];
+		float a = cos(theta);
+		float b = sin(theta);
+		float x0 = a * rho;
+		float y0 = b * rho;
+		Vec4i l;
+		l[0] = cvRound(x0+1000*(-b));
+		l[1] = cvRound(y0+1000*(a));
+		l[2] = cvRound(x0-1000*(-b));
+		l[3] = cvRound(y0-1000*(a));
+		//*/
+		//cout << "Line = " << l << endl;
+		//Point pt1 = Point( int(x0+1000*(-b)), int(y0+1000*(a)));
+		//Point pt2 = Point( int(x0-1000*(-b)), int(y0-1000*(a)));
+		int angle = calculate_line_angle(img, l);
+		//cout << "Line angle = " << angle << endl;
+		if(abs(angle) > 10 && abs(angle) < 75)
+		{
+			if(LINE)
+			{
+				Scalar color;
+				if(abs(angle) <= 15)
+				{
+					color = RED;
+				}
+				if(abs(angle) <= 45)
+				{
+					color = BLUE;
+				}
+				else
+				{
+					color = GREEN;
+				}
+				line(img, Point(l[0],l[1]), Point(l[2],l[3]), color, 2, CV_AA);
+			}
+			hough_lines.push_back(l);
+		}
+	}
+	//cout << "# of hough_lines = " << hough_lines.size() << endl;
+	return 0;
+}
+
+//===================================================================================
+//			  Step 2 : Grab a random sample of lines
+//
+//===================================================================================
+
+void sample_lines(vector<Vec4i> lines, size_t size)
+{
+	random_samples.erase(random_samples.begin(), random_samples.end());
+	random_samples.begin();
+	if (size > lines.size())
+	{
+		size = lines.size();
+	}
+	//random_samples.append(
+	//return 0; // change 
+}
+
+//===================================================================================
+//			  Step 3 : Find points of intersection
+//
+//===================================================================================
+
+int det(Point a, Point b)
+{
+	return ((a.x * b.y) - (a.y * b.x));
+}
+
+Point find_line_intersection(Vec4i line1, Vec4i line2)
+{
+	Point p;
+	Point x_diff = Point((line1[0]- line1[2]), (line2[0]- line2[2]));
+	Point y_diff = Point((line1[1]- line1[3]), (line2[1]- line2[3]));
+	int div = det(x_diff, y_diff);
+	if (div == 0)
+	{
+		return Point(-1,-1);
+	}
+	else 
+	{
+		Point d = Point(det(Point(line1[0],line1[1]), Point(line1[2],line1[3])), det(Point(line2[0],line2[1]), Point(line2[2],line2[3])));
+		int x = det(d, x_diff) / div;
+		int y = det(d, y_diff) / div;
+		p = Point(x,y);
+		return p;
+	}
+}
+
+int find_intersections(vector<Vec4i> lines ,Mat img)
+{
+	intersections.erase(intersections.begin(),intersections.end());
+	intersections.begin();
+	for (size_t i = 0; i<lines.size(); i++)
+	{
+		for (size_t j = i+1; j<lines.size(); j++)
+		{
+			if (lines[i] != lines[j])
+			{
+				Point intersection = find_line_intersection(lines[i],lines[j]);
+				if (intersection != Point(-1,-1))
+				{
+					intersections.push_back(intersection);
+				}
+			}
+		} 
+	}
+	cout << "# of Intersections = " << intersections.size() << endl;
+	return 0;
+}
+
+//===================================================================================
+//	   Step 4 : Find vanishing point from grid with most intersections
+//
+//===================================================================================
+
+Vec4i find_vanishing_point(Mat img, int grid_size)
+{
+	int image_height = img.rows;
+	int image_width = img.cols;
+
+	int grid_rows = (image_height / grid_size) + 1;
+	int grid_columns = (image_width / grid_size) + 1;
+
+	int max_intersections = 0;
+	Vec4i top_cell;
+	top_cell[0] = 0;
+	top_cell[1] = 0;
+	top_cell[2] = 0;
+	top_cell[3] = 0;
+
+	for(int col = 0; col < grid_columns; col++)
+	{
+		for(int row = 0; row < grid_rows; row++)
+		{
+			int cell_left   = col       * grid_size;
+			int cell_right  = (col + 1) * grid_size;
+			int cell_bottom = row       * grid_size;
+			int cell_top    = (row + 1) * grid_size;
+
+			int current_intersections = 0;
+			for(int i = 0; i < intersections.size(); i++)
+			{
+				if(cell_left < intersections[0].x < cell_right && cell_bottom < intersections[0].y < cell_top)
+				{
+					current_intersections += 1;
+				}
+			}
+			if(current_intersections > max_intersections)
+			{
+				max_intersections = current_intersections;
+				top_cell[0] = cell_left;
+				top_cell[1] = cell_right;
+				top_cell[2] = cell_bottom;
+				top_cell[3] = cell_top;
+			}
+		}
+	}
+
+	if (top_cell[0] != 0 && top_cell[1] != 0 && top_cell[2] != 0 && top_cell[3] != 0)
+	{
+		int rx1 = int((top_cell[0] + top_cell[1]) / 2 - grid_size /2);
+		int ry1 = int((top_cell[2] + top_cell[3]) / 2 - grid_size /2);
+		int rx2 = int((top_cell[0] + top_cell[1]) / 2 + grid_size /2);
+		int ry2 = int((top_cell[2] + top_cell[3]) / 2 + grid_size /2);
+		xpos = (rx1+rx2) / 2;
+		ypos = (ry1+ry2) / 2;
+		rectangle(img, Point(rx1, ry1), Point(rx2,ry2), BLACK, 2);
+	}
+	return top_cell;
+}
+
+Mat show_vanishing_point(Mat img)
+{
+	hough_transform(img);
+	if(!hough_lines.empty())
+	{
+		//sample_lines(hough_lines, 100);
+		//find_intersections(random_samples, img);
+		find_intersections(hough_lines, img);
+		if(!intersections.empty())
+		{
+			int grid_size = min(img.rows,img.cols) / 15;
+			Vec4i vanishing_point = find_vanishing_point(img, grid_size);
+		}
+	}
+	return img;
+}
+
+Mat show_sidewalk(Mat img)
+{
+	Mat mask;
+	GaussianBlur(img,mask,Size(7,7), 0);
+	inRange(mask, Scalar(160, 0, 0), Scalar(255, 255, 255),mask);
+	return mask;
+}
+
+void send_directions(int image_width)
+{
+	cout << "Xraw = " << xpos << " Yraw = " << ypos << endl;
+	
+	xpos = xpos - image_width / 2;
+	ypos = -1*(ypos - image_width);
+	
+	cout << "Xadj = " << xpos << " Yadj = " << ypos << endl;
+
+	float angle = atan2(ypos, xpos);
+	angle = angle * (180 / CV_PI);
+	int direction_angle = (2 * direction_angle + angle) / 3;
+	cout << "Averaged Angle = " << direction_angle << "*" << endl;
+	if(direction_angle < 75) cout << "LEFT" << endl;
+	else if(direction_angle < 105) cout << "STRAIGHT" << endl;
+	else cout << "RIGHT" << endl;
+}
+
+int main (int argc, const char* argv[])
+{
+	
+	while(1){
+	Mat vantage_frame = imread("Sidewalk.jpg", IMREAD_COLOR);
+	//Mat sidewalk_frame = frame1.clone();
+	vantage_frame = show_vanishing_point(vantage_frame);
+	//sidewalk_frame = show_sidewalk(sidewalk_frame);
+	send_directions(vantage_frame.cols);
+	//imshow("My Sidewalk 1", sidewalk_frame);
+	imshow("Image", vantage_frame);
+	if(waitKey(10)%256 == 27) break;
+	}
+	
+	/*
+	VideoCapture cap1(0);
+	VideoCapture cap2(1);
+	
+	if (!cap1.isOpened())
+	{
+		cout << "Cannot open the webcam 1" << endl;
+		return -1;
+	}
+	if (!cap2.isOpened())
+	{
+		cout << "Cannot open the webcam 2" << endl;
+		return -1;
+	}
+	
+	frame1_dim[0] = cap1.get(CV_CAP_PROP_FRAME_WIDTH);
+	frame1_dim[1] = cap1.get(CV_CAP_PROP_FRAME_HEIGHT);
+
+	frame2_dim[0] = cap2.get(CV_CAP_PROP_FRAME_WIDTH);
+	frame2_dim[1] = cap2.get(CV_CAP_PROP_FRAME_HEIGHT);
+
+	cout << "Frame Size 1:" << frame1_dim[0] << "x" << frame1_dim[1] << endl;
+	cout << "Frame Size 2:" << frame2_dim[0] << "x" << frame2_dim[1] << endl;
+
+	//namedWindow("My Webcam 1",CV_WINDOW_AUTOSIZE);
+	//namedWindow("My Webcam 2",CV_WINDOW_AUTOSIZE);
+	//namedWindow("My Sidewalk 1",CV_WINDOW_AUTOSIZE);
+	//namedWindow("My Sidewalk 2",CV_WINDOW_AUTOSIZE);
+	cap1.open(0);
+	while (1)
+	{
+		
+		Mat frame1;
+		Mat frame2;
+		int64 start = getTickCount();
+		double timeSec = 0.0;
+		//cap1.open(0);
+		//while(timeSec < 5.0)
+		//{
+			bool bSuccess1 = cap1.read(frame1);
+		
+			if(!bSuccess1)
+			{
+				cout<< "Cannot read a frame from video stream 1" << endl;
+				break;
+			}
+			if(waitKey(10)%256 == 27)
+			{
+				break;
+			}
+			if(FILTER)
+			{
+				Mat vantage_frame = frame1.clone();
+				Mat sidewalk_frame = frame1.clone();
+				vantage_frame = show_vanishing_point(vantage_frame);
+				//sidewalk_frame = show_sidewalk(sidewalk_frame);
+				send_directions(frame1.cols);
+				//imshow("My Sidewalk 1", sidewalk_frame);
+				imshow("My Webcam 1", vantage_frame);
+			}
+			//imshow("My Webcam 1", frame1);
+			timeSec = (getTickCount() - start) / getTickFrequency();
+			//cout << "timeSec: " << timeSec << endl << "Frame 1 shown" << endl;
+		//}
+		//cout << "Out of Frame 1 loop" << endl;
+		//cap1.release();
+		/*cap2.open(1);
+		start = getTickCount();
+		timeSec = 0.0;
+		while(timeSec < 5.0)
+		{
+			bool bSuccess2 = cap2.read(frame2);
+		
+			if(!bSuccess2)
+			{
+				cout<< "Cannot read a frame from video stream 2" << endl;
+				break;
+			}
+			if(waitKey(10)%256 == 27)
+			{
+				break;
+			}
+			if(FILTER)
+			{
+				Mat vantage_frame = frame2.clone();
+				Mat sidewalk_frame = frame2.clone();
+				vantage_frame = show_vanishing_point(vantage_frame);
+				sidewalk_frame = show_sidewalk(sidewalk_frame);
+				send_directions(frame1.cols);
+				//imshow("My Sidewalk 2", sidewalk_frame);
+				imshow("My Webcam 2", vantage_frame);
+			}
+			//imshow("My Webcam 2", frame2);
+			timeSec = (getTickCount() - start) / getTickFrequency();
+			//cout << "timeSec: " << timeSec << endl << "Frame 2 shown" << endl;
+		}
+		cout << "Out of Frame 2 loop" << endl;
+		cap2.release();
+		*
+		if(waitKey(10)%256 == 27)
+		{
+			break;
+		}
+		//cam1(cap1);
+		//cam2(cap2);
+	}
+	cap1.release();
+	*/
+	return 0;
+}
