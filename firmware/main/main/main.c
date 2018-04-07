@@ -18,62 +18,59 @@
 static task_tx_params_S task_tx_params[THREAD_POOL_SIZE] = { 0 };
 static uint8_t task_rx_params[THREAD_POOL_SIZE]          = { 0 };
 
-///Creates <THREAD_POOL_SIZE> many [task_tx]s
-static void create_tx_thread_pool(void)
+/**
+ *  Creates a pool of either a client or a server task
+ *  @param base_name  : The prefix of the task name, for example "client" would create names "client0" ... "client9"
+ *  @param priority   : The priority of all of the tasks
+ *  @param stack_size : The stack size of all of the tasks
+ *  @param function   : A pointer to the task being created
+ *  @param client     : A flag, true to say create client tasks, false for server tasks
+ */
+static void adps_create_task_thread_pool(const char * const base_name,
+                                         const rtos_priority_E priority,
+                                         const uint16_t stack_size,
+                                         TaskFunction_t function,
+                                         const bool client)
 {
-    // Each task has a unique name, postfixed by its task ID
-    const char * const task_tx_base_name = "task_tx";
-    char task_tx_names[THREAD_POOL_SIZE][MAX_TASK_NAME_CHARS] = { 0 };
-    const uint16_t _12KB = 3000;
+    char task_names[THREAD_POOL_SIZE][MAX_TASK_NAME_CHARS] = { 0 };
 
-    // Create task pool of task_tx_params to transmit packets to remote server
-    for (int i=0; i<THREAD_POOL_SIZE; i++)
+    for (uint8_t i = 0; i < THREAD_POOL_SIZE; i++)
     {
+        // Set up the task's unique name and ID
         const char task_id = i + '0';
-        strncpy(task_tx_names[i], task_tx_base_name, strlen(task_tx_base_name));
-        strcat(task_tx_names[i], &task_id);
-        task_tx_params[i].task_id = i;
-        task_tx_params[i].port    = CLIENT_PORT + i;
-        rtos_create_task_with_params(&task_tx, 
-                                    task_tx_names[i], 
-                                    _12KB,
-                                    PRIORITY_LOW,
-                                    (void *)(&task_tx_params[i]));
+        strncpy(task_names[i], base_name, strlen(base_name));
+        strcat(task_names[i], &task_id);
+
+        // Single void pointer to point to the task params
+        void * task_params = NULL;
+
+        // Depending if it is client or server, initialize the params to pass to the task
+        if (client)
+        {
+            task_tx_params[i].task_id = i;
+            task_tx_params[i].port    = CLIENT_PORT + i;
+            task_params               = (void *)(&task_tx_params[i]);
+        }
+        else
+        {
+            task_rx_params[i] = i;
+            task_params       = (void *)(&task_rx_params[i]);
+        }
+
+        // Create the task
+        rtos_create_task_with_params(
+            function,
+            task_names[i], 
+            stack_size,
+            priority,
+            task_params
+        );
     }
-}
+}                                         
 
-/// Creates <THREAD_POOL_SIZE> many [task_rx]s
-static void create_rx_thread_pool(void)
+/// Initializes the state of modules that are not tasks
+static void adps_init_modules(void)
 {
-    // Each task has a unique name, postfixed by its task ID
-    const char * const task_rx_base_name = "task_rx";
-    char task_rx_names[THREAD_POOL_SIZE][MAX_TASK_NAME_CHARS] = { 0 };
-    const uint16_t _12KB = 3000;
-
-    // Create task pool of task_tx_params to transmit packets to remote server
-    for (int i=0; i<THREAD_POOL_SIZE; i++)
-    {
-        const char task_id = i + '0';
-        strncpy(task_rx_names[i], task_rx_base_name, strlen(task_rx_base_name));
-        strcat(task_rx_names[i], &task_id);
-        task_rx_params[i] = i;
-        rtos_create_task_with_params(&task_rx,
-                                    task_rx_names[i], 
-                                    _12KB,
-                                    PRIORITY_LOW,
-                                    (void *)(&task_rx_params[i]));
-    }
-}
-
-/// MAIN
-void app_main(void)
-{
-    /*/////////////////////////////
-     *                            *
-     *  Initialization Functions  *
-     *                            *
-     *//////////////////////////////
-
     // Initialize wifi
     init_wifi();
 
@@ -85,30 +82,35 @@ void app_main(void)
 
     // Create all queues
     init_create_all_queues();
+}
 
-    // Initialize tasks
-    // init_task_logger();
+/// Initializes the state of tasks
+static void adps_init_tasks(void)
+{
+    init_task_logger();
+
     // init_task_navigation();
-    // init_task_servo();
 
-    /*/////////////////////////////
-     *                            *
-     *     Low Priority Tasks     *
-     *                            *
-     *//////////////////////////////
+    // init_task_servo();    
+}
 
-    create_tx_thread_pool();
-    create_rx_thread_pool();
+/// Creates all low priority tasks
+static void adps_create_low_priority_tasks(void)
+{
+    // Create TX client threads
+    adps_create_task_thread_pool("task_tx", PRIORITY_LOW, _16KB, task_tx, true);
 
-    // rtos_create_task(&task_logger, "task_logger", _8KB , PRIORITY_LOW);   ///< Profile how much stack is actually needed
+    // Create RX server threads
+    adps_create_task_thread_pool("task_rx", PRIORITY_LOW, _16KB, task_rx, false);
 
-    /*/////////////////////////////
-     *                            *
-     *     Med Priority Tasks     *
-     *                            *
-     *//////////////////////////////
+    rtos_create_task(&task_logger, "task_logger", _8KB , PRIORITY_LOW);
+}
 
+/// Creates all medium priority tasks
+static void adps_create_medium_priority_tasks(void)
+{
     // rtos_create_task(&task_navigation , "task_navigation" , _8KB , PRIORITY_MED);
+
     // rtos_create_task(&task_servo      , "task_servo"      , _8KB , PRIORITY_MED);
 
     // rtos_create_task_with_params(&task_detection, 
@@ -116,10 +118,24 @@ void app_main(void)
     //                             _8KB,
     //                             PRIORITY_MED,
     //                             (void *)(gpio_adc_infrared_bottom));
+}
 
-    /*//////////////////////////////
-     *                             *
-     *     High Priority Tasks     *
-     *                             *
-     *///////////////////////////////
+/// Creates all high priority tasks
+static void adps_create_high_priority_tasks(void)
+{
+    /// No high priority tasks so far
+}
+
+/// MAIN
+void app_main(void)
+{
+    adps_init_modules();
+
+    adps_init_tasks();
+
+    adps_create_low_priority_tasks();
+
+    adps_create_medium_priority_tasks();
+
+    adps_create_high_priority_tasks();
 }

@@ -4,7 +4,10 @@
 #include "gpio.h"
 
 
-
+/**
+ *  @TODO : This task may not be needed so can put the servo config in another function init_motors()
+ *          Keep this task for testing maybe
+ */
 static const motor_E motor = motor_servo;
 static bool initialized = true;
 

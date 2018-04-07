@@ -13,14 +13,13 @@ typedef enum
     packet_type_info = 0,
     packet_type_error = 1,
     packet_type_status = 2,
-    packet_type_command_read = 3,
-    packet_type_command_write = 4,
-    packet_type_log_client = 0x80,
-    packet_type_log_server = 0x81,
-    packet_type_log_packet = 0x82,
-    packet_type_log_motor = 0x83,
-    packet_type_log_wifi = 0x84,
-    packet_type_log_wmark = 0x85,
+    packet_type_log = 3,
+    packet_type_log_client = 10,
+    packet_type_log_server = 11,
+    packet_type_log_packet = 12,
+    packet_type_log_motor = 13,
+    packet_type_log_wifi = 14,
+    packet_type_log_wmark = 15,
 
     packet_type_last_invalid,
 } packet_type_E;
@@ -42,6 +41,7 @@ typedef enum
     packet_opcode_decr_right = 11,
     packet_opcode_servo_duty = 12,
     packet_opcode_manual_mode = 13,
+    packet_opcode_stop = 14,
 
     packet_opcode_last_invalid,
 } packet_opcode_E;
@@ -58,9 +58,7 @@ typedef struct
 /// Command Packet structure
 typedef struct
 {
-    uint8_t type;
     uint8_t opcode;
-    uint8_t byte_1;
-    uint8_t byte_2;
+    uint8_t command[2];
 
 } __attribute__((packed)) command_packet_S;

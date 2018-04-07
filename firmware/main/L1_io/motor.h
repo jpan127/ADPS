@@ -26,10 +26,10 @@ typedef enum
 {
     motor_dir_both_forward = 0,
     motor_dir_both_backward,
-    motor_dir_a_forward,
-    motor_dir_a_backward,
-    motor_dir_b_forward,
-    motor_dir_b_backward,
+    motor_dir_a_forward,    ///< A = left
+    motor_dir_a_backward,   ///< A = left
+    motor_dir_b_forward,    ///< B = right
+    motor_dir_b_backward,   ///< B = right
 } motor_direction_E;
 
 /// Enumerates whether to increment or decrement duty
@@ -50,8 +50,8 @@ typedef struct
 /// Struct for storing duty values of both PWM A and PWM B
 typedef struct
 {
-    pwm_duty_U a;
-    pwm_duty_U b;
+    float a;
+    float b;
 } duty_S;
 
 /// Struct for logging duty percentages of all motors

@@ -29,21 +29,20 @@ static void EventHandler(void *ctx, system_event_t *event)
     switch (event->event_id)
     {
         case SYSTEM_EVENT_STA_START:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_START");
             xEventGroupSetBits(StatusEventGroup, BIT_START);
+            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_START");
             break;
         case SYSTEM_EVENT_STA_STOP:
             xEventGroupSetBits(StatusEventGroup, BIT_STOP);
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_STOP");
             break;
         case SYSTEM_EVENT_STA_CONNECTED:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_CONNECTED");
             xEventGroupSetBits(StatusEventGroup, BIT_CONNECTED);
+            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_CONNECTED");
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
             xEventGroupSetBits(StatusEventGroup, BIT_DISCONNECTED);
-            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED Error: %i",
-                                                    event->event_info.disconnected.reason);
+            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED Error: %i", event->event_info.disconnected.reason);
             ESP_LOGI(TAG, "Reconnecting in 5...");
             DELAY_MS(5000);
             ESP_ERROR_CHECK(esp_wifi_connect());
@@ -59,7 +58,7 @@ static void EventHandler(void *ctx, system_event_t *event)
 
 static void setup_ip_info(const char *ip, const char *gw, const char *nm)
 {
-    tcpip_adapter_ip_info_t ip_info;
+    tcpip_adapter_ip_info_t ip_info = { 0 };
 
     inet_pton(AF_INET, ip,  &ip_info.ip);
     inet_pton(AF_INET, gw,  &ip_info.gw);
@@ -70,8 +69,10 @@ static void setup_ip_info(const char *ip, const char *gw, const char *nm)
 
 static void set_config(const char ssid[32], const char password[64])
 {
-    wifi_config_t config;
-    config.sta.bssid_set = false;
+    wifi_config_t config = {
+        .sta.bssid_set = false,
+    };
+
     strncpy((char *)config.sta.ssid,     (char *)ssid,     32);
     strncpy((char *)config.sta.password, (char *)password, 64);
 

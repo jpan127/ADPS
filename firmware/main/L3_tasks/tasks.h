@@ -11,6 +11,14 @@ typedef struct
     uint32_t port;      ///< Unique port number for each task
 } task_tx_params_S;
 
+/// Application level TCB used for logging
+typedef struct
+{
+    TaskHandle_t handle;
+    uint32_t stack_size;
+    uint32_t task_id;
+} rtos_task_control_block_S;
+
 typedef void * task_param_T;
 
 /*/////////////////////////////
@@ -25,11 +33,8 @@ void init_server_socket(void);
 /// Creates all queues
 void init_create_all_queues(void);
 
-/// Stores a task handle so that each task can be referenced later
-void register_task_handle(TaskHandle_t handle);
-
-/// Grabs the task handles and the number of tasks created
-void tasks_get_task_handles(TaskHandle_t ** handles, size_t * size);
+/// Grabs the application thread control blocks for all threads
+void tasks_get_tcbs(rtos_task_control_block_S ** handles, size_t * size);
 
 /// Wrapper function over [xTaskCreate] that also registers the task handle
 void rtos_create_task(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority);

@@ -158,7 +158,7 @@ bool tcp_server_receive(int client_sock, uint8_t *buffer, uint16_t *size)
 
     ssize_t size_read = 1;
 
-    ESP_LOGI("server::tcp_server_receive", "Starting receive...");
+    // ESP_LOGI("server::tcp_server_receive", "Starting receive...");
 
     // While there is still data to be read from socket
     while (size_read > 0)
@@ -195,7 +195,14 @@ bool tcp_server_receive(int client_sock, uint8_t *buffer, uint16_t *size)
         buffer[*size] = '\0';
     }
 
-    ESP_LOGI("server::tcp_server_receive", "Received %i bytes : %s", *size, buffer);
+    // LOG_INFO("Thanks for sending me a message");
+    // printf("[%u] ", *size);
+    // for (uint8_t byte = 0; byte <= *size; byte++)
+    // {
+    //     // Convert to ascii integer
+    //     printf("%c", buffer[byte] + '0');
+    // }
+
     return success;
 }
 

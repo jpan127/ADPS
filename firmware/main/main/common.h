@@ -34,14 +34,12 @@ typedef enum
 } rtos_priority_E;
 
 // Task creation stack sizes
-#define _512B   (128)
-#define _1KB    (256)
-#define _2KB    (512)
-#define _4KB    (1024)
-#define _8KB    (2048)
-#define _16KB   (4096)
-#define _32KB   (8192)
-#define _64KB   (16384)
+#define _512B   (512)
+#define _1KB    (1024)
+#define _2KB    (2048)
+#define _4KB    (4096)
+#define _8KB    (8192)
+#define _16KB   (16384)
 
 // Helper macros for size comparison or related
 #define MAX(a, b)   ((a > b) ? (a) : (b))

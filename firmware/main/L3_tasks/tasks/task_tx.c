@@ -21,7 +21,7 @@ static bool open_socket_with_timeout(int *client_socket, uint32_t port, uint8_t 
 {
     bool client_created = false;
     int timeout_count = 10;
-    const uint16_t one_second_ms = 1000;
+    const uint16_t one_second_ms = 2000;
 
     // Initialize client
     while (!client_created && timeout_count > 0)
@@ -51,9 +51,12 @@ static bool open_socket_with_timeout(int *client_socket, uint32_t port, uint8_t 
  */
 static bool connect_socket_with_timeout(int *client_socket, uint32_t port, uint8_t task_id)
 {
+    /// @TODO : Perfect place for leaky bucket
+    static const uint16_t two_second_ms = 2000;
+    static const uint8_t max_timeout_count = 10;
+    
     bool connected = false;
-    int timeout_count = 10;
-    const uint16_t one_second_ms = 1000;
+    int8_t timeout_count = max_timeout_count;
 
     // Connect to server
     while (!connected && timeout_count > 0)
@@ -64,10 +67,10 @@ static bool connect_socket_with_timeout(int *client_socket, uint32_t port, uint8
         {
             if (--timeout_count <= 0)
             {
-                ESP_LOGE("connect_socket_with_timeout", "[%d] FAILED to connect client to remote server", task_id);
+                ESP_LOGE("connect_socket_with_timeout", "[task_tx %d] FAILED to connect client to remote server out of %d retries", task_id, max_timeout_count);
             }
-            // Retry in 1 second
-            DELAY_MS(one_second_ms);
+            // Retry in 2 seconds
+            DELAY_MS(two_second_ms);
         }
     }
 
@@ -86,9 +89,11 @@ static bool init_task_tx(int *client_socket, uint32_t port, uint8_t task_id)
 {
     bool success = false;
 
-    success = open_socket_with_timeout(client_socket, port, task_id);
-
-    if (success) success = connect_socket_with_timeout(client_socket, port, task_id);
+    if (   open_socket_with_timeout(client_socket, port, task_id) &&
+        connect_socket_with_timeout(client_socket, port, task_id))
+    {
+        success = true;
+    }
 
     return success;
 }
@@ -121,7 +126,7 @@ void task_tx(task_param_T params)
     }
     else
     {
-        ESP_LOGI("task_tx", "[%d] Task initialized", task_params.task_id);
+        ESP_LOGI("task_tx", "[%d] Task starting...", task_params.task_id);
     }
 
     // Diagnostic packet
@@ -134,17 +139,8 @@ void task_tx(task_param_T params)
     // Main loop
     while (1)
     {
-        // // Block until received packet from queue
-        // xQueueReceive(MessageTxQueue, &packet, MAX_DELAY);
-
-        packet.type = 5;
-        packet.length = 5;
-        packet.payload[0] = 'h';
-        packet.payload[1] = 'e';
-        packet.payload[2] = 'l';
-        packet.payload[3] = 'l';
-        packet.payload[4] = 'o';
-        current_packet_size = 5;
+        // Block until received packet from queue
+        xQueueReceive(MessageTxQueue, &packet, MAX_DELAY);
 
         // Size of packet to send is 1 (type) + 1 (length) + length
         current_packet_size = 2 + packet.length;
@@ -157,8 +153,6 @@ void task_tx(task_param_T params)
 
         // Clear buffer so data doesnt overlap
         // Only need to clear current_packet_size because other bytes are untouched
-        // memset(&packet, 0, current_packet_size);
-
-        DELAY_MS(5000);
+        memset(&packet, 0, current_packet_size);
     }
 }

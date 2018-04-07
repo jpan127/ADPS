@@ -12,12 +12,12 @@ QueueHandle_t MessageRxQueue = NULL;
 QueueHandle_t MessageTxQueue = NULL;
 
 /// Size of message queues
-static const uint8_t message_queue_size = 5;
+static const uint8_t message_queue_size = 20;
 
-/// Array of task handles
-static TaskHandle_t task_handles[MAX_TASKS] = { 0 };
+/// Array of task contexts
+static rtos_task_control_block_S TCBs[MAX_TASKS] = { 0 };
 
-/// Handle number, array index pointer for [task_handles]
+/// Handle number, array index pointer for [TCBs]
 static uint8_t num_tasks = 0;
 
 void init_server_socket(void)
@@ -55,14 +55,23 @@ void init_create_all_queues(void)
     MessageTxQueue = xQueueCreate(message_queue_size, sizeof(diagnostic_packet_S));
 }
 
-void register_task_handle(TaskHandle_t handle)
+static void register_task_handle(TaskHandle_t handle, const size_t size)
 {
-    task_handles[num_tasks++] = handle;
+    ESP_LOGI("register_task_handle", "Registering %d for %p", num_tasks, handle);
+
+    TCBs[num_tasks].handle     = handle;
+    TCBs[num_tasks].stack_size = size;
+    TCBs[num_tasks].task_id    = num_tasks;
+
+    if (++num_tasks >= MAX_TASKS)
+    {
+        ESP_LOGE("register_task_handle", "Task creation has exceeded maximum number of allowed tasks %d", MAX_TASKS);
+    }
 }
 
-void tasks_get_task_handles(TaskHandle_t ** handles, size_t * size)
+void tasks_get_tcbs(rtos_task_control_block_S ** handles, size_t * size)
 {
-    *handles = &task_handles[0];
+    *handles = &TCBs[0];
     *size    = num_tasks;
 }
 
@@ -70,12 +79,12 @@ void rtos_create_task(TaskFunction_t function, const char * name, const uint32_t
 {
     TaskHandle_t handle = NULL;
     xTaskCreate(function, name, stack, NULL, priority, &handle);
-    register_task_handle(&handle);    
+    register_task_handle(handle, stack);    
 }
 
 void rtos_create_task_with_params(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority, task_param_T params)
 {
     TaskHandle_t handle = NULL;
     xTaskCreate(function, name, stack, params, priority, &handle);
-    register_task_handle(&handle);    
+    register_task_handle(handle, stack);    
 }

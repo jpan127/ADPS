@@ -21,6 +21,13 @@ typedef enum
     infrared_max,
 } infrared_E;
 
+typedef struct
+{
+    bool operational;
+    uint8_t raw_values;
+    uint8_t distances;
+} infrared_logs_S;
+
 /**
  *  Initializes the infrared and performs a quick self test
  *  @param gpio       : The ADC GPIOs to initialize, expects a size of [infrared_max]
@@ -31,9 +38,11 @@ void infrared_initialize(const gpio_E * gpio, bool * functional);
 
 /**
  *  Samples the ADC value multiple times with a delay in between sampling
- *  @param gpio    : The ADC GPIO to sample
+ *  @param ir      : The infrared sensor to sample
  *  @param samples : The number of samples to take
  *  @param delay   : The delay between samples
  *  @returns       : The average of all the samples
  */
-uint32_t infrared_burst_sample(const gpio_E gpio, const uint8_t samples, const uint16_t delay_us);
+uint32_t infrared_burst_sample(const infrared_E ir, const uint8_t samples, const uint16_t delay_us);
+
+infrared_logs_S * infrared_get_logs(void);

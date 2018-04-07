@@ -122,8 +122,8 @@ def _parse_args():
     arg_parser.add_argument("--template_path"  , required=True  , help="Path to template")
     arg_parser.add_argument("--c_template"     , required=True  , help="Name of C template")
     # arg_parser.add_argument("--js_template" , required=True  , help="Path to JavaScript template")
-    # arg_parser.add_argument("--target_path" , required=False , help="Output path, if not specified, outputs to same folder as script")
-    arg_parser.add_argument("--target_name" , required=False , help="Output file name, if not specified, defaults to \'packet_structure.*\'")
+    arg_parser.add_argument("--target_path"    , required=False , help="Output path, if not specified, outputs to same folder as script")
+    arg_parser.add_argument("--target_name"    , required=False , help="Output file name, if not specified, defaults to \'packet_structure.*\'")
     return arg_parser.parse_args()
 
 
@@ -244,6 +244,9 @@ def main():
     # Parse arguments
     args = _parse_args()
 
+    # Path for generated output
+    target_path = "./" if not args.target_path else args.target_path
+
     target_name = args.target_name if args.target_name is not None else "packet_structure"
 
     # Transform the CSV into a pandas matrix frame
@@ -252,7 +255,7 @@ def main():
     structures = _convert_csv_to_dicts(data)
 
     # Autogenerate code based on the data populated in the pandas frame
-    _autogenerate_code(args.template_path, args.c_template, "./", target_name, structures)
+    _autogenerate_code(args.template_path, args.c_template, target_path, target_name, structures)
 
 
 if __name__ == '__main__':

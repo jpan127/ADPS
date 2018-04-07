@@ -6,6 +6,25 @@
 /// Map of saved GPIO handles that maps to each infrared sensor
 static gpio_E infrared_map[infrared_max] = { 0 };
 
+static infrared_logs_S logs[infrared_max] = { 0 };
+
+static bool infrared_gpio_to_enum(const gpio_E gpio, infrared_E * ir)
+{
+    bool success = false;
+
+    for (uint8_t g = 0; g < infrared_max; g++)
+    {
+        if (gpio == infrared_map[g])
+        {
+            *ir = (infrared_E)g;
+            success = true;
+            break;
+        }
+    }
+
+    return success;
+}
+
 /**
  *  Runs a self test on a sensor by sampling from it multiple times and checking for ADC errors
  *  @param ir : The sensor to test
@@ -35,6 +54,7 @@ static bool infrared_self_test(const infrared_E ir)
     return (failures == 0);
 }
 
+#if 0
 /**
  *  Converts the ADC reading in volts to a range
  *  @param voltage : ADC reading
@@ -62,6 +82,7 @@ static float infrared_apply_linearizing_fx(const float voltage)
 
     return (1.0f / (m * voltage + b)) - k;
 }
+#endif
 
 void infrared_initialize(const gpio_E * gpio, bool * functional)
 {
@@ -91,18 +112,20 @@ void infrared_initialize(const gpio_E * gpio, bool * functional)
         {
             ESP_LOGI("infrared_initialize", "Successfully initialized infrared sensor %d", ir);
         }
+
+        logs[ir].operational = functional[ir];
     }
 }
 
-uint32_t infrared_burst_sample(const gpio_E gpio, const uint8_t samples, const uint16_t delay_us)
+uint32_t infrared_burst_sample(const infrared_E ir, const uint8_t samples, const uint16_t delay_us)
 {
     uint32_t average = 0;
 
-    if (adc1_is_initialized(gpio))
+    if (adc1_is_initialized(infrared_map[ir]))
     {
         for (uint8_t sample = 0; sample < samples; sample++)
         {
-            const int32_t reading = acd1_sample(gpio);
+            const int32_t reading = acd1_sample(infrared_map[ir]);
             if (reading >= 0)
             {
                 average += reading;
@@ -119,6 +142,9 @@ uint32_t infrared_burst_sample(const gpio_E gpio, const uint8_t samples, const u
 
         average /= samples;
     }
+
+    logs[ir].raw_values = average;
+    logs[ir].distances = 0;
 
     return average;
 }

@@ -7,6 +7,7 @@
 #include "server.h"
 #include "packet.h"
 #include "motor.h"
+#include "cmd_handler.h"
 
 
 
@@ -41,35 +42,6 @@ static int accept_blocking(uint8_t task_id, const int server_socket)
     return client_socket;
 }
 
-/**
- *  Interprets a command packet and calls the respective API
- *  @param packet : The packet to parse
- */
-static void service_command(command_packet_S *packet)
-{
-    // const motor_E motor = motor_wheels;
-
-    // switch (packet->opcode)
-    // {
-    //     case command_move_forward  : motor_move(motor, MOTOR_DIRECTION_FORWARD,       packet->command.bytes[0]);    break;
-    //     case command_move_backward : motor_move(motor, MOTOR_DIRECTION_BACKWARD,      packet->command.bytes[0]);    break;
-    //     case command_move_left     : motor_move(motor, MOTOR_DIRECTION_LEFT,          packet->command.bytes[0]);    break;
-    //     case command_move_right    : motor_move(motor, MOTOR_DIRECTION_RIGHT,         packet->command.bytes[0]);    break;
-
-    //     case command_incr_forward  : motor_increment(motor, MOTOR_DIRECTION_FORWARD,  packet->command.bytes[0]);    break;
-    //     case command_incr_backward : motor_increment(motor, MOTOR_DIRECTION_BACKWARD, packet->command.bytes[0]);    break;
-    //     case command_incr_left     : motor_increment(motor, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]);    break;
-    //     case command_incr_right    : motor_increment(motor, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]);    break;
-
-    //     case command_decr_forward  : motor_decrement(motor, MOTOR_DIRECTION_FORWARD,  packet->command.bytes[0]);    break;
-    //     case command_decr_backward : motor_decrement(motor, MOTOR_DIRECTION_BACKWARD, packet->command.bytes[0]);    break;
-    //     case command_decr_left     : motor_decrement(motor, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]);    break;
-    //     case command_decr_right    : motor_decrement(motor, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]);    break;
-
-    //     default                    : LOG_ERROR("Undefined opcode found: %d", packet->opcode);                       break;
-    // }
-}
-
 /// @TODO : Change all logging to go through [packet]
 void task_rx(task_param_T params)
 {
@@ -86,6 +58,10 @@ void task_rx(task_param_T params)
     {
         ESP_LOGE("task_rx", "Suspending task #%d because server was not created.", task_id);
         vTaskSuspend(NULL);
+    }
+    else
+    {
+        ESP_LOGI("task_rx", "[%d] Task starting...", task_id);
     }
 
     // Buffer needed to receive packets
@@ -110,23 +86,18 @@ void task_rx(task_param_T params)
         int client_socket = accept_blocking(task_id, server_socket);
 
         // If connection and no error
-        if (client_socket)
+        if (client_socket > 0)
         {
             // Receive into buffer
             tcp_server_receive(client_socket, buffer, &size);
 
-            // // Parse each byte from buffer
-            // for (uint16_t i=0; i<size; i++)
-            // {
-            //     status = command_packet_parser(buffer[i], &packet);
-            //     if (parser_status_complete == status)
-            //     {
-            //         // // Send to task_command
-            //         // xQueueSend(MessageRxQueue, &packet, MAX_DELAY);
-            //         ESP_LOGI("task_rx", "%u %u %u", packet.type, packet.opcode, packet.command.half_word);
-            //         // service_command(&packet);
-            //     }
-            // }
+            status = command_packet_parser(buffer, &packet);
+
+            if (parser_status_complete == status)
+            {
+                ESP_LOGI("task_rx", "Servicing command : %u %u", packet.opcode, packet.command[0]);
+                cmd_handler_service_command(&packet);
+            }
     
             tcp_client_close_socket(&client_socket);
         }
