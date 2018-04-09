@@ -4,10 +4,12 @@
     <title>Systems Control</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
     <style>
         .container {
             padding: 80px 120px;
@@ -51,11 +53,6 @@
             border-top: none;
         }
 
-        .tg  {border-collapse:collapse;border-spacing:0;}
-        .tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
-        .tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
-        .tg .tg-us36{border-color:inherit;vertical-align:top}
-        .tg .tg-yw4l{vertical-align:top}
     </style>
 </head>
 <body>
@@ -67,7 +64,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span> 
           </button>
-          <a class="navbar-brand" href="#">ADPS</a>
+          <a class="navbar-brand" href="#">APDS</a>
         </div>
         <div class="collapse navbar-collapse" id="myNavbar">
           <ul class="nav navbar-nav navbar-right">
@@ -103,7 +100,7 @@
     <div id="Controls" class="tabcontent">
         <div class="row">
             <div class="col-sm-4 text-center">
-                <h3> <img src="steer.png"></img></h3>
+                <h3> <img src="state.png"></img></h3>
             </div>
             <div class="col-sm-4 text-center">
                 <h3> <img src="servo.png"></img></h3>
@@ -117,48 +114,31 @@
                 <button id="send"   onclick="sendPacket()"> Send    </button>
             </div>            
         </div>
-        <div class="row">
-            <div class="col-sm-4 text-center">
-                <div>
-                    <br><br>
-                    <img src="dpad.png" usemap="#imgmap"></img>
-                    <map name="imgmap">
-                            <area shape="circle" coords="401,232,50" onclick="goForward()">
-                            <area shape="circle" coords="290,360,50" onclick="goLeft()" >
-                            <area shape="circle" coords="520,350,50" onclick="goRight()">
-                            <area shape="circle" coords="410,470,50" onclick="goBack()">
-                            <area shape="circle" coords="405,360,40" onclick="stay()">
-                            <area shape="circle" coords="410,40,30" onclick="incForward()">
-                            <area shape="circle" coords="410,105,30" onclick="decForward()">
-                            <area shape="circle" coords="85,300,30" onclick="incLeft()" >
-                            <area shape="circle" coords="85,400,30" onclick="decLeft()" >
-                            <area shape="circle" coords="735,300,30" onclick="incRight()">
-                            <area shape="circle" coords="735,400,30" onclick="decRight()">
-                            <area shape="circle" coords="410,620,30" onclick="incBack()">
-                            <area shape="circle" coords="410,685,30" onclick="decBack()">
-
-                    </map>  
-                    <br>
-            </div>
-        </div>
-
+            <div class="row">
       <div class="col-sm-8 text-center">
-        <img id="play">
-      </div>
-    </div>
-    </div>
+        <h3> <img src="steer.png"></img></h3>
 
-    <div id="Logging" class="tabcontent">
-    <div class="row">
-      <div class="col-sm-4 text-center">
-        <h3> <img src="state.png"></img></h3>
-        <div>Connection to ESP32:<span  class="gps-lat">X</span></div>
-        <div>Connection to Sensors/Cameras<span class="gps-long">X</span></div>
-        <div>STATE:<span class="state">Found house address 123456</span></div>
+         <img src="dpad.png" usemap="#imgmap"></img>
+                <map name="imgmap">
+                        <area shape="circle" coords="401,232,50" onclick="goForward()">
+                        <area shape="circle" coords="290,360,50" onclick="goLeft()" >
+                        <area shape="circle" coords="520,350,50" onclick="goRight()">
+                        <area shape="circle" coords="410,470,50" onclick="goBack()">
+                        <area shape="circle" coords="405,360,40" onclick="stay()">
+                        <area shape="circle" coords="410,40,30" onclick="incForward()">
+                        <area shape="circle" coords="410,105,30" onclick="decForward()">
+                        <area shape="circle" coords="85,300,30" onclick="incLeft()" >
+                        <area shape="circle" coords="85,400,30" onclick="decLeft()" >
+                        <area shape="circle" coords="735,300,30" onclick="incRight()">
+                        <area shape="circle" coords="735,400,30" onclick="decRight()">
+                        <area shape="circle" coords="410,620,30" onclick="incBack()">
+                        <area shape="circle" coords="410,685,30" onclick="decBack()">
+                </map>  
+
       </div>
       <div class="col-sm-4 text-center">
         <h3> <img src="logging.png"></img></h3>
-        <table class="tg">
+        <table class="table table-bordered table-dark">
           <tr>
             <th class="tg-us36"><b>Client</b></th>
             <th class="tg-us36">sockets_created</th>
@@ -215,21 +195,21 @@
           </tr>
           <tr>
             <td class="tg-us36"><b>Motor</b></td>
-            <td class="tg-us36">duty_a (for each)</td>
-            <td class="tg-us36">duty_b (for each)</td>
-            <td class="tg-us36"></td>
-            <td class="tg-us36"></td>
-            <td class="tg-us36"></td>
-            <td class="tg-us36"></td>
+            <td class="tg-us36">duty_a0</td>
+            <td class="tg-us36">duty_b0</td>
+            <td class="tg-us36">duty_a1</td>
+            <td class="tg-us36">duty_b1</td>
+            <td class="tg-us36">duty_a2</td>
+            <td class="tg-us36">duty_b2</td>
           </tr>
           <tr>
             <td class="tg-yw4l"></td>
-            <td id="duty_a" class="tg-yw4l"></td>
-            <td id="duty_b" class="tg-yw4l"></td>
-            <td class="tg-yw4l"></td>
-            <td class="tg-yw4l"></td>
-            <td class="tg-yw4l"></td>
-            <td class="tg-yw4l"></td>
+            <td id="duty_a0" class="tg-yw4l"></td>
+            <td id="duty_b0" class="tg-yw4l"></td>
+            <td id="duty_a1" class="tg-yw4l"></td>
+            <td id="duty_b1" class="tg-yw4l"></td>
+            <td id="duty_a2" class="tg-yw4l"></td>
+            <td id="duty_b2" class="tg-yw4l"></td>
           </tr>
           <tr>
             <td class="tg-us36"><b>Wifi</b></td>
@@ -260,18 +240,29 @@
           </tr>
           <tr>
             <td class="tg-yw4l"></td>
-            <td id="task_tx" class="tg-yw4l"></td>
-            <td id="task_rx" class="tg-yw4l"></td>
+            <td id="task_tx0" class="tg-yw4l"></td>
+            <td id="task_rx0" class="tg-yw4l"></td>
             <td id="task_navigation" class="tg-yw4l"></td>
             <td id="task_servo" class="tg-yw4l"></td>
             <td id="task_detection" class="tg-yw4l"></td>
             <td id="task_logger" class="tg-yw4l"></td>
           </tr>
         </table>
-        <textarea class="datalog form-control" rows="4" cols="40">
-        </textarea>
       </div>
     </div>
+        <div class="row">
+        <textarea id="diagnostic" class="datalog form-control" rows="4" cols="40">
+        </textarea>
+        </div>
+
+      <div class="col-sm-8 text-center">
+        <img id="play">
+      </div>
+    </div>
+    </div>
+
+    <div id="Logging" class="tabcontent">
+
 
     <div class="container text-center">
         
@@ -308,24 +299,53 @@
             var img = document.getElementById("play");
             img.src = image;
         });
+        socket.on('log', function(payload){
+            if(["sockets_created","sockets_closed", "server_connections", "packets_sent",
+                "server_port", "state", "queue_size", "packets_received",
+                "rx_packets", "tx_packets", "packets_dropped", 
+                "duty_a0","duty_a1","duty_a2","duty_b0","duty_b1","duty_b2",
+                "device_ip", "device_gw", "device_sn","station_ssid",
+                "task_tx0", "task_rx0"].indexOf(payload[1]) >= 0) {
+                document.getElementById(payload[1]).innerHTML = payload[2];
+            }
+
+            else { 
+                //Diagnostic error
+            }
+        });
+        socket.on('infoDiag', function(payload){
+            var d = new Date();
+            var n = d.toISOString();
+            document.getElementById("diagnostic").innerHTML += ( "[" + n + "]" +"[INFO]: "+ payload[0] + "\n");
+        }); 
+        socket.on('errorDiag', function(payload){
+            var d = new Date();
+            var n = d.toISOString();            
+            document.getElementById("diagnostic").innerHTML += ("[" + n + "]" +"[ERROR]: "+ payload[0] + "\n");
+        });     
+        socket.on('statusDiag', function(payload){
+            var d = new Date();
+            var n = d.toISOString();
+            document.getElementById("diagnostic").innerHTML += ("[" + n + "]" +"[STATUS]: "+ payload[0] + "\n");
+        });            
 
         var myTextArea = $('#datalog');
         //myTextArea.val(myTextArea.val() + 'goForward\n');
 
         function goForward(){
-            socket.emit('event', { message: 0 });
+            socket.emit('dirEvent', { message: 0 });
             console.log("goForward\n");
         }
         function goBack(){
-            socket.emit('event', { message: 1 });
+            socket.emit('dirEvent', { message: 1 });
             console.log("goBack\n");
         }
         function goLeft(){
-            socket.emit('event', { message: 2 });
+            socket.emit('dirEvent', { message: 2 });
             console.log("goLeft\n");
         }
         function goRight(){
-            socket.emit('event', { message: 3 });
+            socket.emit('dirEvent', { message: 3 });
             console.log("goRight\n");
         }
         function stay(){

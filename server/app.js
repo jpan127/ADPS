@@ -15,41 +15,69 @@ app.use(express.static(__dirname + "/public" ));
 app.get('/', function(req,res){
     res.redirect('index.html');
 });
- 
+
 require('events').EventEmitter.prototype._maxListeners = 100; //max listeners
 
 
 var client = new net.Socket();  
+ 
+
+
+
+client.on('err', function(err){
+            // handle the error safely
+            console.log("Client error");
+            console.log(err)
+        });
+
+io.on('connection',function(socket){ 
+
 
     //////////////////////////////////////////////////////////////////
     // Logging server stuff //
-    var server = net.createServer(function(socket) {
-        socket.on('err', function(err){
+    var server = net.createServer(function(sock) {
+        sock.on('err', function(err){
             // handle the error safely
             console.log(err)
         });
-        socket.on('data', function(data) {
-            console.log(data);
+        sock.on('data', function(data) {
+            //console.log(data);
             //Packet Type
             var packetType = data.slice(0,1).toString();
             packetType = "0x" + ascii_to_hexa(packetType);
             packetType = parseInt(packetType);
-            console.log("Packet Type: ", packetType);
+            //console.log("Packet Type: ", packetType);
             //Payload Length
             var payloadLength = data.slice(1,2).toString();
             payloadLength = "0x" + ascii_to_hexa(payloadLength);
             payloadLength = parseInt(payloadLength);
-            console.log("Payload Len: ", payloadLength);
+            //console.log("Payload Len: ", payloadLength);
             //Payload
             var payload = data.slice(2,payload).toString();
-            console.log(payload);
+            //console.log(payload);
             var payload = payload.split(":");
 
-            console.log("Payload: ", payload[0]);
-            console.log("Payload: ", payload[1]);
-            console.log("Payload: ", payload[2]);
-
-
+            //console.log("Payload: ", payload[0]);
+            //console.log("Payload: ", payload[1]);
+            //console.log("Payload: ", payload[2]);
+            console.log(packetType , payloadLength, payload);            
+            
+            if(packetType == 0 )
+            {
+                socket.broadcast.emit('infoDiag', payload);
+            }
+            if(packetType == 1)
+            {
+                socket.broadcast.emit('errorDiag', payload);
+            }
+            if(packetType == 2)
+            {
+                socket.broadcast.emit('statusDiag', payload);
+            }
+            if(packetType == 3)
+            {
+                socket.broadcast.emit('log', payload);
+            }
             //var payload = data.slice(,1).toString(); 
             //var result = message.split(":");
             //console.log(result[0]);
@@ -64,15 +92,9 @@ var client = new net.Socket();
     });
 
     server.listen(5001, '192.168.43.12'); 
-    /////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////// 
 
-client.on('err', function(err){
-            // handle the error safely
-            console.log("Client error");
-            console.log(err)
-        });
 
-io.on('connection',function(socket){ 
     var connected = false;
 	socket.on('stream',function(image){
 		socket.broadcast.emit('stream', image);
@@ -85,22 +107,35 @@ io.on('connection',function(socket){
         client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
             console.log('Connected to 192.168.43.250'); 
             console.log('Local client sending:', data.message);
-            buf = new Buffer([data.message, 0xA]); // 0xA is temp value
+            buf = new Buffer([data.message, 0xA, 0xFF]); // 0xA is temp value
             client.write(buf);
             client.destroy();
             client = new net.Socket();
             client.on('err', function(err){
-            // handle the error safely
-            console.log(err)
+                // handle the error safely
+                console.log(err)
+            });
         });
-        });
-
 	});
+    socket.on('dirEvent',function(data){
+        client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
+            console.log('Connected to 192.168.43.250'); 
+            console.log('Local client sending:', data.message);
+            buf = new Buffer([data.message, 0x4B, 0xFF]); // 0x4B is temp value 75
+            client.write(buf);
+            client.destroy();
+            client = new net.Socket();
+            client.on('err', function(err){
+                // handle the error safely
+                console.log(err)
+            });
+        });
+    });    
     socket.on('dutyEvent',function(data){
         client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
             console.log('Connected to 192.168.43.250'); 
-            console.log('Local client sending duty cycle:', data.body);
-            buf = new Buffer([12, data.body]);  
+            console.log('Local client sending duty cycle:', data.message);
+            buf = new Buffer([12, data.message, 0xFF]);  
             client.write(buf);
             client.destroy();
             client = new net.Socket();
@@ -155,17 +190,21 @@ http.listen(port,function(){
 });
 
 http.on('err', function(err){
-            // handle the error safely
-            console.log(err)
-        });
+   // handle the error safely
+    console.log(err)
+});
 
-function ascii_to_hexa(str)
-  {
+process.on('uncaughtException', function(err) {
+  console.log('Caught exception: ' + err);
+});
+
+function ascii_to_hexa(str) {
     var arr1 = [];
-    for (var n = 0, l = str.length; n < l; n ++) 
+    for (var n = 0; n < str.length; n ++) 
      {
         var hex = Number(str.charCodeAt(n)).toString(16);
         arr1.push(hex);
      }
     return arr1.join('');
-   }
+} 
+    
