@@ -33,7 +33,7 @@ void task_detection(task_param_T params)
     // Wait a second to make sure sensors are powered and have had some time to stabilize
     DELAY_MS(1000);
 
-    const uint8_t samples   = 5;
+    const uint8_t num_samples = 5;
     const uint16_t delay_us = 100;
     const uint8_t max_retries = 5;
 
@@ -53,14 +53,17 @@ void task_detection(task_param_T params)
         // vTaskSuspend(NULL);
     }
 
+    float average_samples[infrared_max] = { 0 };
+
     // Main Loop
     while (1)
     {
         for (infrared_E ir = (infrared_E)0; ir < infrared_max; ir++)
         {
-            const uint32_t average_sample = infrared_burst_sample(ir, samples, delay_us);
-            ESP_LOGI("task_detection", "Average Sample : %d", average_sample);
+            average_samples[ir] = infrared_burst_sample(ir, num_samples, delay_us);
             DELAY_MS(250);
         }
+
+        ESP_LOGI("task_detection", "Average Sample : %f | %f | %f", average_samples[0], average_samples[1], average_samples[2]);
     }
 }

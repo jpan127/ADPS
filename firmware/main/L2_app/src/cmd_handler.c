@@ -4,14 +4,37 @@
 
 
 
+/// Enumeration to specify how to pivot
+typedef enum
+{
+    pivot_direction_left_90_degrees,
+    pivot_direction_right_90_degrees,
+} pivot_direction_E;
+
 /// Flag for enabling manual controls or not
 static bool manual_mode_enabled = false;
+
+static void pivot_90_degrees(const pivot_direction_E pivot_direction)
+{
+    switch (pivot_direction)
+    {
+        case pivot_direction_left_90_degrees:
+            motor_move(motor_wheels, motor_dir_a_forward, 50);
+            motor_move(motor_wheels, motor_dir_b_forward,  0);
+            break;
+        case pivot_direction_right_90_degrees:
+            motor_move(motor_wheels, motor_dir_a_forward,  0);
+            motor_move(motor_wheels, motor_dir_b_forward, 50);
+            break;
+        default:
+            break;
+    }
+}
 
 void cmd_handler_service_command(const command_packet_S * const packet)
 {
     switch (packet->opcode)
     {
-        case packet_opcode_manual_mode   : { ESP_LOGI("", "packet_opcode_manual_mode  "); manual_mode_enabled = (packet->command[0] == 0) ? (false) : (true);                             break; }
         case packet_opcode_stop          : { ESP_LOGI("", "packet_opcode_stop         ");        motor_stop(motor_wheels);                                                                break; }
 
         case packet_opcode_move_forward  : { ESP_LOGI("", "packet_opcode_move_forward ");        motor_move(motor_wheels , motor_dir_both_forward  , packet->command[0]);                 break; }
@@ -30,6 +53,17 @@ void cmd_handler_service_command(const command_packet_S * const packet)
         case packet_opcode_decr_right    : { ESP_LOGI("", "packet_opcode_decr_right   "); motor_adjust_duty(motor_wheels , motor_dir_b_backward    , packet->command[0], duty_decrement); break; }
         
         case packet_opcode_servo_duty    : { ESP_LOGI("", "packet_opcode_servo_duty   ");        motor_move(motor_servo  , motor_dir_a_forward     , packet->command[0]);                 break; }
-        default                          : { LOG_ERROR("Undefined opcode found: %d", packet->opcode);                                                                                     break; }
+
+        case packet_opcode_manual_mode:
+        { 
+            ESP_LOGI("", "packet_opcode_manual_mode"); 
+            manual_mode_enabled = (packet->command[0] == 0) ? (false) : (true);
+            break;
+        }
+        default:
+        { 
+            LOG_ERROR("Undefined opcode found: %d", packet->opcode);
+            break;
+        }
     }
 }

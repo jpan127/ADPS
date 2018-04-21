@@ -6,24 +6,25 @@
 /// Map of saved GPIO handles that maps to each infrared sensor
 static gpio_E infrared_map[infrared_max] = { 0 };
 
+/// Infrared logs
 static infrared_logs_S logs[infrared_max] = { 0 };
 
-static bool infrared_gpio_to_enum(const gpio_E gpio, infrared_E * ir)
-{
-    bool success = false;
+// static bool infrared_gpio_to_enum(const gpio_E gpio, infrared_E * ir)
+// {
+//     bool success = false;
 
-    for (uint8_t g = 0; g < infrared_max; g++)
-    {
-        if (gpio == infrared_map[g])
-        {
-            *ir = (infrared_E)g;
-            success = true;
-            break;
-        }
-    }
+//     for (uint8_t g = 0; g < infrared_max; g++)
+//     {
+//         if (gpio == infrared_map[g])
+//         {
+//             *ir = (infrared_E)g;
+//             success = true;
+//             break;
+//         }
+//     }
 
-    return success;
-}
+//     return success;
+// }
 
 /**
  *  Runs a self test on a sensor by sampling from it multiple times and checking for ADC errors
@@ -54,35 +55,30 @@ static bool infrared_self_test(const infrared_E ir)
     return (failures == 0);
 }
 
-#if 0
 /**
- *  Converts the ADC reading in volts to a range
+ *  Converts the ADC reading in volts to a distance in centimeters
  *  @param voltage : ADC reading
  *  @returns       : Range in centimeters
  */
 static float infrared_apply_linearizing_fx(const float voltage)
 {
     /**
-     *  V = voltage
-     *  R = range
-     *  y = mx + b where 
-     *      y : 1 / (R + k)
-     *      m : m
-     *      x : V
-     *      b : b
-     *  1 / (R + k) = mV + b
-     *      1 / (mV + b) = R + k
-     *      R = (1 / (mV + b)) - k
+     *  Linearized distance from voltage
+     *  y = mx + b
+     *  voltage = slope * distance_cm + y_intercept
+     *  voltage - y_intercept = slope * distance_cm
+     *  (voltage - y_intercept) / slope = distance_cm
+     *  distance_cm = (voltage - y_intercept) / slope
      */
 
     // Calibration parameters
-    const float m = 1;
-    const float b = 0;
-    const float k = 0;
+    static const float slope = -41.4;
+    static const float y_intercept = 4963;
 
-    return (1.0f / (m * voltage + b)) - k;
+    const float distance_cm = (voltage - y_intercept) / slope;
+
+    return distance_cm;
 }
-#endif
 
 void infrared_initialize(const gpio_E * gpio, bool * functional)
 {
@@ -117,7 +113,7 @@ void infrared_initialize(const gpio_E * gpio, bool * functional)
     }
 }
 
-uint32_t infrared_burst_sample(const infrared_E ir, const uint8_t samples, const uint16_t delay_us)
+float infrared_burst_sample(const infrared_E ir, const uint8_t samples, const uint16_t delay_us)
 {
     uint32_t average = 0;
 
@@ -143,8 +139,15 @@ uint32_t infrared_burst_sample(const infrared_E ir, const uint8_t samples, const
         average /= samples;
     }
 
+    const float linearized_averaged_distance_cm = infrared_apply_linearizing_fx(average);
+
     logs[ir].raw_values = average;
     logs[ir].distances = 0;
 
-    return average;
+    return linearized_averaged_distance_cm;
+}
+
+infrared_logs_S * infrared_get_logs(void)
+{
+    return &logs[0];
 }

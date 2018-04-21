@@ -3,12 +3,12 @@
 #include "client.h"
 #include "packet.h"
 
-
-
 /**
  *  [task_tx] will create multiple tasks
  *  Each static function here is independent of the calling task and will be used by all
  */
+
+
 
 /**
  *  Opens a socket with a timeout
@@ -16,12 +16,17 @@
  *  @param port          : The port to open with
  *  @param task_id       : The ID of the calling task
  *  @returns             : Success status
+ *  @note                : Socket creation can return ENOBUFS, in which case, retrying after a delay most likely will succeed
  */
-static bool open_socket_with_timeout(int *client_socket, uint32_t port, uint8_t task_id)
+static bool open_socket_with_timeout(int *client_socket, uint32_t port, uint8_t task_id, const uint16_t * delay_between_retry_ms)
 {
+    static const uint16_t two_second_ms = 2000;
+
     bool client_created = false;
-    int timeout_count = 10;
-    const uint16_t one_second_ms = 2000;
+    int timeout_count = 60;
+
+    // If specified, use parameter delay, otherwise, use default one second
+    const uint16_t delay_ms = (delay_between_retry_ms) ? (*delay_between_retry_ms) : (two_second_ms);
 
     // Initialize client
     while (!client_created && timeout_count > 0)
@@ -30,12 +35,13 @@ static bool open_socket_with_timeout(int *client_socket, uint32_t port, uint8_t 
 
         if (!client_created)
         {
+#if EXTRA_DEBUG_MSGS
             if (--timeout_count <= 0)
             {
                 ESP_LOGE("init_socket_tx_task", "[%d] FAILED to create client", task_id);
             }
-            // Retry in 1 second
-            DELAY_MS(one_second_ms);
+#endif
+            DELAY_MS(delay_ms);
         }
     }
 
@@ -53,7 +59,7 @@ static bool connect_socket_with_timeout(int *client_socket, uint32_t port, uint8
 {
     /// @TODO : Perfect place for leaky bucket
     static const uint16_t two_second_ms = 2000;
-    static const uint8_t max_timeout_count = 10;
+    static const uint8_t max_timeout_count = 100;
     
     bool connected = false;
     int8_t timeout_count = max_timeout_count;
@@ -85,11 +91,11 @@ static bool connect_socket_with_timeout(int *client_socket, uint32_t port, uint8
  *  @returns             : Success status
  *  @note                : Needs to be initialized after scheduler starts because it depends on the tasks input parameters
  */
-static bool init_task_tx(int *client_socket, uint32_t port, uint8_t task_id)
+static bool init_task_tx(int *client_socket, uint32_t port, uint8_t task_id, const uint16_t * delay_between_retry_ms)
 {
     bool success = false;
 
-    if (   open_socket_with_timeout(client_socket, port, task_id) &&
+    if (open_socket_with_timeout(client_socket, port, task_id, delay_between_retry_ms) &&
         connect_socket_with_timeout(client_socket, port, task_id))
     {
         success = true;
@@ -105,21 +111,23 @@ static bool init_task_tx(int *client_socket, uint32_t port, uint8_t task_id)
  *  @param task_id       : The ID of the calling task
  *  @returns             : Success status
  */
-static bool reopen_socket(int *client_socket, uint32_t port, uint8_t task_id)
+static bool reopen_socket(int *client_socket, uint32_t port, uint8_t task_id, const uint16_t * delay_between_retry_ms)
 {
     tcp_client_close_socket(client_socket);
 
-    return init_task_tx(client_socket, port, task_id);
+    return init_task_tx(client_socket, port, task_id, delay_between_retry_ms);
 }
 
 void task_tx(task_param_T params)
 {
+    static const uint16_t delay_between_client_reconnect_100ms = 100;
+
     // Each task_tx has its own input parameter with its designated task ID and port number
     const task_tx_params_S task_params = *((task_tx_params_S *)params);
 
     // Initialize the client socket first
     int client_socket = -1;
-    if (!init_task_tx(&client_socket, task_params.port, task_params.task_id))
+    if (!init_task_tx(&client_socket, task_params.port, task_params.task_id, NULL))
     {
         ESP_LOGE("task_tx", "[%d] Client task failed to initialize socket and is terminating...", task_params.task_id);
         vTaskSuspend(NULL);
@@ -149,7 +157,10 @@ void task_tx(task_param_T params)
         tcp_client_send_packet(&client_socket, buffer, current_packet_size);
 
         // Close and reopen socket, also prints its own error message, nothing to handle
-        reopen_socket(&client_socket, task_params.port, task_params.task_id);
+        if (!reopen_socket(&client_socket, task_params.port, task_params.task_id, &delay_between_client_reconnect_100ms))
+        {
+            ESP_LOGE("task_tx", "[%d] FAILED to create client", task_params.task_id);
+        }
 
         // Clear buffer so data doesnt overlap
         // Only need to clear current_packet_size because other bytes are untouched

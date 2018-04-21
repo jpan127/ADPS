@@ -10,6 +10,7 @@ Command,2,Length,1,Error,1,Move Backward,1
 ,,,,Log Motor,13,Incr Right,7
 ,,,,Log Wifi,14,Decr Forward,8
 ,,,,Log Wmark,15,Decr Backward,9
+,,,,Log Infrared,16,
 ,,,,,,Decr Left,10
 ,,,,,,Decr Right,11
 ,,,,,,Servo Duty,12

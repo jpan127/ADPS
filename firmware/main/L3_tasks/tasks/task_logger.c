@@ -8,6 +8,8 @@
 #include "motor.h"
 #include "packet.h"
 #include "wifi.h"
+#include "infrared.h"
+
 
 
 /// Enumerate the logging multiplexing
@@ -20,6 +22,7 @@ typedef enum
     mux_motor,
     mux_wifi,
     mux_task_watermarks,
+    mux_infrared_distances,
     mux_last_invalid,
 } logging_mux_E;
 
@@ -31,6 +34,7 @@ static struct
     packet_logs_S * packet_logs;
     motor_logs_S * motor_logs;
     wifi_logs_S * wifi_logs;
+    infrared_logs_S * infrared_logs;
 } logs;
 
 /**
@@ -92,6 +96,7 @@ void init_task_logger(void)
     logs.packet_logs     = packet_get_logs();
     logs.motor_logs      = motor_get_logs();
     logs.wifi_logs       = wifi_get_logs();
+    logs.infrared_logs   = infrared_get_logs();
 }
 
 void task_logger(task_param_T params)
@@ -189,6 +194,18 @@ void task_logger(task_param_T params)
                     static_snprintf_watermark(buffer, task_name, stack_utilization);
 
                     log_data_float(buffer, packet_type_log_wmark, &stack_utilization);
+                }
+                break;
+            }
+            case mux_infrared_distances:
+            {
+                static const char * const infrared_str = "%%u:infrared%u:%%u";
+                for (infrared_E ir = (infrared_E)0; ir < infrared_max; ir++)
+                {
+                    snprintf(buffer, sizeof(buffer), infrared_str, ir);
+                    log_data(buffer, packet_type_log_infrared, (const uint32_t *)&logs.infrared_logs[ir].operational);
+                    log_data(buffer, packet_type_log_infrared, (const uint32_t *)&logs.infrared_logs[ir].raw_values);
+                    log_data(buffer, packet_type_log_infrared, (const uint32_t *)&logs.infrared_logs[ir].distances);
                 }
                 break;
             }

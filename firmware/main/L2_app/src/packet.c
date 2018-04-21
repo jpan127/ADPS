@@ -80,37 +80,6 @@ parser_status_E command_packet_parser(const uint8_t * const buffer, command_pack
 
     parser_status_E status = parser_status_complete;
 
-    // switch (state)
-    // {        
-    //     case parser_state_opcode:
-        
-    //         packet->opcode = byte;
-    //         state  = parser_state_command1;
-    //         status = parser_status_in_progress;
-    //         break;
-        
-    //     case parser_state_command1:
-        
-    //         packet->command[0] = byte;
-    //         state  = parser_state_command2;
-    //         status = parser_status_in_progress;
-    //         break;
-        
-    //     case parser_state_command2:
-        
-    //         packet->command[1] = byte;
-    //         state  = parser_state_opcode;
-    //         status = parser_status_complete;
-    //         break;
-        
-    //     default:
-        
-    //         ESP_LOGE("command_packet_parser", "Reached impossible state: %d!\n", state);
-    //         state  = parser_state_opcode;
-    //         status = parser_status_error;
-    //         break;
-    // }
-
     packet->opcode     = buffer[0];
     packet->command[0] = buffer[1];
     packet->command[1] = buffer[2];

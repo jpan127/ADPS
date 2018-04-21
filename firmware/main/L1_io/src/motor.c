@@ -67,12 +67,16 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty)
     const pwm_duty_U pwm_duty       = (pwm_duty_percent == duty_type) ? (percent) : (us);
 
 // ESP_LOGI("motor_move", "Setting %d to %d", motor, pwm_duty.us);
+
+    /// @TODO : Fix this
+    const bool motor_polarity_forward = true;
+    const bool motor_polarity_backward = false;
     switch (direction)
     {
         case motor_dir_both_forward:
 
-            gpio_set_output_value(motor_map[motor].dir_a, true);
-            gpio_set_output_value(motor_map[motor].dir_b, true);
+            gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_backward);
+            gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_backward);
             pwm_generate(&motor_map[motor].config.pwm, PWM_AB, pwm_duty, duty_type);
             logs.duty[motor].a = duty;
             logs.duty[motor].b = duty;
@@ -80,8 +84,8 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty)
 
         case motor_dir_both_backward:
 
-            gpio_set_output_value(motor_map[motor].dir_a, false);
-            gpio_set_output_value(motor_map[motor].dir_b, false);
+            gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_forward);
+            gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_forward);
             pwm_generate(&motor_map[motor].config.pwm, PWM_AB, pwm_duty, duty_type);
             logs.duty[motor].a = duty;
             logs.duty[motor].b = duty;
@@ -89,29 +93,29 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty)
 
         case motor_dir_a_forward:
 
-            gpio_set_output_value(motor_map[motor].dir_a, true);
+            gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_backward);
             pwm_generate(&motor_map[motor].config.pwm, PWM_A, pwm_duty, duty_type);
-            ESP_LOGI("motor_move", "Setting %d to %d", motor, pwm_duty.us);
+            // ESP_LOGI("motor_move", "Setting %d to %d", motor, pwm_duty.us);
             logs.duty[motor].a = duty;
             break;
 
         case motor_dir_a_backward:
 
-            gpio_set_output_value(motor_map[motor].dir_a, false);
+            gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_forward);
             pwm_generate(&motor_map[motor].config.pwm, PWM_A, pwm_duty, duty_type);
             logs.duty[motor].a = duty;
             break;
 
         case motor_dir_b_forward:
 
-            gpio_set_output_value(motor_map[motor].dir_b, true);
+            gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_backward);
             pwm_generate(&motor_map[motor].config.pwm, PWM_B, pwm_duty, duty_type);
             logs.duty[motor].b = duty;
             break;
 
         case motor_dir_b_backward:
 
-            gpio_set_output_value(motor_map[motor].dir_b, false);
+            gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_forward);
             pwm_generate(&motor_map[motor].config.pwm, PWM_B, pwm_duty, duty_type);
             logs.duty[motor].b = duty;
             break;

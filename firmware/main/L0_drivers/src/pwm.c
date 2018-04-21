@@ -95,11 +95,13 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
             {
                 ESP_ERROR_CHECK(mcpwm_set_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A, duty.percent));
                 ESP_ERROR_CHECK(mcpwm_set_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B, duty.percent));
+                ESP_LOGI("pwm_generate", "Generating MCPWMXA + MCPWMXB : %f", duty.percent);
             }
             else
             {
                 ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A, duty.us));
                 ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B, duty.us));
+                ESP_LOGI("pwm_generate", "Generating MCPWMXA + MCPWMXB : %u", duty.us);
             }
             ESP_ERROR_CHECK(mcpwm_set_duty_type(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A, MCPWM_DUTY_MODE_0));
             ESP_ERROR_CHECK(mcpwm_set_duty_type(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B, MCPWM_DUTY_MODE_0));
@@ -111,15 +113,15 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
             break;
     }
 
-    if (pwm_duty_percent == duty_type)
-    {
-        // ESP_LOGI("pwm_generate", "Duty: %f %f", mcpwm_get_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A),
-        //                                         mcpwm_get_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B));
-    }
-    else
-    {
+    // if (pwm_duty_percent == duty_type)
+    // {
+    //     ESP_LOGI("pwm_generate", "Duty: %f %f", mcpwm_get_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A),
+    //                                             mcpwm_get_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B));
+    // }
+    // else
+    // {
         // ESP_LOGI("pwm_generate", "Duty: %uus", duty.us);     
-    }
+    // }
 }
 
 void pwm_stop(pwm_S * pwm_pair, pwm_E pwm)

@@ -89,7 +89,7 @@ static void adps_init_tasks(void)
 {
     init_task_logger();
 
-    // init_task_navigation();
+    init_task_navigation();
 
     // init_task_servo();    
 }
@@ -97,18 +97,18 @@ static void adps_init_tasks(void)
 /// Creates all low priority tasks
 static void adps_create_low_priority_tasks(void)
 {
-    // Create TX client threads
-    adps_create_task_thread_pool("task_tx", PRIORITY_LOW, _16KB, task_tx, true);
-
-    // Create RX server threads
-    adps_create_task_thread_pool("task_rx", PRIORITY_LOW, _16KB, task_rx, false);
-
     rtos_create_task(&task_logger, "task_logger", _8KB , PRIORITY_LOW);
 }
 
 /// Creates all medium priority tasks
 static void adps_create_medium_priority_tasks(void)
 {
+    // Create TX client threads
+    adps_create_task_thread_pool("task_tx", PRIORITY_MED, _16KB, task_tx, true);
+
+    // Create RX server threads
+    adps_create_task_thread_pool("task_rx", PRIORITY_MED, _16KB, task_rx, false);
+
     // rtos_create_task(&task_navigation , "task_navigation" , _8KB , PRIORITY_MED);
 
     // rtos_create_task(&task_servo      , "task_servo"      , _8KB , PRIORITY_MED);

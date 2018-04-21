@@ -43,6 +43,6 @@ void infrared_initialize(const gpio_E * gpio, bool * functional);
  *  @param delay   : The delay between samples
  *  @returns       : The average of all the samples
  */
-uint32_t infrared_burst_sample(const infrared_E ir, const uint8_t samples, const uint16_t delay_us);
+float infrared_burst_sample(const infrared_E ir, const uint8_t samples, const uint16_t delay_us);
 
 infrared_logs_S * infrared_get_logs(void);

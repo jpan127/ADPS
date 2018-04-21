@@ -20,6 +20,7 @@ typedef enum
     packet_type_log_motor = 13,
     packet_type_log_wifi = 14,
     packet_type_log_wmark = 15,
+    packet_type_log_infrared = 16,
 
     packet_type_last_invalid,
 } packet_type_E;

@@ -12,7 +12,7 @@ QueueHandle_t MessageRxQueue = NULL;
 QueueHandle_t MessageTxQueue = NULL;
 
 /// Size of message queues
-static const uint8_t message_queue_size = 20;
+static const uint8_t message_queue_size = 50;
 
 /// Array of task contexts
 static rtos_task_control_block_S TCBs[MAX_TASKS] = { 0 };
