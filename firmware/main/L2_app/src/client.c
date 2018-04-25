@@ -10,6 +10,11 @@ static tcp_client_logs_S logs = { 0 };
 
 bool tcp_client_create_socket(int *tcp_socket, uint32_t port)
 {
+    // Counter for getting error ENOBUFS
+    static uint32_t no_buffer_counter = 0;
+    // Flag error if received ENOBUFS 10 times in a row
+    static const uint8_t no_buffer_error_limit = 10;
+
     bool success = false;
 
     // Close just in case the socket is already open
@@ -20,7 +25,13 @@ bool tcp_client_create_socket(int *tcp_socket, uint32_t port)
 
     if (*tcp_socket < 0) 
     {
-        ESP_LOGE("tcp_client_create_socket", "Error creating socket: %s | Port: %u", strerror(errno), port);
+        // Increment counter
+        no_buffer_counter = (ENOBUFS == errno) ? (no_buffer_counter + 1) : (0);
+        // Send an error after it reaches the limit, and continue to send the error for each subsequent failure
+        if (no_buffer_counter >= no_buffer_error_limit)
+        {
+            ESP_LOGE("tcp_client_create_socket", "Error creating socket: %s | Port: %u", strerror(errno), port);
+        }
     }
     else 
     {
@@ -30,6 +41,7 @@ bool tcp_client_create_socket(int *tcp_socket, uint32_t port)
         // ESP_LOGI("tcp_create_socket", "Socket successfully created.");
         logs.sockets_created++;
         success = true;
+        no_buffer_counter = 0;
     }
 
     return success;

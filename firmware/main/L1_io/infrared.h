@@ -38,11 +38,12 @@ void infrared_initialize(const gpio_E * gpio, bool * functional);
 
 /**
  *  Samples the ADC value multiple times with a delay in between sampling
- *  @param ir      : The infrared sensor to sample
- *  @param samples : The number of samples to take
- *  @param delay   : The delay between samples
- *  @returns       : The average of all the samples
+ *  @param ir       : The infrared sensor to sample
+ *  @param samples  : The number of samples to take
+ *  @param delay_ms : The delay between samples
+ *  @returns        : The average of all the samples
+ *  @note           : The sensors have an average of ~40ms between readings
  */
-float infrared_burst_sample(const infrared_E ir, const uint8_t samples, const uint16_t delay_us);
+float infrared_burst_sample(const infrared_E ir, const uint8_t samples, uint16_t delay_ms);
 
 infrared_logs_S * infrared_get_logs(void);

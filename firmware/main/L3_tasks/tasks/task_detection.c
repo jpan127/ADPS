@@ -1,5 +1,6 @@
 #include "tasks.h"
 #include "infrared.h"
+#include "motor.h"
 
 
 static const gpio_E gpios[infrared_max] = 
@@ -20,7 +21,7 @@ static bool infrared_self_test(void)
     {
         if (!sensor_functional[sensor])
         {
-            ESP_LOGE("task_detection", "Infrared %d self test failed, suspending this task", sensor);
+            ESP_LOGE("task_detection", "Infrared %d self test failed", sensor);
             success = false;
         }
     }
@@ -34,8 +35,10 @@ void task_detection(task_param_T params)
     DELAY_MS(1000);
 
     const uint8_t num_samples = 5;
-    const uint16_t delay_us = 100;
     const uint8_t max_retries = 5;
+    const uint16_t delay_between_samples_ms = 40;
+    const uint16_t delay_between_infrared_readings_ms = 250;
+    const uint16_t object_distance_threshold_cm = 50;
 
     bool operational = false;
 
@@ -49,8 +52,8 @@ void task_detection(task_param_T params)
 
     if (!operational)
     {
-        // @TODO : Change back
-        // vTaskSuspend(NULL);
+        ESP_LOGE("task_detection", "At least one sensor failed self test, suspending task...")
+        vTaskSuspend(NULL);
     }
 
     float average_samples[infrared_max] = { 0 };
@@ -58,12 +61,41 @@ void task_detection(task_param_T params)
     // Main Loop
     while (1)
     {
+        bool recently_detected_object = false;
+    
+        /**
+         *  For each sensor check if it finds an object within range
+         *  If any find an object, break the loop and immediately pause motors
+         *  If it doesn't find anything, resume wheels
+         */
         for (infrared_E ir = (infrared_E)0; ir < infrared_max; ir++)
         {
-            average_samples[ir] = infrared_burst_sample(ir, num_samples, delay_us);
-            DELAY_MS(250);
+            average_samples[ir] = infrared_burst_sample(ir, num_samples, delay_between_samples_ms);
+
+            recently_detected_object = (average_samples[ir] < object_distance_threshold_cm);
+
+            if (recently_detected_object)
+            {
+                break;
+            }
+        }
+
+        if (recently_detected_object)
+        {
+            if (!motor_are_wheels_paused())
+            {
+                motor_pause_wheels();
+            }
+        }
+        else
+        {
+            if (motor_are_wheels_paused())
+            {
+                motor_resume_wheels();
+            }
         }
 
         ESP_LOGI("task_detection", "Average Sample : %f | %f | %f", average_samples[0], average_samples[1], average_samples[2]);
+        DELAY_MS(delay_between_infrared_readings_ms);
     }
 }

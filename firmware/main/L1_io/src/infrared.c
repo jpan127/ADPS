@@ -113,9 +113,13 @@ void infrared_initialize(const gpio_E * gpio, bool * functional)
     }
 }
 
-float infrared_burst_sample(const infrared_E ir, const uint8_t samples, const uint16_t delay_us)
+float infrared_burst_sample(const infrared_E ir, const uint8_t samples, uint16_t delay_ms)
 {
+    static const uint8_t minimum_delay_between_readings_ms = 40;
+
     uint32_t average = 0;
+
+    delay_ms = MAX(minimum_delay_between_readings_ms, delay_ms);
 
     if (adc1_is_initialized(infrared_map[ir]))
     {
@@ -126,7 +130,7 @@ float infrared_burst_sample(const infrared_E ir, const uint8_t samples, const ui
             {
                 average += reading;
                 // ESP_LOGI("infrared_burst_sample", "Sample : %d", reading);
-                DELAY_US(delay_us);
+                DELAY_MS(delay_ms);
             }
 #if TESTING
             else

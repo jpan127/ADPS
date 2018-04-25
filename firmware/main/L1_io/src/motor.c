@@ -17,9 +17,16 @@ static motor_logs_S logs = { 0 };
 /// A duty union of zero
 static const pwm_duty_U zero_duty = { 0 };
 
+/// Duty constants
 static const uint16_t duty_ratio_range_us = MAX_DUTY_RATIO_US - MIN_DUTY_RATIO_US;
-static const uint8_t  max_degree          = 180;
+static const uint8_t max_degree           = 180;
 static const float max_duty_percent       = 100.0f;
+
+/// Flag to say pause the state of the motors, and restore context later
+static bool pause_wheel_motors = false;
+
+/// Stores the previous duties of the wheels prior to pausing
+static float previous_wheel_motor_duties[2] = { 0 };
 
 /**
  *  Converts a servo degree from a range of [0, max_degree] to a PWM pulse width in microseconds
@@ -60,6 +67,8 @@ bool motor_init(const motor_E motor, const motor_config_S * config)
 
 void motor_move(motor_E motor, motor_direction_E direction, float duty)
 {
+    // static const float right_motor_offset = 5.0f;
+
     // Handle conversion from float to microsecond duty
     const pwm_duty_type_E duty_type = (motor_servo == motor) ? (pwm_duty_us) : (pwm_duty_percent);
     const pwm_duty_U percent        = { .percent = duty };
@@ -152,6 +161,9 @@ void motor_adjust_duty(motor_E motor, motor_direction_E direction, float step, d
     float adjusted_duty_a = (duty_increment == adjust_type) ? (logs.duty[motor].a + step) : (logs.duty[motor].a - step);
     float adjusted_duty_b = (duty_increment == adjust_type) ? (logs.duty[motor].b + step) : (logs.duty[motor].b - step);
 
+    bool adjust_left  = false;
+    bool adjust_right = false;
+
     // Make sure duties are positive
     adjusted_duty_a = MAX(0.0f, adjusted_duty_a);
     adjusted_duty_b = MAX(0.0f, adjusted_duty_b);
@@ -172,86 +184,77 @@ void motor_adjust_duty(motor_E motor, motor_direction_E direction, float step, d
         duty_b.us = servo_degree_to_pulse_width(adjusted_duty_b);
     }
 
-    // // Limit duties
-    // if (duty_increment == adjust_type)
-    // {
-    //     if (pwm_duty_percent == duty_type)
-    //     {
-    //         duty_a.percent = MIN(max_duty_percent, logs.duty[motor].a + step);
-    //         duty_b.percent = MIN(max_duty_percent, logs.duty[motor].b + step);
-    //     }
-    //     else
-    //     {
-    //         duty_a.us = MIN(max_degree, servo_degree_to_pulse_width(logs.duty[motor].a + step));
-    //         duty_b.us = MIN(max_degree, servo_degree_to_pulse_width(logs.duty[motor].b + step));
-    //     }
-    // }
-    // else
-    // {
-    //     if (pwm_duty_percent == duty_type)
-    //     {
-    //         duty_a.percent = MAX(0.0f, logs.duty[motor].a - step);
-    //         duty_b.percent = MAX(0.0f, logs.duty[motor].b - step);
-    //     }
-    //     else
-    //     {
-    //         duty_a.us = servo_degree_to_pulse_width(logs.duty[motor].a - step);
-    //         duty_b.us = servo_degree_to_pulse_width(logs.duty[motor].b - step);
-    //     }
-    // }
-
     // Set the appropriate GPIO enables and store into log
     switch (direction)
     {
         case motor_dir_both_forward:
-
+        {
             logs.duty[motor].a = adjusted_duty_a;
             logs.duty[motor].b = adjusted_duty_b;
-            gpio_set_output_value(motor_map[motor].dir_a, true);
-            gpio_set_output_value(motor_map[motor].dir_b, true);
+            adjust_left  = true;
+            adjust_right = true;
             break;
-
+        }
         case motor_dir_both_backward:
-
+        {
             logs.duty[motor].a = adjusted_duty_a;
             logs.duty[motor].b = adjusted_duty_b;
-            gpio_set_output_value(motor_map[motor].dir_a, false);
-            gpio_set_output_value(motor_map[motor].dir_b, false);
+            adjust_left  = true;
+            adjust_right = true;
             break;
-
-        case motor_dir_a_forward:
-
+        }
+        case motor_dir_left:
+        {
             logs.duty[motor].a = adjusted_duty_a;
-            gpio_set_output_value(motor_map[motor].dir_a, true);
+            adjust_left  = true;
+            adjust_right = false;
             break;
-
-        case motor_dir_a_backward:
-
-            logs.duty[motor].a = adjusted_duty_a;
-            gpio_set_output_value(motor_map[motor].dir_a, false);
-            break;
-
-        case motor_dir_b_forward:
-
+        }
+        case motor_dir_right:
+        {
             logs.duty[motor].b = adjusted_duty_b;
-            gpio_set_output_value(motor_map[motor].dir_b, true);
+            adjust_left  = false;
+            adjust_right = true;
             break;
+        }
+        // case motor_dir_a_forward:
 
-        case motor_dir_b_backward:
+        //     logs.duty[motor].a = adjusted_duty_a;
+        //     adjust_left  = true;
+        //     adjust_right = false;
+        //     break;
 
-            logs.duty[motor].b = adjusted_duty_b;
-            gpio_set_output_value(motor_map[motor].dir_b, false);
-            break;
+        // case motor_dir_a_backward:
+
+        //     logs.duty[motor].a = adjusted_duty_a;
+        //     adjust_left  = true;
+        //     adjust_right = false;
+        //     break;
+
+        // case motor_dir_b_forward:
+
+        //     logs.duty[motor].b = adjusted_duty_b;
+        //     adjust_left  = false;
+        //     adjust_right = true;
+        //     break;
+
+        // case motor_dir_b_backward:
+
+        //     logs.duty[motor].b = adjusted_duty_b;
+        //     adjust_left  = false;
+        //     adjust_right = true;
+        //     break;
 
         default:
-
+        {
             ESP_LOGE("motor_move", "Impossible direction selected: %d", direction);
             break;
+        }
     }
 
     // Generate the adjusted PWM signals
-    pwm_generate(&motor_map[motor].config.pwm, PWM_A, duty_a, duty_type);
-    pwm_generate(&motor_map[motor].config.pwm, PWM_B, duty_b, duty_type);
+    if (adjust_left)  { pwm_generate(&motor_map[motor].config.pwm, PWM_A, duty_a, duty_type); }
+    if (adjust_right) { pwm_generate(&motor_map[motor].config.pwm, PWM_B, duty_b, duty_type); }
 }
 
 void motor_stop(motor_E motor)
@@ -259,6 +262,33 @@ void motor_stop(motor_E motor)
     pwm_stop(&motor_map[motor].config.pwm, PWM_AB);
     logs.duty[motor].a = 0;
     logs.duty[motor].b = 0;
+}
+
+bool motor_are_wheels_paused(void)
+{
+    return pause_wheel_motors;
+}
+
+void motor_pause_wheels(void)
+{
+    static const motor_E motor_to_pause = motor_wheels;
+
+    previous_wheel_motor_duties[0] = logs.duty[motor_to_pause].a;
+    previous_wheel_motor_duties[1] = logs.duty[motor_to_pause].b;
+
+    motor_stop(motor_to_pause);
+
+    pause_wheel_motors = true;
+}
+
+void motor_resume_wheels(void)
+{
+    static const motor_E motor_to_resume = motor_wheels;
+
+    motor_move(motor_to_resume, motor_dir_left , previous_wheel_motor_duties[0]);
+    motor_move(motor_to_resume, motor_dir_right, previous_wheel_motor_duties[1]);
+
+    pause_wheel_motors = false;
 }
 
 motor_logs_S * motor_get_logs(void)

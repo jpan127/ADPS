@@ -36,7 +36,7 @@ static int accept_blocking(uint8_t task_id, const int server_socket)
     }
     else
     {
-        ESP_LOGI("accept_blocking", "[%d] Accepted from client | Server Socket: %i", task_id, server_socket);
+        // ESP_LOGI("accept_blocking", "[%d] Accepted from client | Server Socket: %i", task_id, server_socket);
     }
 
     return client_socket;

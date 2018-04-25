@@ -35,12 +35,13 @@ static bool open_socket_with_timeout(int *client_socket, uint32_t port, uint8_t 
 
         if (!client_created)
         {
-#if EXTRA_DEBUG_MSGS
-            if (--timeout_count <= 0)
+            --timeout_count;
+        #if EXTRA_DEBUG_MSGS
+            if (timeout_count <= 0)
             {
                 ESP_LOGE("init_socket_tx_task", "[%d] FAILED to create client", task_id);
             }
-#endif
+        #endif
             DELAY_MS(delay_ms);
         }
     }

@@ -166,7 +166,7 @@ void task_logger(task_param_T params)
 
                     snprintf(buffer, sizeof(buffer), "%%u:duty_b%u:%%f", motor);
                     log_data_float(buffer, packet_type_log_motor, &logs.motor_logs->duty[motor].b);
-                    ESP_LOGI("motor", "[%u] %f %f", motor, logs.motor_logs->duty[motor].a, logs.motor_logs->duty[motor].b);
+                    // ESP_LOGI("motor", "[%u] %f %f", motor, logs.motor_logs->duty[motor].a, logs.motor_logs->duty[motor].b);
                 }
                 break;
             }
@@ -216,9 +216,6 @@ void task_logger(task_param_T params)
             }
         }
 
-LOG_INFO("hello andrew hello andrew hello andrew hello andrew hello andrew hello andrew hello andrew hello andrew hello andrew");
-LOG_INFO("abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
-LOG_STATUS("AOEWAHFEWAHFIWAHFOEWAJFOJEWAFOU3284U104U2108421084U210U2104H9FHSADFHODSJF OW WHF98SHFA9 HFFEWAH 0EWAFEWA0FH");
         // Iterate through the muxes
         mux = (mux_last_invalid-1 == mux) ? (mux_first_invalid + 1) : (mux + 1);
 
