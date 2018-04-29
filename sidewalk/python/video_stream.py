@@ -28,6 +28,7 @@ ypos = 0
 # Degrees to the left or right of zero the robot should go (+ is left, - is right)
 direction_angle = 90
 percentage_accuracy = 0
+average_slope = 0
 
 
 # RGB colors
@@ -54,7 +55,7 @@ def calculate_line_angle(img, line):
 
     # Avoid divide by zero, run of zero is just a vertical line anyways
     if run == 0:
-        return 0
+        return 0,0
     else:
         # Calculate slope and y-intercept: b = y - mx
         # The y-intercept is defined as the left side of the frame
@@ -67,11 +68,11 @@ def calculate_line_angle(img, line):
 
         # If line intersects the y-intercept near the middle, ignore line
         if abs(y_intercept - y_middle) < margin:
-            return 0
+            return 0,0
         # Calculate theta of angle and return
         else:
             theta = math.degrees(math.atan(slope))
-            return theta
+            return theta,slope
 
 """
 @param      img: Input un-filtered frame
@@ -81,6 +82,8 @@ def hough_transform(img):
     # These parameters change performance
     CANNY_THRESHHOLD = 50
     HOUGH_THRESHHOLD = 75
+    
+    global average_slope
 
     # Gray
     gray    = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -107,10 +110,11 @@ def hough_transform(img):
         y0    = b * rho
         pt1   = ( int(x0+1000*(-b)), int(y0+1000*(a)) )
         pt2   = ( int(x0-1000*(-b)), int(y0-1000*(a)) )
-        angle = calculate_line_angle(img, (pt1, pt2))
-
+        angle,slope = calculate_line_angle(img, (pt1, pt2))
+        average_slope += slope
         # Only factor in lines with angles
         if 10 < abs(angle) < 75:
+            #average_slope += slope
             if LINE:
                 if angle <= 15:
                     color = RED
@@ -120,7 +124,8 @@ def hough_transform(img):
                     color = GREEN
                 cv2.line(img, pt1, pt2, color, 2, cv2.LINE_AA)
             hough_lines.append((pt1, pt2))
-
+    #average_slope = average_slope / len(hough_lines)
+    average_slope = average_slope / len(lines)
     return hough_lines
 
 #=================================================================================================#
@@ -253,7 +258,7 @@ average_times = [
     ["Hough"              , 0],
     ["Sampling"           , 0],
     ["Find Intersections" , 0],
-    ["Find Vantage Point" , 0],
+    ["Find vanishing Point" , 0],
     ["Total"              , 0]
 ]
 counter = 0
@@ -307,7 +312,12 @@ def send_directions(image_width, output_image, capture_number):
     # print "Xraw = ", xpos, " Yraw = ", ypos
 
     if (xpos <= 0) or (ypos <= 0):
-        print "No valid vantage point"
+        if average_slope >= 0:
+            direction_angle = 1
+        else:
+            direction_angle = 179
+        percentage_accuracy = 0
+        print "Averaged Slope: {} ".format(average_slope) 
     else:
         xpos = xpos - image_width/2
         ypos = -1*(ypos - image_width)
@@ -316,35 +326,35 @@ def send_directions(image_width, output_image, capture_number):
         angle = math.atan2(ypos, xpos)
         angle = angle * (180 / math.pi)
         direction_angle = (2 * direction_angle + angle) / 3
-        direction_angle_s = float('%.3f' % (direction_angle))
-        percentage_accuracy_s = float('%.3f' % (percentage_accuracy))
-        # print "Angle = ",direction_angle,"*"
-        
-        if direction_angle < 80:
-            print "RIGHT"
-        elif direction_angle < 100:
-            print "STRAIGHT"
-        else:
-            print "LEFT"
+    direction_angle_s = float('%.3f' % (direction_angle))
+    percentage_accuracy_s = float('%.3f' % (percentage_accuracy))
+    # print "Angle = ",direction_angle,"*"
+    
+    if direction_angle < 80:
+        print "RIGHT"
+    elif direction_angle < 100:
+        print "STRAIGHT"
+    else:
+        print "LEFT"
 
-        dictionary = {
-            'angle': direction_angle_s,
-            'accuracy': percentage_accuracy_s,
-            'time': time(),
-        }
-        
-        # print(json.dumps(dictionary))
-        if capture_number == 0:
-            with open('front.json', 'w') as outfile:  
-                json.dump(dictionary, outfile, indent=4)
+    dictionary = {
+        'angle': direction_angle_s,
+        'accuracy': percentage_accuracy_s,
+        'time': time(),
+    }
+    
+    # print(json.dumps(dictionary))
+    if capture_number == 0:
+        with open('front.json', 'w') as outfile:  
+            json.dump(dictionary, outfile, indent=4)
 
-            cv2.imwrite("front.jpg",output_image)
-        else:
-            with open('side.json', 'w') as outfile:  
-                json.dump(dictionary, outfile, indent=4)
+        cv2.imwrite("front.jpg",output_image)
+    else:
+        with open('side.json', 'w') as outfile:  
+            json.dump(dictionary, outfile, indent=4)
 
-            cv2.imwrite("side.jpg",output_image)
-        # print "Raw Angle = ",angle,"*"
+        cv2.imwrite("side.jpg",output_image)
+    # print "Raw Angle = ",angle,"*"
     
 
 
@@ -372,11 +382,11 @@ def main():
 
     if not args.get("video", False):
         # print "Going for camera"
-        camera = cv2.VideoCapture(0)
+        camera = cv2.VideoCapture(1)
         camera.set(3, 640)
         camera.set(4, 480)
         camera.set(5, 5)
-        camera1 = cv2.VideoCapture(1)
+        camera1 = cv2.VideoCapture(2)
         camera1.set(3, 640)
         camera1.set(4, 480)
         camera1.set(5, 5)
@@ -399,22 +409,21 @@ def main():
 
             # Apply filters and show frame
             if FILTER:
-                vantage_frame  = frame.copy()
+                vanishing_frame  = frame.copy()
                 sidewalk_frame = frame.copy()
-                vantage_frame = show_vanishing_point(vantage_frame)
+                vanishing_frame = show_vanishing_point(vanishing_frame)
                 sidewalk_frame = show_sidewalk(sidewalk_frame)
                 send_directions(frame.shape[1], frame, 0)
                 cv2.imshow("Sidewalk1", sidewalk_frame)
-                cv2.imshow("Frame1", vantage_frame)
+                cv2.imshow("Frame1", vanishing_frame)
                 # Camera 2
-                # Commit Test
-                vantage_frame1  = frame1.copy()
+                vanishing_frame1  = frame1.copy()
                 sidewalk_frame1 = frame1.copy()
-                vantage_frame1 = show_vanishing_point(vantage_frame1)
+                vanishing_frame1 = show_vanishing_point(vanishing_frame1)
                 sidewalk_frame1 = show_sidewalk(sidewalk_frame1)
                 send_directions(frame1.shape[1], frame1, 1)
                 cv2.imshow("Sidewalk2", sidewalk_frame1)
-                cv2.imshow("Frame2", vantage_frame1)
+                cv2.imshow("Frame2", vanishing_frame1)
             else:
                 cv2.imshow("Frame", frame)
                 cv2.imshow("Frame1", frame1)
@@ -449,13 +458,13 @@ def main():
 
         # # Apply filters and show frame
         # if FILTER:
-        #     vantage_frame1  = frame1.copy()
+        #     vanishing_frame1  = frame1.copy()
         #     sidewalk_frame1 = frame1.copy()
-        #     vantage_frame1 = show_vanishing_point(vantage_frame1)
+        #     vanishing_frame1 = show_vanishing_point(vanishing_frame1)
         #     sidewalk_frame1 = show_sidewalk(sidewalk_frame1)
         #     send_directions(frame1.shape[1])
         #     cv2.imshow("Sidewalk", sidewalk_frame1)
-        #     cv2.imshow("Frame", vantage_frame1)
+        #     cv2.imshow("Frame", vanishing_frame1)
         #     # sleep(0.25)
         # else:
         #     cv2.imshow("Frame", frame1)
@@ -478,9 +487,9 @@ if __name__ == '__main__':
 
 """
 Notes:
-    When the sidewalk turns left or right, the vantage point is on the left or right.
+    When the sidewalk turns left or right, the vanishing point is on the left or right.
     The robot needs to be able to understand it needs to go forward first before turning, 
     otherwise if it immediately turns it will go off the sidewalk.
         It could use a filter to mask everything but the sidewalk to know where to go in the immediate
-        vicinity, and the vantage point to know what final direction to go.
+        vicinity, and the vanishing point to know what final direction to go.
 """
