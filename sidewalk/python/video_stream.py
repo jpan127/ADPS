@@ -44,7 +44,7 @@ BLUE  = (255,   0,   0)
 
 """
 @param      line: Tuple of two points, which are also tuples of (x, y)
-@returns    Theta angle of line calculated from the slope
+@returns    Theta angle of line calculated from the slope, and the slope
 """
 def calculate_line_angle(img, line):
     MARGIN_PERCENT = 0.15
@@ -266,6 +266,12 @@ def show_vanishing_point(img):
     if hough_lines:
         random_sample = sample_lines(hough_lines, 100)
         time3 = time()
+		#Force 2 boundry lines to houghline
+        random_sample.append(((1,1),(1,img.shape[0]-1)))
+        random_sample.append(((img.shape[1] - 1, 1),(img.shape[1] - 1, img.shape[0] - 1)))
+        cv2.line(img, (0,0),(0,img.shape[0]), WHITE, 2, cv2.LINE_AA)
+        cv2.line(img, (img.shape[1], 0),(img.shape[1], img.shape[0]), WHITE, 2, cv2.LINE_AA)
+		#----------------------------------
         intersections = find_intersections(random_sample, img)
         time4 = time()
         if intersections:
@@ -359,7 +365,7 @@ def main():
 
     if not args.get("video", False):
         # print "Going for camera"
-        camera = cv2.VideoCapture(0)
+        camera = cv2.VideoCapture(1)
         camera.set(3, 640)
         camera.set(4, 480)
         camera.set(5, 5)
