@@ -299,7 +299,7 @@ def show_sidewalk(img):
 @param image_width:     Width of image capture region
 
 """
-def send_directions(image_width, output_image):
+def send_directions(image_width, output_image, capture_number):
     # Current coordinates of intersection point
     global xpos, ypos, percentage_accuracy
     global direction_angle
@@ -320,9 +320,9 @@ def send_directions(image_width, output_image):
         percentage_accuracy_s = float('%.3f' % (percentage_accuracy))
         # print "Angle = ",direction_angle,"*"
         
-        if direction_angle < 75:
+        if direction_angle < 80:
             print "RIGHT"
-        elif direction_angle < 105:
+        elif direction_angle < 100:
             print "STRAIGHT"
         else:
             print "LEFT"
@@ -330,13 +330,20 @@ def send_directions(image_width, output_image):
         dictionary = {
             'angle': direction_angle_s,
             'accuracy': percentage_accuracy_s,
+            'time': time(),
         }
         
         # print(json.dumps(dictionary))
-        with open('data.txt', 'w') as outfile:  
-            json.dump(dictionary, outfile, indent=4)
+        if capture_number == 0:
+            with open('front.json', 'w') as outfile:  
+                json.dump(dictionary, outfile, indent=4)
 
-        cv2.imwrite("img.jpg",output_image)
+            cv2.imwrite("front.jpg",output_image)
+        else:
+            with open('side.json', 'w') as outfile:  
+                json.dump(dictionary, outfile, indent=4)
+
+            cv2.imwrite("side.jpg",output_image)
         # print "Raw Angle = ",angle,"*"
     
 
@@ -365,14 +372,14 @@ def main():
 
     if not args.get("video", False):
         # print "Going for camera"
-        camera = cv2.VideoCapture(1)
+        camera = cv2.VideoCapture(0)
         camera.set(3, 640)
         camera.set(4, 480)
         camera.set(5, 5)
-        # camera1 = cv2.videooCapture(1)
-        # camera1.set(3, 640)
-        # camera1.set(4, 480)
-        # camera1.set(5, 10)
+        camera1 = cv2.VideoCapture(1)
+        camera1.set(3, 640)
+        camera1.set(4, 480)
+        camera1.set(5, 5)
     else:
         camera = cv2.VideoCapture(args["video"])
         camera.set(3, 640)
@@ -385,6 +392,10 @@ def main():
             (grabbed, frame) = camera.read()
             if not grabbed:
                 break
+            # Camera 2
+            (grabbed1, frame1) = camera1.read()
+            if not grabbed1:
+                break
 
             # Apply filters and show frame
             if FILTER:
@@ -392,12 +403,20 @@ def main():
                 sidewalk_frame = frame.copy()
                 vantage_frame = show_vanishing_point(vantage_frame)
                 sidewalk_frame = show_sidewalk(sidewalk_frame)
-                send_directions(frame.shape[1], frame)
+                send_directions(frame.shape[1], frame, 0)
                 cv2.imshow("Sidewalk1", sidewalk_frame)
                 cv2.imshow("Frame1", vantage_frame)
-                # sleep(1.0)
+                # Camera 2
+                vantage_frame1  = frame1.copy()
+                sidewalk_frame1 = frame1.copy()
+                vantage_frame1 = show_vanishing_point(vantage_frame1)
+                sidewalk_frame1 = show_sidewalk(sidewalk_frame1)
+                send_directions(frame1.shape[1], frame1, 1)
+                cv2.imshow("Sidewalk2", sidewalk_frame1)
+                cv2.imshow("Frame2", vantage_frame1)
             else:
                 cv2.imshow("Frame", frame)
+                cv2.imshow("Frame1", frame1)
 
             # Parse key triggers
             key = cv2.waitKey(1) & 0xFF
