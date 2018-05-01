@@ -2,6 +2,7 @@
 // Project libraries
 #include "client.h"
 #include "packet.h"
+#include "wifi.h"
 
 /**
  *  [task_tx] will create multiple tasks
@@ -119,6 +120,20 @@ static bool reopen_socket(int *client_socket, uint32_t port, uint8_t task_id, co
     return init_task_tx(client_socket, port, task_id, delay_between_retry_ms);
 }
 
+static bool wait_until_wifi_is_connected(void)
+{
+    static const uint8_t delay_between_checks_ms = 250;
+    int16_t retries = 100;
+    
+    // Stay in this loop while wifi is not connected
+    while (!wifi_is_connected() && retries > 0)
+    {
+        DELAY_MS(delay_between_checks_ms);
+    }
+
+    return wifi_is_connected();
+}
+
 void task_tx(task_param_T params)
 {
     static const uint16_t delay_between_client_reconnect_100ms = 100;
@@ -126,17 +141,23 @@ void task_tx(task_param_T params)
     // Each task_tx has its own input parameter with its designated task ID and port number
     const task_tx_params_S task_params = *((task_tx_params_S *)params);
 
-    // Initialize the client socket first
     int client_socket = -1;
+
+    // // Wait until wifi is connected
+    // if (!wait_until_wifi_is_connected())
+    // {
+    //     ESP_LOGE("task_tx", "[%d] Wireless is not initialized and client task is terminating...", task_params.task_id);
+    //     vTaskSuspend(NULL);        
+    // }
+
+    // Initialize the client socket first
     if (!init_task_tx(&client_socket, task_params.port, task_params.task_id, NULL))
     {
         ESP_LOGE("task_tx", "[%d] Client task failed to initialize socket and is terminating...", task_params.task_id);
         vTaskSuspend(NULL);
     }
-    else
-    {
-        ESP_LOGI("task_tx", "[%d] Task starting...", task_params.task_id);
-    }
+
+    ESP_LOGI("task_tx", "[%d] Task starting...", task_params.task_id);
 
     // Diagnostic packet
     diagnostic_packet_S packet = { 0 };

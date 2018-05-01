@@ -15,11 +15,16 @@
 /// Enumerate the 3 infrared sensors
 typedef enum
 {
-    infrared_1 = 0,
-    infrared_2,
-    infrared_3,
+    infrared_bottom = 0,
+    infrared_top_left,
+    infrared_top_right,
     infrared_max,
 } infrared_E;
+
+typedef struct
+{
+    float distance_cm[infrared_max];
+} infrared_readings_S;
 
 typedef struct
 {
@@ -41,9 +46,17 @@ void infrared_initialize(const gpio_E * gpio, bool * functional);
  *  @param ir       : The infrared sensor to sample
  *  @param samples  : The number of samples to take
  *  @param delay_ms : The delay between samples
- *  @returns        : The average of all the samples
+ *  @returns        : The average of all the samples in distance in cm
  *  @note           : The sensors have an average of ~40ms between readings
  */
 float infrared_burst_sample(const infrared_E ir, const uint8_t samples, uint16_t delay_ms);
+
+/**
+ *  Samples each IR sensor with a burst sample and writes into the struct
+ *  @param samples  : The number of samples to take
+ *  @param delay_ms : The delay between samples
+ *  @param readings : Struct to contain all the sensor readings in distance in cm
+ */
+void infrared_burst_sample_all(const uint8_t samples, uint16_t delay_ms, infrared_readings_S * const readings);
 
 infrared_logs_S * infrared_get_logs(void);

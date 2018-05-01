@@ -71,11 +71,11 @@ static void adps_create_task_thread_pool(const char * const base_name,
 /// Initializes the state of modules that are not tasks
 static void adps_init_modules(void)
 {
-    // Initialize wifi
-    init_wifi();
+    // // Initialize wifi
+    // init_wifi();
 
-    // Initialize server socket
-    init_server_socket();
+    // // Initialize server socket
+    // init_server_socket();
     
     // Initialize gpios
     gpio_init();
@@ -91,27 +91,27 @@ static void adps_init_tasks(void)
 
     init_task_navigation();
 
-    // init_task_servo();    
+    init_task_servo();    
 }
 
 /// Creates all low priority tasks
 static void adps_create_low_priority_tasks(void)
 {
-    rtos_create_task(&task_logger, "task_logger", _8KB , PRIORITY_LOW);
+    // rtos_create_task(&task_logger, "task_logger", _8KB , PRIORITY_LOW);
 }
 
 /// Creates all medium priority tasks
 static void adps_create_medium_priority_tasks(void)
 {
     // Create TX client threads
-    adps_create_task_thread_pool("task_tx", PRIORITY_MED, _16KB, task_tx, true);
+    // adps_create_task_thread_pool("task_tx", PRIORITY_MED, _16KB, task_tx, true);
 
     // Create RX server threads
-    adps_create_task_thread_pool("task_rx", PRIORITY_MED, _16KB, task_rx, false);
+    // adps_create_task_thread_pool("task_rx", PRIORITY_MED, _16KB, task_rx, false);
 
     // rtos_create_task(&task_navigation , "task_navigation" , _8KB , PRIORITY_MED);
 
-    // rtos_create_task(&task_servo      , "task_servo"      , _8KB , PRIORITY_MED);
+    rtos_create_task(&task_servo      , "task_servo"      , _8KB , PRIORITY_MED);
 
     // rtos_create_task_with_params(&task_detection, 
     //                             "task_detection",

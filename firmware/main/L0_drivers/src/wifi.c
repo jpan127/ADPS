@@ -16,6 +16,7 @@ EventGroupHandle_t StatusEventGroup;
 
 static wifi_logs_S logs =
 {
+    .is_connected = false,
     .device_ip    = DEVICE_IP,
     .device_gw    = DEVICE_GW,
     .device_sn    = DEVICE_SN,
@@ -114,13 +115,22 @@ void init_wifi(void)
     // Connect
     ESP_ERROR_CHECK(esp_wifi_connect());
     ESP_LOGI("init_wifi", "Connecting wifi...");
+}
 
+bool wifi_is_connected(void)
+{
     // Wait for wifi connection before creating sockets
-    xEventGroupWaitBits(StatusEventGroup,   // Event group handle
-                        BIT_CONNECTED,      // Bits to wait for
-                        true,               // Clear on exit
-                        true,               // Wait for all bits
-                        TICK_MS(ONE_MIN));  // Ticks to wait
+    const EventBits_t uxBits = xEventGroupWaitBits(
+        StatusEventGroup,   ///< Event group handle
+        BIT_CONNECTED,      ///< Bits to wait for
+        true,               ///< Clear on exit
+        true,               ///< Wait for all bits
+        0                   ///< Ticks to wait
+    );
+
+    logs.is_connected = (uxBits & BIT_CONNECTED);
+
+    return logs.is_connected;
 }
 
 wifi_logs_S * wifi_get_logs(void)

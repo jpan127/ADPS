@@ -1,0 +1,1 @@
+1. Have a flag for communication with server

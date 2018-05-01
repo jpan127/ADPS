@@ -7,6 +7,7 @@
 #include "server.h"
 #include "packet.h"
 #include "motor.h"
+#include "wifi.h"
 #include "cmd_handler.h"
 
 
@@ -42,7 +43,20 @@ static int accept_blocking(uint8_t task_id, const int server_socket)
     return client_socket;
 }
 
-/// @TODO : Change all logging to go through [packet]
+static bool wait_until_wifi_is_connected(void)
+{
+    static const uint8_t delay_between_checks_ms = 250;
+    int16_t retries = 100;
+    
+    // Stay in this loop while wifi is not connected
+    while (!wifi_is_connected() && retries > 0)
+    {
+        DELAY_MS(delay_between_checks_ms);
+    }
+
+    return wifi_is_connected();
+}
+
 void task_rx(task_param_T params)
 {
     // This task takes an input parameter which designates its task ID
@@ -59,10 +73,15 @@ void task_rx(task_param_T params)
         ESP_LOGE("task_rx", "Suspending task #%d because server was not created.", task_id);
         vTaskSuspend(NULL);
     }
-    else
+
+    // Wait until wifi is connected
+    if (!wait_until_wifi_is_connected())
     {
-        ESP_LOGI("task_rx", "[%d] Task starting...", task_id);
+        ESP_LOGE("task_tx", "[%d] Wireless is not initialized and client task is terminating...", task_id);
+        vTaskSuspend(NULL);        
     }
+
+    ESP_LOGI("task_rx", "[%d] Task starting...", task_id);
 
     // Buffer needed to receive packets
     uint8_t buffer[RECV_BUFFER_SIZE] = { 0 };

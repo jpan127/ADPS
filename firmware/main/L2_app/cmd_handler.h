@@ -16,3 +16,7 @@
  *  @param packet : Decoded command packet
  */
 void cmd_handler_service_command(const command_packet_S * const packet);
+
+void cmd_handler_set_override(bool on);
+
+void navigation_backup(float duty);

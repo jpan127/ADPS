@@ -15,6 +15,7 @@ typedef enum
 static const motor_E motor = motor_wheels;
 static bool initialized = true;
 
+#if 0
 static void pivot_90_degrees(const pivot_direction_E pivot_direction)
 {
     switch (pivot_direction)
@@ -31,6 +32,7 @@ static void pivot_90_degrees(const pivot_direction_E pivot_direction)
             break;
     }
 }
+#endif
 
 void init_task_navigation(void)
 {
@@ -56,9 +58,9 @@ void init_task_navigation(void)
 
 void task_navigation(task_param_T params)
 {
-    static const uint32_t delay_between_duty_changes_ms = 200;
+    // static const uint32_t delay_between_duty_changes_ms = 200;
 
-    static const uint32_t delay_to_pivot_90_degrees = 3100;
+    // static const uint32_t delay_to_pivot_90_degrees = 3100;
     
     if (!initialized)
     {
