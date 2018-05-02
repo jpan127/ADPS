@@ -26,8 +26,10 @@ xpos = 0
 ypos = 0
 
 # Degrees to the left or right of zero the robot should go (+ is left, - is right)
-direction_angle = 90
-percentage_accuracy = 0
+direction_angle_side = 90
+direction_angle_front = 90
+percentage_accuracy_side = 0
+percentage_accuracy_front = 0
 average_slope = 0
 
 
@@ -100,7 +102,7 @@ def hough_transform(img):
     if lines is None:
         # print " +++++++++ NONETYPE"
         return hough_lines
-
+    average_slope = 0
     for line in lines:
         rho   = line[0][0]
         theta = line[0][1]
@@ -113,7 +115,7 @@ def hough_transform(img):
         angle,slope = calculate_line_angle(img, (pt1, pt2))
         average_slope += slope
         # Only factor in lines with angles
-        if 10 < abs(angle) < 75:
+        if 10 < abs(angle) < 80:
             #average_slope += slope
             if LINE:
                 if angle <= 15:
@@ -196,7 +198,7 @@ def find_intersections(lines, img):
 @param intersections:   List of intersection coordinates to find in grids
 @returns                Cell with most intersections
 """
-def find_vanishing_point(img, grid_size, intersections):
+def find_vanishing_point(img, grid_size, intersections, capture_number):
     # Image dimensions
     image_height = img.shape[0]
     image_width  = img.shape[1]
@@ -210,7 +212,7 @@ def find_vanishing_point(img, grid_size, intersections):
     total_intersections = len(intersections)
     top_cell          = [0, 0, 0, 0]
 
-    global xpos, ypos, percentage_accuracy
+    global xpos, ypos, percentage_accuracy_front, percentage_accuracy_side
 
     for col in range(grid_columns):
         for row in range(grid_rows):
@@ -243,7 +245,10 @@ def find_vanishing_point(img, grid_size, intersections):
         xpos = (rx1 + rx2) / 2
         ypos = (ry1 + ry2) / 2
         cv2.rectangle(img, (rx1, ry1), (rx2, ry2), BLACK, 2)
-    percentage_accuracy = (100.0*max_intersections)/total_intersections
+    if capture_number == 0:
+        percentage_accuracy_front = (100.0*max_intersections)/total_intersections
+    else:
+        percentage_accuracy_side = (100.0*max_intersections)/total_intersections
     # print "Max Intersections: ", max_intersections
     # print "Total Intersections: ", total_intersections
     # print "Average ", percentage_accuracy
@@ -262,7 +267,7 @@ average_times = [
     ["Total"              , 0]
 ]
 counter = 0
-def show_vanishing_point(img):
+def show_vanishing_point(img, capture_number):
     global average_times, counter
 
     time1 = time()
@@ -272,17 +277,17 @@ def show_vanishing_point(img):
         random_sample = sample_lines(hough_lines, 100)
         time3 = time()
 		#Force 2 boundry lines to houghline
-        random_sample.append(((1,1),(1,img.shape[0]-1)))
-        random_sample.append(((img.shape[1] - 1, 1),(img.shape[1] - 1, img.shape[0] - 1)))
-        cv2.line(img, (0,0),(0,img.shape[0]), WHITE, 2, cv2.LINE_AA)
-        cv2.line(img, (img.shape[1], 0),(img.shape[1], img.shape[0]), WHITE, 2, cv2.LINE_AA)
+        # random_sample.append(((1,1),(1,img.shape[0]-1)))
+        # random_sample.append(((img.shape[1] - 1, 1),(img.shape[1] - 1, img.shape[0] - 1)))
+        # cv2.line(img, (0,0),(0,img.shape[0]), WHITE, 2, cv2.LINE_AA)
+        # cv2.line(img, (img.shape[1], 0),(img.shape[1], img.shape[0]), WHITE, 2, cv2.LINE_AA)
 		#----------------------------------
         intersections = find_intersections(random_sample, img)
         time4 = time()
         if intersections:
             grid_size = min(img.shape[0], img.shape[1]) // 15
             time5 = time()
-            vanishing_point = find_vanishing_point(img, grid_size, intersections)
+            vanishing_point = find_vanishing_point(img, grid_size, intersections, capture_number)
             time6 = time()
 
             average_times[0][1] += time2 - time1
@@ -306,56 +311,89 @@ def show_sidewalk(img):
 """
 def send_directions(image_width, output_image, capture_number):
     # Current coordinates of intersection point
-    global xpos, ypos, percentage_accuracy
-    global direction_angle
+    global xpos, ypos, percentage_accuracy_front, percentage_accuracy_side
+    global direction_angle_front, direction_angle_side
 
     # print "Xraw = ", xpos, " Yraw = ", ypos
-
-    if (xpos <= 0) or (ypos <= 0):
-        if average_slope >= 0:
-            direction_angle = 1
-        else:
-            direction_angle = 179
-        percentage_accuracy = 0
-        print "Averaged Slope: {} ".format(average_slope) 
-    else:
-        xpos = xpos - image_width/2
-        ypos = -1*(ypos - image_width)
-
-        # print "Xadj = ", xpos, " Yadj = ", ypos
-        angle = math.atan2(ypos, xpos)
-        angle = angle * (180 / math.pi)
-        direction_angle = (2 * direction_angle + angle) / 3
-    direction_angle_s = float('%.3f' % (direction_angle))
-    percentage_accuracy_s = float('%.3f' % (percentage_accuracy))
-    # print "Angle = ",direction_angle,"*"
-    
-    if direction_angle < 80:
-        print "RIGHT"
-    elif direction_angle < 100:
-        print "STRAIGHT"
-    else:
-        print "LEFT"
-
     dictionary = {
-        'angle': direction_angle_s,
-        'accuracy': percentage_accuracy_s,
-        'time': time(),
+        'angle': 0,
+        'accuracy': 0,
+        'time': 0,
     }
-    
-    # print(json.dumps(dictionary))
+
     if capture_number == 0:
+        if (xpos <= 0) or (ypos <= 0):
+            if average_slope >= 0:
+                direction_angle_front = 1
+            else:
+                direction_angle = 179
+            percentage_accuracy_front = 0
+            print "Averaged Slope: {} ".format(average_slope) 
+        else:
+            xpos = xpos - image_width/2
+            ypos = -1*(ypos - image_width)
+
+            # print "Xadj = ", xpos, " Yadj = ", ypos
+            angle = math.atan2(ypos, xpos)
+            angle = angle * (180 / math.pi)
+            direction_angle_front = (2 * direction_angle_front + angle) / 3
+        direction_angle_front = float('%.3f' % (direction_angle_front))
+        percentage_accuracy_front = float('%.3f' % (percentage_accuracy_front))
+        dictionary = {
+            'angle': direction_angle_front,
+            'accuracy': percentage_accuracy_front,
+            'time': time(),
+        }
         with open('front.json', 'w') as outfile:  
             json.dump(dictionary, outfile, indent=4)
 
         cv2.imwrite("front.jpg",output_image)
+        # print "Angle = ",direction_angle,"*"
     else:
+        if (xpos <= 0) or (ypos <= 0):
+            if average_slope >= 0:
+                direction_angle_side = 1
+            else:
+                direction_angle = 179
+            percentage_accuracy_side = 0
+            print "Averaged Slope: {} ".format(average_slope) 
+        else:
+            xpos = xpos - image_width/2
+            ypos = -1*(ypos - image_width)
+
+            # print "Xadj = ", xpos, " Yadj = ", ypos
+            angle = math.atan2(ypos, xpos)
+            angle = angle * (180 / math.pi)
+            direction_angle_side = (2 * direction_angle_side + angle) / 3
+        direction_angle_side = float('%.3f' % (direction_angle_side))
+        percentage_accuracy_side = float('%.3f' % (percentage_accuracy_side))
+        dictionary = {
+            'angle': direction_angle_side,
+            'accuracy': percentage_accuracy_side,
+            'time': time(),
+        }
         with open('side.json', 'w') as outfile:  
             json.dump(dictionary, outfile, indent=4)
-
         cv2.imwrite("side.jpg",output_image)
-    # print "Raw Angle = ",angle,"*"
     
+    if capture_number == 0:
+        print "front \/"
+        if direction_angle_front < 80:
+            print "RIGHT"
+        elif direction_angle_front < 100:
+            print "STRAIGHT"
+        else:
+            print "LEFT"
+        print "{}".format(percentage_accuracy_front)
+    else:
+        print "\t\tside \/"
+        if direction_angle_side < 80:
+            print "\t\tRIGHT"
+        elif direction_angle_side < 100:
+            print "\t\tSTRAIGHT"
+        else:
+            print "\t\tLEFT"
+        print "\t\t{}".format(percentage_accuracy_side)
 
 
 """ OpenCV main loop to parse image frames """
@@ -382,11 +420,11 @@ def main():
 
     if not args.get("video", False):
         # print "Going for camera"
-        camera = cv2.VideoCapture(1)
+        camera = cv2.VideoCapture(0)
         camera.set(3, 640)
         camera.set(4, 480)
         camera.set(5, 5)
-        camera1 = cv2.VideoCapture(2)
+        camera1 = cv2.VideoCapture(1)
         camera1.set(3, 640)
         camera1.set(4, 480)
         camera1.set(5, 5)
@@ -411,18 +449,18 @@ def main():
             if FILTER:
                 vanishing_frame  = frame.copy()
                 sidewalk_frame = frame.copy()
-                vanishing_frame = show_vanishing_point(vanishing_frame)
+                vanishing_frame = show_vanishing_point(vanishing_frame, 0)
                 sidewalk_frame = show_sidewalk(sidewalk_frame)
                 send_directions(frame.shape[1], frame, 0)
-                cv2.imshow("Sidewalk1", sidewalk_frame)
+                # cv2.imshow("Sidewalk1", sidewalk_frame)
                 cv2.imshow("Frame1", vanishing_frame)
                 # Camera 2
                 vanishing_frame1  = frame1.copy()
                 sidewalk_frame1 = frame1.copy()
-                vanishing_frame1 = show_vanishing_point(vanishing_frame1)
+                vanishing_frame1 = show_vanishing_point(vanishing_frame1, 1)
                 sidewalk_frame1 = show_sidewalk(sidewalk_frame1)
                 send_directions(frame1.shape[1], frame1, 1)
-                cv2.imshow("Sidewalk2", sidewalk_frame1)
+                # cv2.imshow("Sidewalk2", sidewalk_frame1)
                 cv2.imshow("Frame2", vanishing_frame1)
             else:
                 cv2.imshow("Frame", frame)
