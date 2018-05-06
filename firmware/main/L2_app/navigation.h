@@ -23,9 +23,6 @@ typedef enum
     navigation_state_last_invalid,
 } navigation_state_E;
 
-/// Enables the deliver motor for exactly 7 seconds which is enough to drop off a package
-void navigation_deliver_package(void);
-
 /// Sets the system to backup at a specific speed, does not have a timer
 void navigation_backup(float duty);
 

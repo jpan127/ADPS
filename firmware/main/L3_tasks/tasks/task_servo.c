@@ -2,6 +2,7 @@
 
 #include "motor.h"
 #include "gpio.h"
+#include "cmd_handler.h"
 
 
 /**
@@ -65,12 +66,14 @@ void task_servo(task_param_T params)
     if (!initialized)
     {
         ESP_LOGE("task_servo", "Did not successfully initialize servo, suspending task...");
+        vTaskSuspend(NULL);
     }
     else
     {
         motor_move(motor, motor_dir_a_forward, 0);
         DELAY_MS(100);
         servo_boot_up_routine();
+        ESP_LOGI("task_servo", "Task initialized and starting...");
     }
 
 #if TESTING
@@ -79,8 +82,11 @@ void task_servo(task_param_T params)
     // Main loop
     while(1)
     {
-        servo_boot_up_routine();
-        DELAY_MS(4000);
+        if (xSemaphoreTake(ServoSemaphore, MAX_DELAY))
+        {
+            const command_packet_S * const packet = cmd_handler_get_last_packet();
+            motor_move(motor_servo, motor_dir_a_forward, packet->command[0]);
+        }
     }
 #endif
 }

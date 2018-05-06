@@ -80,8 +80,10 @@ void task_rx(task_param_T params)
         ESP_LOGE("task_tx", "[%d] Wireless is not initialized and client task is terminating...", task_id);
         vTaskSuspend(NULL);        
     }
-
-    ESP_LOGI("task_rx", "[%d] Task starting...", task_id);
+    else
+    {
+        ESP_LOGI("task_rx", "[%d] Task initialized and starting...", task_id);
+    }
 
     // Buffer needed to receive packets
     uint8_t buffer[RECV_BUFFER_SIZE] = { 0 };

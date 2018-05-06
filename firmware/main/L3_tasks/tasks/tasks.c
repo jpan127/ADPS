@@ -8,8 +8,12 @@
 
 
 /// Extern
-QueueHandle_t MessageRxQueue = NULL;
-QueueHandle_t MessageTxQueue = NULL;
+QueueHandle_t     MessageRxQueue      = NULL;
+QueueHandle_t     MessageTxQueue      = NULL;
+SemaphoreHandle_t SelfTestSemaphore   = NULL;
+SemaphoreHandle_t DeliverySemaphore   = NULL;
+SemaphoreHandle_t NavigationSemaphore = NULL;
+SemaphoreHandle_t ServoSemaphore      = NULL;
 
 /// Size of message queues
 static const uint8_t message_queue_size = 50;
@@ -53,6 +57,14 @@ void init_create_all_queues(void)
 {
     MessageRxQueue = xQueueCreate(message_queue_size, sizeof(command_packet_S));
     MessageTxQueue = xQueueCreate(message_queue_size, sizeof(diagnostic_packet_S));
+}
+
+void init_create_all_semaphores(void)
+{
+    vSemaphoreCreateBinary(SelfTestSemaphore);   if (!SelfTestSemaphore)   { ESP_LOGE("init_create_all_semaphores", "SelfTestSemaphore failed to create");   }
+    vSemaphoreCreateBinary(DeliverySemaphore);   if (!DeliverySemaphore)   { ESP_LOGE("init_create_all_semaphores", "DeliverySemaphore failed to create");   }
+    vSemaphoreCreateBinary(NavigationSemaphore); if (!NavigationSemaphore) { ESP_LOGE("init_create_all_semaphores", "NavigationSemaphore failed to create"); }
+    vSemaphoreCreateBinary(ServoSemaphore);      if (!ServoSemaphore)      { ESP_LOGE("init_create_all_semaphores", "ServoSemaphore failed to create");      }
 }
 
 static void register_task_handle(TaskHandle_t handle, const size_t size)

@@ -40,7 +40,7 @@ bool adc1_initialize(const gpio_E gpio)
     {
         // Enable GPIO
         const adc_unit_t adc_unit = ADC_UNIT_1;
-        adc_gpio_init(channel, adc_unit);
+        adc_gpio_init(adc_unit, channel);
 
         // Set ADC resolution
         const adc_bits_width_t adc_resolution = ADC_WIDTH_12Bit;

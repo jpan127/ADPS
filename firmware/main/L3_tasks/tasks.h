@@ -1,6 +1,8 @@
 #pragma once
 // Project libraries
 #include "common.h"
+// FreeRTOS libraries
+#include "freertos/semphr.h"
 
 
 
@@ -21,17 +23,33 @@ typedef struct
 
 typedef void * task_param_T;
 
-/*/////////////////////////////
- *                            *
- *   General Initialization   *
- *                            *
- *////////////////////////////*/
+/*/////////////////////////////////////////////////////////////
+ *                                                            *
+ *                     Externed Variables                     *
+ *                                                            *
+ *////////////////////////////////////////////////////////////*/
+
+/// @ { Semaphores defined in the tasks that use them
+extern SemaphoreHandle_t SelfTestSemaphore;
+extern SemaphoreHandle_t DeliverySemaphore;
+extern SemaphoreHandle_t NavigationSemaphore;
+extern SemaphoreHandle_t ServoSemaphore;
+/// @ }
+
+/*/////////////////////////////////////////////////////////////
+ *                                                            *
+ *                   General Initialization                   *
+ *                                                            *
+ *////////////////////////////////////////////////////////////*/
 
 /// Initializes a single server socket
 void init_server_socket(void);
 
 /// Creates all queues
 void init_create_all_queues(void);
+
+/// Creates all semaphores
+void init_create_all_semaphores(void);
 
 /// Grabs the application thread control blocks for all threads
 void tasks_get_tcbs(rtos_task_control_block_S ** handles, size_t * size);

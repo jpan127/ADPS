@@ -7,14 +7,6 @@
 /// Current state of the state machine, updated from the server
 static navigation_state_E current_navigation_state = navigation_state_navigating_sidewalk;
 
-void navigation_deliver_package(void)
-{
-    static const uint16_t time_to_drop_package_ms = 7000;
-    motor_move(motor_delivery, motor_dir_delivery_forward, 100.0f);
-    DELAY_MS(time_to_drop_package_ms);
-    motor_stop(motor_delivery);    
-}
-
 void navigation_backup(float duty)
 {
     motor_stop(motor_wheels);

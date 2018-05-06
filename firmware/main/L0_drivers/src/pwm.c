@@ -56,7 +56,7 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
     {
         // Only for MCPWMXA
         case PWM_A:
-
+        {
             ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A));
             if (pwm_duty_percent == duty_type)
             {
@@ -66,13 +66,12 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
             {
                 ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A, duty.us));
             }
-            // ESP_LOGI("pwm_generate", "Generating MCPWMXA : %f or %u", duty.percent, duty.us);
             ESP_ERROR_CHECK(mcpwm_set_duty_type(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A, MCPWM_DUTY_MODE_0));
             break;
-
+        }
         // Only for MCPWMXB
         case PWM_B:
-
+        {
             ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B));
             if (pwm_duty_percent == duty_type)
             {
@@ -82,37 +81,36 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
             {
                 ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B, duty.us));
             }
-            // ESP_LOGI("pwm_generate", "Generating MCPWMXB : %f or %u", duty.percent, duty.us);
             ESP_ERROR_CHECK(mcpwm_set_duty_type(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B, MCPWM_DUTY_MODE_0));
             break;
-
+        }
         // Both MCPWMXA and MCPWMXB
         case PWM_AB:
-
+        {
             ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A));
             ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B));
             if (pwm_duty_percent == duty_type)
             {
                 ESP_ERROR_CHECK(mcpwm_set_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A, duty.percent));
                 ESP_ERROR_CHECK(mcpwm_set_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B, duty.percent));
-                ESP_LOGI("pwm_generate", "Generating MCPWMXA + MCPWMXB : %f", duty.percent);
             }
             else
             {
                 ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A, duty.us));
                 ESP_ERROR_CHECK(mcpwm_set_duty_in_us(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B, duty.us));
-                ESP_LOGI("pwm_generate", "Generating MCPWMXA + MCPWMXB : %u", duty.us);
             }
             ESP_ERROR_CHECK(mcpwm_set_duty_type(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A, MCPWM_DUTY_MODE_0));
             ESP_ERROR_CHECK(mcpwm_set_duty_type(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B, MCPWM_DUTY_MODE_0));
             break;
-
+        }
         default:
-
+        {
             ESP_LOGE("pwm_generate", "Undefined pwm selected");
             break;
+        }
     }
 
+#if EXTRA_DEBUG_MSGS
     if (pwm_duty_percent == duty_type)
     {
         ESP_LOGI("pwm_generate", "Duty: %f %f", mcpwm_get_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A),
@@ -122,6 +120,7 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
     {
         ESP_LOGI("pwm_generate", "Duty: %uus", duty.us);     
     }
+#endif
 }
 
 void pwm_stop(pwm_S * pwm_pair, pwm_E pwm)
@@ -129,19 +128,27 @@ void pwm_stop(pwm_S * pwm_pair, pwm_E pwm)
     switch (pwm)
     {
         case PWM_A:
+        {
             ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A));
             ESP_LOGI("pwm_stop", "Stopping MCPWMXA.");
             break;
+        }
         case PWM_B:
+        {
             ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B));
             ESP_LOGI("pwm_stop", "Stopping MCPWMXB.");
             break;
+        }
         case PWM_AB:
+        {
             ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A));
             ESP_ERROR_CHECK(mcpwm_set_signal_low(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_B));
             ESP_LOGI("pwm_stop", "Stopping MCPWMXA + MCPWMXB.");
             break;
+        }
         default:
+        {
             break;
+        }
     }
 }

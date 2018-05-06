@@ -5,9 +5,6 @@
 
 
 
-/// Externed semaphore
-SemaphoreHandle_t self_test_sem = NULL;
-
 static void execute_self_test_routine(void)
 {
     DISABLE_EXTERNAL_COMMANDS();
@@ -63,21 +60,14 @@ static void execute_self_test_routine(void)
 
 void task_self_test(task_param_T params)
 {
-    // Initialize semaphore
-    vSemaphoreCreateBinary(self_test_sem);
-
     DELAY_MS(1000);
 
-    if (!self_test_sem)
-    {
-        ESP_LOGE("task_self_test", "Semaphore could not be created, suspending task...");
-        vTaskSuspend(NULL);
-    }
+    ESP_LOGI("task_self_test", "Task initialized and starting...");
 
     // Main Loop
     while(1)
     {
-        if (xSemaphoreTake(self_test_sem, MAX_DELAY))
+        if (xSemaphoreTake(SelfTestSemaphore, MAX_DELAY))
         {
             execute_self_test_routine();
         }

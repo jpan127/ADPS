@@ -47,6 +47,7 @@ typedef enum
     packet_opcode_pivot_left = 16,
     packet_opcode_pivot_right = 17,
     packet_opcode_change_state = 18,
+    packet_opcode_execute_self_test = 19,
 
     packet_opcode_last_invalid,
 } packet_opcode_E;

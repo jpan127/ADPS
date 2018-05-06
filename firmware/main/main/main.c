@@ -95,6 +95,9 @@ static void adps_init_modules(void)
 
     // Create all queues
     init_create_all_queues();
+
+    // Create all semaphores
+    init_create_all_semaphores();
 }
 
 /// Initializes the state of tasks

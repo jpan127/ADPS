@@ -148,12 +148,13 @@ void task_detection(task_param_T params)
 #if TESTING
     infrared_self_test();
 #else
+    // Flag that is only false if all sensors fail self test
     bool operational = false;
 
     // While infrared sensors are failing self test, keep retrying
     for (uint8_t retry = 0; retry < max_retries; retry++)
     {
-        if ((operational = infrared_self_test()))
+        if ((operational |= infrared_self_test()))
         {
             break;
         }
@@ -163,8 +164,12 @@ void task_detection(task_param_T params)
 
     if (!operational)
     {
-        ESP_LOGE("task_detection", "At least one sensor failed self test, suspending task...")
+        ESP_LOGE("task_detection", "All infrared sensors failed self test, suspending task...")
         vTaskSuspend(NULL);
+    }
+    else
+    {
+        ESP_LOGI("task_detection", "Task initialized and starting...");
     }
 #endif
 
