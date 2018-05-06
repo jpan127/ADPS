@@ -26,6 +26,7 @@ static uint8_t task_rx_params[THREAD_POOL_SIZE]          = { 0 };
     // #define TEST_TASK_LOGGER
     #define TEST_TASK_DETECTION
     // #define TEST_TASK_DELIVERY
+    #define TEST_TASK_SELF_TEST
 /// @ }
 
 /**
@@ -153,7 +154,9 @@ static void adps_create_medium_priority_tasks(void)
 /// Creates all high priority tasks
 static void adps_create_high_priority_tasks(void)
 {
-    /// No high priority tasks so far
+#ifdef TEST_TASK_SELF_TEST
+    rtos_create_task(&task_self_test, "task_self_test", _8KB, PRIORITY_HIGH);
+#endif
 }
 
 /// MAIN

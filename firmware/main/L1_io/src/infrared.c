@@ -57,18 +57,21 @@ static float infrared_apply_linearizing_fx(const infrared_E ir, const float volt
     // Calibration parameters, characterized offline
     static const float A02_slope = -41.4f;
     static const float A02_y_intercept = 4963.0f;
+
+#if 0
     static const float A21_slope = -15.7f;
     static const float A21_y_intercept = 3290.0f;
-
-    // /// @TODO : Max limit return value
-    // if (infrared_bottom == ir)
-    // {
-    //     return MAX(0, (voltage - A21_y_intercept) / A21_slope);
-    // }
-    // else
-    // {
+    if (infrared_bottom == ir)
+    {
+        return MAX(0, (voltage - A21_y_intercept) / A21_slope);
+    }
+    else
+    {
         return MAX(0, (voltage - A02_y_intercept) / A02_slope);
-    // }
+    }
+#else
+    return MAX(0, (voltage - A02_y_intercept) / A02_slope);
+#endif
 }
 
 void infrared_initialize(const gpio_E * gpio, bool * functional)
@@ -80,22 +83,25 @@ void infrared_initialize(const gpio_E * gpio, bool * functional)
      
         // Start off as passed test   
         functional[ir] = true;
-     
-        // Initialize the ADC channel
-        if (!adc1_initialize(infrared_map[ir]))
+
+        // Only initialize if wasn't properly initialized already
+        if (!logs[ir].operational)
         {
-            ESP_LOGE("infrared_initialize", "Failed to initialize infrared sensor %d", ir);
-            functional[ir] = false;
-            continue;
-        }
+            // Initialize the ADC channel
+            if (!adc1_initialize(infrared_map[ir]))
+            {
+                ESP_LOGE("infrared_initialize", "Failed to initialize infrared sensor %d", ir);
+                functional[ir] = false;
+                continue;
+            }
+        }     
         
         // Run self test on the sensor
         if ((functional[ir] = infrared_self_test(ir)) == false)
         {
             ESP_LOGE("infrared_initialize", "Failed self test infrared sensor %d", ir);
         }
-
-        if (functional[ir])
+        else
         {
             ESP_LOGI("infrared_initialize", "Successfully initialized infrared sensor %d", ir);
         }

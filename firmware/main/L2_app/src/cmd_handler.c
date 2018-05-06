@@ -4,38 +4,13 @@
 
 
 
-/// Enumeration to specify how to pivot
-typedef enum
-{
-    pivot_direction_left_90_degrees,
-    pivot_direction_right_90_degrees,
-} pivot_direction_E;
-
 /// Flag for enabling manual controls or not
 static bool manual_mode_enabled = false;
 
+/// Flag for currently firmware controlling navigation and ignoring external commands
 static bool override_in_progress = false;
 
-static navigation_state_E current_navigation_state = navigation_state_navigating_sidewalk;
-
-static void pivot_90_degrees(const pivot_direction_E pivot_direction)
-{
-    switch (pivot_direction)
-    {
-        case pivot_direction_left_90_degrees:
-            motor_move(motor_wheels, motor_dir_a_forward, 50);
-            motor_move(motor_wheels, motor_dir_b_forward,  0);
-            break;
-        case pivot_direction_right_90_degrees:
-            motor_move(motor_wheels, motor_dir_a_forward,  0);
-            motor_move(motor_wheels, motor_dir_b_forward, 50);
-            break;
-        default:
-            break;
-    }
-}
-
-void cmd_handler_set_override(bool on)
+void cmd_handler_set_override(const bool on)
 {
     override_in_progress = on;
 }
@@ -55,7 +30,6 @@ void cmd_handler_service_command(const command_packet_S * const packet)
             }
             case packet_opcode_move_forward:
             {
-                static const float right_motor_negative_offset = 5.0f;
                 ESP_LOGI("COMMAND", "packet_opcode_move_forward");
                 motor_move(motor_wheels , motor_dir_both_forward, packet->command[0]);
                 break;
@@ -142,26 +116,26 @@ void cmd_handler_service_command(const command_packet_S * const packet)
             case packet_opcode_deliver:
             {
                 ESP_LOGI("COMMAND", "packet_opcode_deliver");
-                deliver_package();
+                navigation_deliver_package();
                 break;
             }
             case packet_opcode_pivot_left:
             {
                 ESP_LOGI("COMMAND", "packet_opcode_pivot_left");
-                pivot_90_degrees(pivot_direction_left_90_degrees);
+                navigation_pivot_left();
                 break;
             }
             case packet_opcode_pivot_right:
             {
                 ESP_LOGI("COMMAND", "packet_opcode_pivot_right");
-                pivot_90_degrees(pivot_direction_right_90_degrees);
+                navigation_pivot_right();
                 break;
             }
             case packet_opcode_change_state:
             {
                 if (packet->command[0] < navigation_state_last_invalid)
                 {
-                    current_navigation_state = packet->command[0];
+                    navigation_set_state((navigation_state_E)(packet->command[0]));
                 }
                 break;
             }
@@ -172,23 +146,4 @@ void cmd_handler_service_command(const command_packet_S * const packet)
             }
         }
     }
-}
-
-void deliver_package(void)
-{
-    static const uint16_t time_to_drop_package_ms = 7000;
-    motor_move(motor_delivery, motor_dir_delivery_forward, 100.0f);
-    DELAY_MS(time_to_drop_package_ms);
-    motor_stop(motor_delivery);    
-}
-
-void navigation_backup(float duty)
-{
-    motor_stop(motor_wheels);
-    motor_move(motor_wheels, motor_dir_both_backward, duty);
-}
-
-navigation_state_E navigation_get_state(void)
-{
-    return current_navigation_state;
 }

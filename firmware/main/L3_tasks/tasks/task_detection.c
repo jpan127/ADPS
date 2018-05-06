@@ -5,12 +5,14 @@
 
 
 
+/// Context information about an IR sensor
 typedef struct
 {
-    uint8_t trip_value_cm;
-    gpio_E gpio;
+    uint8_t trip_value_cm;  ///< The maximum trip value before the system decides an object is too close
+    gpio_E gpio;            ///< The GPIO enumeration of the sensor
 } sensor_context_S;
 
+/// Contexts for all IR sensors
 static const sensor_context_S sensor[infrared_max] =
 {
     [infrared_bottom]    = { .trip_value_cm = 40, .gpio = gpio_adc_infrared_bottom    },
@@ -30,14 +32,19 @@ static infrared_readings_S readings = { 0 };
 
 static bool sensor_tripped[infrared_max] = { 0 };
 
-static bool object_currently_blocking = false;
-
 /**
  *  Initializes each sensor and checks if the sensor is operational
  *  @returns False if any of the sensors are not operational
  */
 static bool infrared_self_test(void)
 {
+    const gpio_E gpios[infrared_max] =
+    {
+        [infrared_bottom]    = sensor[infrared_bottom].gpio,
+        [infrared_top_left]  = sensor[infrared_top_left].gpio,
+        [infrared_top_right] = sensor[infrared_top_right].gpio,
+    };
+
     bool success = true;
     bool sensor_functional[infrared_max] = { 0 };
 
@@ -57,6 +64,10 @@ static bool infrared_self_test(void)
     return success;
 }
 
+/**
+ *  Sets the wheels to slowly backup
+ *  Only backs up for 1 second
+ */
 static void backup_slightly(void)
 {
     motor_stop(motor_wheels);
@@ -65,6 +76,10 @@ static void backup_slightly(void)
     motor_stop(motor_wheels);
 }
 
+/**
+ *  Interprets the most current IR sensor readings
+ *  Acts appropriately, depending on which sensors triggered
+ */
 static void infrared_analyze_readings(void)
 {
     /**
@@ -76,17 +91,17 @@ static void infrared_analyze_readings(void)
 
     if (sensor_tripped[infrared_top_left] || sensor_tripped[infrared_top_right] || sensor_tripped[infrared_bottom])
     {
-#if TESTING
+#if 0 /// TESTING
         const navigation_state_E current_state = navigation_get_state();
         if ((current_state == navigation_state_navigating_path) ||
             (current_state == navigation_state_reached_door)    ||
             (current_state == navigation_state_deliver_package))
         {
             ESP_LOGI("infrared_analyze_readings", "DELIVERING PACKAGE!");
-            deliver_package();
+            navigation_deliver_package();
         }
 #else
-        cmd_handler_set_override(true);
+        DISABLE_EXTERNAL_COMMANDS();
         {
             if (sensor_tripped[infrared_bottom])
             {
@@ -115,14 +130,14 @@ static void infrared_analyze_readings(void)
                 backup_slightly();
             }
         }
-        cmd_handler_set_override(false);
+        ENABLE_EXTERNAL_COMMANDS();
 #endif
     }
 }
 
 void task_detection(task_param_T params)
 {
-    // Wait a second to make sure sensors are powered and have had some time to stabilize
+    // Wait a second to make sure sensors are powered and have had some time to stabilize @TODO :Remove because self test will have ample time
     DELAY_MS(1000);
 
     const uint8_t num_samples = 5;
@@ -156,8 +171,6 @@ void task_detection(task_param_T params)
     // Main Loop
     while (1)
     {
-        bool recently_detected_object = false;
-    
         /**
          *  For each sensor check if it finds an object within range
          *  If any find an object, break the loop and immediately pause motors
@@ -173,9 +186,11 @@ void task_detection(task_param_T params)
 
         infrared_analyze_readings();
 
-        // ESP_LOGI("task_detection", "Average Sample : Bottom=%f | Left=%f | Right=%f", readings.distance_cm[infrared_bottom], 
-        //                                                                               readings.distance_cm[infrared_top_left], 
-        //                                                                               readings.distance_cm[infrared_top_right]);
+#if EXTRA_DEBUG_MSGS
+        ESP_LOGI("task_detection", "Average Sample : Bottom=%f | Left=%f | Right=%f", readings.distance_cm[infrared_bottom], 
+                                                                                      readings.distance_cm[infrared_top_left], 
+                                                                                      readings.distance_cm[infrared_top_right]);
+#endif
         DELAY_MS(delay_between_infrared_readings_ms);
     }
 }

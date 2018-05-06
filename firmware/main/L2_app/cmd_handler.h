@@ -2,6 +2,8 @@
 // Project libraries
 #include "common.h"
 #include "packet_structure.h"
+#include "navigation.h"
+// FreeRTOS libraries
 #include "freertos/semphr.h"
 
 /**
@@ -12,30 +14,26 @@
 
 
 
-/// The states that specify which actions happen during navigation
-typedef enum
-{
-    navigation_state_navigating_sidewalk = 0,
-    navigation_state_looking_for_path    = 1,
-    navigation_state_found_path_to_house = 2,
-    navigation_state_navigating_path     = 3,
-    navigation_state_reached_door        = 4,
-    navigation_state_deliver_package     = 5,
-    navigation_state_last_invalid,
-} navigation_state_E;
+/// @ { Disables / enables external commands, helper macro for setting override flag
+#define DISABLE_EXTERNAL_COMMANDS() cmd_handler_set_override(true)
+#define ENABLE_EXTERNAL_COMMANDS()  cmd_handler_set_override(false)
+/// @ }
 
+/// Semaphore to trigger a self test
 extern SemaphoreHandle_t self_test_sem;
 
 /**
  *  Interprets a command packet and calls the respective API
+ *  Checks first if the system is in override mode, if true, ignore commands
+ *  Do not need to worry about subsequent commands interrupting when servicing the current commands because
+ *   this function serializes all external commands
  *  @param packet : Decoded command packet
  */
 void cmd_handler_service_command(const command_packet_S * const packet);
 
-void cmd_handler_set_override(bool on);
-
-void navigation_backup(float duty);
-
-navigation_state_E navigation_get_state(void);
-
-void deliver_package(void);
+/**
+ *  Enables override for the firmware to take over controls instead of servicing external commands
+ *  @param on : True for enable override, false for disable
+ *  @note     : Essentially acts like a enable / disable interrupts for commands
+ */
+void cmd_handler_set_override(const bool on);

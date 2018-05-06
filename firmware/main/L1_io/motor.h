@@ -33,6 +33,9 @@ typedef enum
     motor_dir_left,
     motor_dir_right,
     motor_dir_delivery_forward,
+    motor_dir_delivery_backward,
+    motor_dir_pivot_left,
+    motor_dir_pivot_right,
 } motor_direction_E;
 
 /// Enumerates whether to increment or decrement duty

@@ -4,35 +4,11 @@
 #include "motor.h"
 
 
-
-/// Enumeration to specify how to pivot
-typedef enum
-{
-    pivot_direction_left_90_degrees,
-    pivot_direction_right_90_degrees,
-} pivot_direction_E;
-
+/// @TODO : Maybe remove this
 static const motor_E motor = motor_wheels;
-static bool initialized = true;
 
-#if 0
-static void pivot_90_degrees(const pivot_direction_E pivot_direction)
-{
-    switch (pivot_direction)
-    {
-        case pivot_direction_left_90_degrees:
-            motor_move(motor_wheels, motor_dir_a_forward, 50);
-            motor_move(motor_wheels, motor_dir_b_forward,  0);
-            break;
-        case pivot_direction_right_90_degrees:
-            motor_move(motor_wheels, motor_dir_a_forward,  0);
-            motor_move(motor_wheels, motor_dir_b_forward, 50);
-            break;
-        default:
-            break;
-    }
-}
-#endif
+/// Flag to show init function was properly called or not
+static bool initialized = true;
 
 void init_task_navigation(void)
 {
