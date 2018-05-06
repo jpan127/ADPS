@@ -40,6 +40,8 @@ static void servo_boot_up_routine(void)
 {
     static const uint8_t delay_between_adjustments_ms = 10;
 
+    ESP_LOGI("task_servo", "Initialized servo, running boot up routine...");
+
     for (uint8_t duty = 0; duty < 180; duty++)
     {
         motor_move(motor, motor_dir_a_forward, (float)duty);
@@ -63,19 +65,22 @@ void task_servo(task_param_T params)
     if (!initialized)
     {
         ESP_LOGE("task_servo", "Did not successfully initialize servo, suspending task...");
-        vTaskSuspend(NULL);
     }
     else
     {
         motor_move(motor, motor_dir_a_forward, 0);
-        DELAY_MS(20);
+        DELAY_MS(100);
         servo_boot_up_routine();
     }
 
+#if TESTING
+    vTaskSuspend(NULL);
+#else
     // Main loop
     while(1)
     {
         servo_boot_up_routine();
         DELAY_MS(4000);
     }
+#endif
 }

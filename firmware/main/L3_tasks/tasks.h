@@ -49,6 +49,7 @@ void rtos_create_task_with_params(TaskFunction_t function, const char * name, co
 void init_task_logger(void);
 void init_task_navigation(void);
 void init_task_servo(void);
+void init_task_delivery(void);
 
 /*/////////////////////////////
  *                            *
@@ -102,3 +103,7 @@ void task_logger(task_param_T params);
  *  @param : [gpio_E] GPIO number that is connected to the sensor
  */
 void task_detection(task_param_T params);
+
+void task_delivery(task_param_T params);
+
+void task_self_test(task_param_T params);

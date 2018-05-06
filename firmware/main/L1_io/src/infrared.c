@@ -60,15 +60,15 @@ static float infrared_apply_linearizing_fx(const infrared_E ir, const float volt
     static const float A21_slope = -15.7f;
     static const float A21_y_intercept = 3290.0f;
 
-    /// @TODO : Max limit return value
-    if (infrared_bottom == ir)
-    {
-        return (voltage - A02_y_intercept) / A02_slope;
-    }
-    else
-    {
-        return (voltage - A21_y_intercept) / A21_slope;
-    }
+    // /// @TODO : Max limit return value
+    // if (infrared_bottom == ir)
+    // {
+    //     return MAX(0, (voltage - A21_y_intercept) / A21_slope);
+    // }
+    // else
+    // {
+        return MAX(0, (voltage - A02_y_intercept) / A02_slope);
+    // }
 }
 
 void infrared_initialize(const gpio_E * gpio, bool * functional)

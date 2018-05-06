@@ -123,7 +123,7 @@ bool wifi_is_connected(void)
     const EventBits_t uxBits = xEventGroupWaitBits(
         StatusEventGroup,   ///< Event group handle
         BIT_CONNECTED,      ///< Bits to wait for
-        true,               ///< Clear on exit
+        false,              ///< Clear on exit
         true,               ///< Wait for all bits
         0                   ///< Ticks to wait
     );

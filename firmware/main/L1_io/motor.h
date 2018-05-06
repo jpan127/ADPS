@@ -16,7 +16,7 @@
 typedef enum
 {
     motor_wheels = 0,
-    motor_shaft,
+    motor_delivery,
     motor_servo,
     motor_max,
 } motor_E;
@@ -32,6 +32,7 @@ typedef enum
     motor_dir_b_backward,   ///< B = right
     motor_dir_left,
     motor_dir_right,
+    motor_dir_delivery_forward,
 } motor_direction_E;
 
 /// Enumerates whether to increment or decrement duty

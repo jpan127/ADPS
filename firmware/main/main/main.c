@@ -18,6 +18,16 @@
 static task_tx_params_S task_tx_params[THREAD_POOL_SIZE] = { 0 };
 static uint8_t task_rx_params[THREAD_POOL_SIZE]          = { 0 };
 
+
+/// @ { It is annoying to find the right tasks to enable during testing so just comment / uncomment these defines for now
+    // #define TEST_TASK_TX
+    #define TEST_TASK_RX
+    #define TEST_TASK_SERVO
+    // #define TEST_TASK_LOGGER
+    #define TEST_TASK_DETECTION
+    // #define TEST_TASK_DELIVERY
+/// @ }
+
 /**
  *  Creates a pool of either a client or a server task
  *  @param base_name  : The prefix of the task name, for example "client" would create names "client0" ... "client9"
@@ -71,12 +81,14 @@ static void adps_create_task_thread_pool(const char * const base_name,
 /// Initializes the state of modules that are not tasks
 static void adps_init_modules(void)
 {
-    // // Initialize wifi
-    // init_wifi();
+#if defined(TEST_TASK_TX) || defined(TEST_TASK_RX)
+    // Initialize wifi
+    init_wifi();
 
-    // // Initialize server socket
-    // init_server_socket();
-    
+    // Initialize server socket
+    init_server_socket();
+#endif
+
     // Initialize gpios
     gpio_init();
 
@@ -91,33 +103,51 @@ static void adps_init_tasks(void)
 
     init_task_navigation();
 
-    init_task_servo();    
+    init_task_servo();
+
+    init_task_delivery();
 }
 
 /// Creates all low priority tasks
 static void adps_create_low_priority_tasks(void)
 {
-    // rtos_create_task(&task_logger, "task_logger", _8KB , PRIORITY_LOW);
+#ifdef TEST_TASK_LOGGER
+    rtos_create_task(&task_logger, "task_logger", _8KB , PRIORITY_LOW);
+#endif
 }
 
 /// Creates all medium priority tasks
 static void adps_create_medium_priority_tasks(void)
 {
+#ifdef TEST_TASK_TX
     // Create TX client threads
-    // adps_create_task_thread_pool("task_tx", PRIORITY_MED, _16KB, task_tx, true);
+    adps_create_task_thread_pool("task_tx", PRIORITY_MED, _16KB, task_tx, true);
+#endif
 
+#ifdef TEST_TASK_RX
     // Create RX server threads
-    // adps_create_task_thread_pool("task_rx", PRIORITY_MED, _16KB, task_rx, false);
+    adps_create_task_thread_pool("task_rx", PRIORITY_MED, _16KB, task_rx, false);
+#endif
 
     // rtos_create_task(&task_navigation , "task_navigation" , _8KB , PRIORITY_MED);
 
-    rtos_create_task(&task_servo      , "task_servo"      , _8KB , PRIORITY_MED);
+#ifdef TEST_TASK_SERVO
+    rtos_create_task(&task_servo, "task_servo", _8KB , PRIORITY_MED);
+#endif
 
-    // rtos_create_task_with_params(&task_detection, 
-    //                             "task_detection",
-    //                             _8KB,
-    //                             PRIORITY_MED,
-    //                             (void *)(gpio_adc_infrared_bottom));
+#ifdef TEST_TASK_DETECTION
+    rtos_create_task_with_params(
+        &task_detection, 
+        "task_detection",
+        _8KB,
+        PRIORITY_MED,
+        (void *)(gpio_adc_infrared_bottom)
+    );
+#endif
+
+#ifdef TEST_TASK_DELIVERY
+    rtos_create_task(&task_delivery, "task_delivery", _8KB, PRIORITY_MED);
+#endif
 }
 
 /// Creates all high priority tasks

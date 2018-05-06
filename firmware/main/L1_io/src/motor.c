@@ -76,6 +76,7 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty)
     const pwm_duty_U percent        = { .percent = duty };
     const pwm_duty_U us             = { .us = servo_degree_to_pulse_width(duty) };
     const pwm_duty_U pwm_duty       = (pwm_duty_percent == duty_type) ? (percent) : (us);
+    const pwm_duty_U right_duty     = { .percent = duty - 5.0f };
 
     switch (direction)
     {
@@ -83,7 +84,8 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty)
 
             gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_backward);
             gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_backward);
-            pwm_generate(&motor_map[motor].config.pwm, PWM_AB, pwm_duty, duty_type);
+            pwm_generate(&motor_map[motor].config.pwm, PWM_A, pwm_duty, duty_type);
+            pwm_generate(&motor_map[motor].config.pwm, PWM_B, right_duty, duty_type);
             logs.duty[motor].a = duty;
             logs.duty[motor].b = duty;
             break;
@@ -123,6 +125,13 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty)
             gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_forward);
             pwm_generate(&motor_map[motor].config.pwm, PWM_B, pwm_duty, duty_type);
             logs.duty[motor].b = duty;
+            break;
+
+        case motor_dir_delivery_forward:
+            
+            gpio_set_output_value(motor_map[motor].dir_a, true);
+            gpio_set_output_value(motor_map[motor].dir_b, false);
+            pwm_generate(&motor_map[motor].config.pwm, PWM_A, pwm_duty, duty_type);
             break;
 
         default:
@@ -185,8 +194,8 @@ void motor_adjust_duty(motor_E motor, motor_direction_E direction, float step, d
     {
         case motor_dir_both_forward:
         {
-            gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_backward);
-            gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_backward);
+            gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_backward);
+            gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_forward);
             logs.duty[motor].a = adjusted_duty_a;
             logs.duty[motor].b = adjusted_duty_b;
             adjust_left  = true;
@@ -205,7 +214,7 @@ void motor_adjust_duty(motor_E motor, motor_direction_E direction, float step, d
         }
         case motor_dir_left:
         {
-            gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_forward);
+            gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_backward);
             logs.duty[motor].a = adjusted_duty_a;
             adjust_left  = true;
             adjust_right = false;
@@ -213,40 +222,12 @@ void motor_adjust_duty(motor_E motor, motor_direction_E direction, float step, d
         }
         case motor_dir_right:
         {
-            gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_forward);
+            gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_backward);
             logs.duty[motor].b = adjusted_duty_b;
             adjust_left  = false;
             adjust_right = true;
             break;
         }
-        // case motor_dir_a_forward:
-
-        //     logs.duty[motor].a = adjusted_duty_a;
-        //     adjust_left  = true;
-        //     adjust_right = false;
-        //     break;
-
-        // case motor_dir_a_backward:
-
-        //     logs.duty[motor].a = adjusted_duty_a;
-        //     adjust_left  = true;
-        //     adjust_right = false;
-        //     break;
-
-        // case motor_dir_b_forward:
-
-        //     logs.duty[motor].b = adjusted_duty_b;
-        //     adjust_left  = false;
-        //     adjust_right = true;
-        //     break;
-
-        // case motor_dir_b_backward:
-
-        //     logs.duty[motor].b = adjusted_duty_b;
-        //     adjust_left  = false;
-        //     adjust_right = true;
-        //     break;
-
         default:
         {
             ESP_LOGE("motor_move", "Impossible direction selected: %d", direction);

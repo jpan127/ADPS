@@ -43,6 +43,10 @@ typedef enum
     packet_opcode_servo_duty = 12,
     packet_opcode_manual_mode = 13,
     packet_opcode_stop = 14,
+    packet_opcode_deliver = 15,
+    packet_opcode_pivot_left = 16,
+    packet_opcode_pivot_right = 17,
+    packet_opcode_change_state = 18,
 
     packet_opcode_last_invalid,
 } packet_opcode_E;
