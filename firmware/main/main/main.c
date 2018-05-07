@@ -21,10 +21,10 @@ static uint8_t task_rx_params[THREAD_POOL_SIZE]          = { 0 };
 
 /// @ { It is annoying to find the right tasks to enable during testing so just comment / uncomment these defines for now
     // #define TEST_TASK_TX
-    #define TEST_TASK_RX
-    #define TEST_TASK_SERVO
+    // #define TEST_TASK_RX
+    // #define TEST_TASK_SERVO
     // #define TEST_TASK_LOGGER
-    #define TEST_TASK_DETECTION
+    // #define TEST_TASK_DETECTION
     // #define TEST_TASK_DELIVERY
     #define TEST_TASK_SELF_TEST
 /// @ }

@@ -110,7 +110,7 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
         }
     }
 
-#if EXTRA_DEBUG_MSGS
+#if 1 ///EXTRA_DEBUG_MSGS
     if (pwm_duty_percent == duty_type)
     {
         ESP_LOGI("pwm_generate", "Duty: %f %f", mcpwm_get_duty(pwm_pair->unit, pwm_pair->timer, MCPWM_OPR_A),

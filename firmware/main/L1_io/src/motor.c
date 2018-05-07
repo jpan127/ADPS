@@ -147,7 +147,7 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty)
         {
             gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_backward);
             gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_forward);
-            pwm_generate(&motor_map[motor].config.pwm, PWM_B, pwm_duty, duty_type);
+            pwm_generate(&motor_map[motor].config.pwm, PWM_AB, pwm_duty, duty_type);
             logs.duty[motor].a = duty;
             logs.duty[motor].b = duty;
             break;
@@ -156,7 +156,7 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty)
         {
             gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_forward);
             gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_backward);
-            pwm_generate(&motor_map[motor].config.pwm, PWM_B, pwm_duty, duty_type);
+            pwm_generate(&motor_map[motor].config.pwm, PWM_AB, pwm_duty, duty_type);
             logs.duty[motor].a = duty;
             logs.duty[motor].b = duty;
             break;
