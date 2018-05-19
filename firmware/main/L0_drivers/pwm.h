@@ -12,7 +12,7 @@
  */
 
 /// Enumerate which PWM of each module to target
-typedef enum 
+typedef enum
 {
     PWM_A = 0,
     PWM_B,

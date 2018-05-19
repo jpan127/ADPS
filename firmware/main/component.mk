@@ -13,7 +13,7 @@ COMPONENT_SRCDIRS 			:= 	L0_drivers/src 	\
 								L2_app/src		\
 								L3_tasks/tasks	\
 								main
-								
+
 COMPONENT_ADD_INCLUDEDIRS 	:= 	L0_drivers 		\
 								L1_io 			\
 								L1_utils		\

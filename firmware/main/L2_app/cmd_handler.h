@@ -6,7 +6,7 @@
 
 /**
  *  @module : cmd_handler
- *  
+ *
  *  Determines the appropriate actions based on a command opcode and executes them
  */
 
@@ -34,3 +34,5 @@ void cmd_handler_service_command(const command_packet_S * const packet);
 void cmd_handler_set_override(const bool on);
 
 command_packet_S * cmd_handler_get_last_packet(void);
+
+command_packet_S * cmd_handler_get_last_navigation_packet(void);

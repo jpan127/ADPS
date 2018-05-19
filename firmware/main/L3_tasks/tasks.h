@@ -3,6 +3,7 @@
 #include "common.h"
 // FreeRTOS libraries
 #include "freertos/semphr.h"
+#include "packet.h"
 
 
 
@@ -19,7 +20,7 @@ typedef struct
     TaskHandle_t handle;
     uint32_t stack_size;
     uint32_t task_id;
-} rtos_task_control_block_S;
+} rtos_task_context_block_S;
 
 typedef void * task_param_T;
 
@@ -52,11 +53,15 @@ void init_create_all_queues(void);
 void init_create_all_semaphores(void);
 
 /// Grabs the application thread control blocks for all threads
-void tasks_get_tcbs(rtos_task_control_block_S ** handles, size_t * size);
+void tasks_get_tcbs(rtos_task_context_block_S ** handles, size_t * size);
 
 /// Wrapper function over [xTaskCreate] that also registers the task handle
 void rtos_create_task(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority);
 void rtos_create_task_with_params(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority, task_param_T params);
+
+void set_suspend_state(const bool on);
+
+bool get_suspend_state(void);
 
 /*/////////////////////////////
  *                            *
@@ -90,7 +95,7 @@ void task_tx(task_param_T params);
 /**
  *  A pool of [task_rx] receives packets from lwip and services the command
  *      1. Receives packet from lwip
- *      2. Services the command 
+ *      2. Services the command
  *  @param : A task ID (uint32_t)
  */
 void task_rx(task_param_T params);

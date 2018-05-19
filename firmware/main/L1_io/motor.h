@@ -63,7 +63,7 @@ typedef struct
 /// Struct for logging duty percentages of all motors
 typedef struct
 {
-    duty_S duty[motor_max];   
+    duty_S duty[motor_max];
 } motor_logs_S;
 
 /**

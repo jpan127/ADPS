@@ -4,7 +4,7 @@
 
 /**
  *  @module : navigation
- *  
+ *
  *  Commands to execute navigation control routines
  *  These routines do not set the override mode, that is rather left up to the user
  */
@@ -24,7 +24,7 @@ typedef enum
 } navigation_state_E;
 
 /// Sets the system to backup at a specific speed, does not have a timer
-void navigation_backup(float duty);
+void navigation_backup(float duty, const uint32_t delay_ms);
 
 /// Returns the current state of the state machine on the server
 navigation_state_E navigation_get_state(void);

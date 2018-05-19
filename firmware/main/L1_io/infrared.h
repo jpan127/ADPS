@@ -28,9 +28,9 @@ typedef struct
 
 typedef struct
 {
-    bool operational;
-    uint8_t raw_values;
-    uint8_t distances;
+    bool operational;       ///< Infrared sensor passed self test
+    uint32_t raw_values;    ///< Last raw reading
+    float distances;        ///< Last distance reading
 } infrared_logs_S;
 
 /**
@@ -59,4 +59,5 @@ float infrared_burst_sample(const infrared_E ir, const uint8_t samples, uint16_t
  */
 void infrared_burst_sample_all(const uint8_t samples, uint16_t delay_ms, infrared_readings_S * const readings);
 
+/// Returns the infrared logging struct
 infrared_logs_S * infrared_get_logs(void);

@@ -26,32 +26,38 @@ static int accept_blocking(uint8_t task_id, const int server_socket)
     socklen_t client_address_size = sizeof(client_address);
 
     // Accept connection and save client socket handle
-    const int client_socket = accept( server_socket, 
-                                      (struct sockaddr *)&client_address, 
-                                      &client_address_size);
+    const int client_socket = accept(
+        server_socket,
+        (struct sockaddr *)&client_address,
+        &client_address_size
+    );
 
     // Error accepting
-    if (client_socket < 0) 
+    if (client_socket < 0)
     {
         ESP_LOGE("accept_blocking", "[%d] Error accepting from client | Server Socket: %i | Error: %s", task_id, server_socket, strerror(errno));
     }
+#if EXTRA_DEBUG_MSGS
     else
     {
-        // ESP_LOGI("accept_blocking", "[%d] Accepted from client | Server Socket: %i", task_id, server_socket);
+        ESP_LOGI("accept_blocking", "[%d] Accepted from client | Server Socket: %i", task_id, server_socket);
     }
+#endif
 
     return client_socket;
 }
 
 static bool wait_until_wifi_is_connected(void)
 {
-    static const uint8_t delay_between_checks_ms = 250;
-    int16_t retries = 100;
-    
+    // 30 second time out
+    const uint8_t delay_between_checks_ms = 200;
+    int16_t retries = 150;
+
     // Stay in this loop while wifi is not connected
     while (!wifi_is_connected() && retries > 0)
     {
         DELAY_MS(delay_between_checks_ms);
+        retries--;
     }
 
     return wifi_is_connected();
@@ -73,12 +79,11 @@ void task_rx(task_param_T params)
         ESP_LOGE("task_rx", "Suspending task #%d because server was not created.", task_id);
         vTaskSuspend(NULL);
     }
-
     // Wait until wifi is connected
-    if (!wait_until_wifi_is_connected())
+    else if (!wait_until_wifi_is_connected())
     {
         ESP_LOGE("task_tx", "[%d] Wireless is not initialized and client task is terminating...", task_id);
-        vTaskSuspend(NULL);        
+        vTaskSuspend(NULL);
     }
     else
     {
@@ -89,10 +94,7 @@ void task_rx(task_param_T params)
     uint8_t buffer[RECV_BUFFER_SIZE] = { 0 };
 
     // Size of packet
-    uint16_t size = 0;
-
-    // Parser status
-    parser_status_E status = parser_status_idle;
+    int32_t size = 0;
 
     // Command packet
     command_packet_S packet = { 0 };
@@ -112,14 +114,33 @@ void task_rx(task_param_T params)
             // Receive into buffer
             tcp_server_receive(client_socket, buffer, &size);
 
-            status = command_packet_parser(buffer, &packet);
+            // Get a pointer to the buffer
+            uint8_t * buffer_ptr = (uint8_t *)(&buffer[0]);
 
-            if (parser_status_complete == status)
+            // Loop through all the commands in the buffer
+            while (size > 0)
             {
-                ESP_LOGI("task_rx", "Servicing command : %u %u", packet.opcode, packet.command[0]);
-                cmd_handler_service_command(&packet);
+                // Parse the commands
+                const parser_status_E status = command_packet_parser(buffer_ptr, &packet);
+
+                if (parser_status_complete == status)
+                {
+                    if (packet.opcode < packet_opcode_last_invalid)
+                    {
+                        ESP_LOGI("task_rx", "Servicing command : %s : %u %u", opcode_to_string(packet.opcode), packet.opcode, packet.command[0]);
+                        cmd_handler_service_command(&packet);
+                    }
+                    else
+                    {
+                        ESP_LOGE("task_rx", "Invalid packet opcode : %d", packet.opcode);
+                    }
+                }
+
+                // Advance the buffer pointer
+                buffer_ptr += sizeof(packet);
+                size       -= sizeof(packet);
             }
-    
+
             tcp_client_close_socket(&client_socket);
         }
     }

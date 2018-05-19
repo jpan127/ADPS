@@ -13,7 +13,7 @@ bool tcp_client_create_socket(int *tcp_socket, uint32_t port)
     // Counter for getting error ENOBUFS
     static uint32_t no_buffer_counter = 0;
     // Flag error if received ENOBUFS 10 times in a row
-    static const uint8_t no_buffer_error_limit = 10;
+    const uint8_t no_buffer_error_limit = 10;
 
     bool success = false;
 
@@ -23,7 +23,7 @@ bool tcp_client_create_socket(int *tcp_socket, uint32_t port)
     // Create socket
     *tcp_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    if (*tcp_socket < 0) 
+    if (*tcp_socket < 0)
     {
         // Increment counter
         no_buffer_counter = (ENOBUFS == errno) ? (no_buffer_counter + 1) : (0);
@@ -33,10 +33,10 @@ bool tcp_client_create_socket(int *tcp_socket, uint32_t port)
             ESP_LOGE("tcp_client_create_socket", "Error creating socket: %s | Port: %u", strerror(errno), port);
         }
     }
-    else 
+    else
     {
         // Set socket option to re-usable
-        int option = 1;
+        int option = 0x1;
         setsockopt(*tcp_socket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
         // ESP_LOGI("tcp_create_socket", "Socket successfully created.");
         logs.sockets_created++;
@@ -59,8 +59,6 @@ void tcp_client_close_socket(int *tcp_socket)
         *tcp_socket = -1;
 
         logs.sockets_closed++;
-    
-        // LOG_STATUS("Closing socket");
     }
 }
 
@@ -85,7 +83,7 @@ bool tcp_client_connect_to_server(int *tcp_socket, char *server_ip, uint16_t ser
         ESP_LOGE("tcp_connect_to_server", "Error connecting to server at %s port %i | Error: %s", server_ip, server_port, strerror(errno));
         tcp_client_close_socket(tcp_socket);
     }
-    else 
+    else
     {
         // LOG_STATUS("Successfully connected to server at %s port %i", server_ip,  server_port);
         logs.server_connections++;
@@ -95,10 +93,9 @@ bool tcp_client_connect_to_server(int *tcp_socket, char *server_ip, uint16_t ser
     return success;
 }
 
-bool tcp_client_send_packet(int *tcp_socket, uint8_t *packet, uint8_t size)
+bool tcp_client_send_packet(const int tcp_socket, uint8_t *packet, uint8_t size)
 {
-    /// @TODO : Const and dont pass in pointers if they aren't necessary
-    const int bytes = send(*tcp_socket, packet, size, 0);
+    const int bytes = send(tcp_socket, packet, size, 0);
 
     if (bytes < 0)          { ESP_LOGE("tcp_send_packet", "Error sending packet. Error: %s", strerror(errno)); }
     else if (bytes < size)  { ESP_LOGE("tcp_send_packet", "Only sent %d / %d bytes.", bytes, size);            }

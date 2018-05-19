@@ -4,8 +4,8 @@
 
 /**
  *  @module : repeater
- *  
- *  Repeates a function call until the output is true
+ *
+ *  Repeats a function call until the output is true
  */
 
 
@@ -19,9 +19,9 @@ typedef bool (* repeat_CB)(void);
 /// Context for a repeat call
 typedef struct
 {
-    uint32_t num_retries;   ///< Number of retries to execute for
-    uint32_t delay_ms;      ///< Delay in millseconds between callback executions
-    repeat_CB callback;     ///< Function to call repeatedly
+    const uint32_t num_retries;   ///< Number of retries to execute for
+    const uint32_t delay_ms;      ///< Delay in millseconds between callback executions
+    const repeat_CB callback;     ///< Function to call repeatedly
 } repeat_S;
 
 /**

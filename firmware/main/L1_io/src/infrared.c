@@ -16,9 +16,9 @@ static infrared_logs_S logs[infrared_max] = { 0 };
  */
 static bool infrared_self_test(const infrared_E ir)
 {
-    const uint8_t minimum_value_to_not_fault = 10;
+    const uint8_t minimum_value_to_not_fault = 100;
     const uint8_t num_tests = 10;
-    uint32_t samples[10] = { 0 };
+    const uint8_t num_acceptable_failures = (float)num_tests * 0.1F;
     uint8_t failures = 0;
 
     for (uint8_t test = 0; test < num_tests; test++)
@@ -26,16 +26,16 @@ static bool infrared_self_test(const infrared_E ir)
         const int32_t sample = acd1_sample(infrared_map[ir]);
         if (sample >= minimum_value_to_not_fault)
         {
-            ESP_LOGI("infrared_self_test", "[%d] Infrared sensor self test : %d", ir, samples[test]);
-            samples[test] = sample;
+            ESP_LOGI("infrared_self_test", "[%d] Infrared sensor self test : %d", ir, sample);
         }
         else
         {
+            // Even if already failed too many times, finish the test
             ++failures;
         }
     }
 
-    return (failures == 0);
+    return (failures < num_acceptable_failures);
 }
 
 /**
@@ -58,6 +58,7 @@ static float infrared_apply_linearizing_fx(const infrared_E ir, const float volt
     static const float A02_slope = -41.4f;
     static const float A02_y_intercept = 4963.0f;
 
+    /// @TODO : [#12] Additional characterization needed
 #if 0
     static const float A21_slope = -15.7f;
     static const float A21_y_intercept = 3290.0f;
@@ -70,7 +71,8 @@ static float infrared_apply_linearizing_fx(const infrared_E ir, const float volt
         return MAX(0, (voltage - A02_y_intercept) / A02_slope);
     }
 #else
-    return MAX(0, (voltage - A02_y_intercept) / A02_slope);
+    const float distance_cm = (voltage - A02_y_intercept) / A02_slope;
+    return MAX(0, distance_cm);
 #endif
 }
 
@@ -80,8 +82,8 @@ void infrared_initialize(const gpio_E * gpio, bool * functional)
     {
         // Save to map
         infrared_map[ir] = gpio[ir];
-     
-        // Start off as passed test   
+
+        // Start off as passed test
         functional[ir] = true;
 
         // Only initialize if wasn't properly initialized already
@@ -94,10 +96,12 @@ void infrared_initialize(const gpio_E * gpio, bool * functional)
                 functional[ir] = false;
                 continue;
             }
-        }     
-        
+        }
+
         // Run self test on the sensor
-        if ((functional[ir] = infrared_self_test(ir)) == false)
+        functional[ir] = infrared_self_test(ir);
+        logs[ir].operational = functional[ir];
+        if (!functional[ir])
         {
             ESP_LOGE("infrared_initialize", "Failed self test infrared sensor %d", ir);
         }
@@ -105,14 +109,12 @@ void infrared_initialize(const gpio_E * gpio, bool * functional)
         {
             ESP_LOGI("infrared_initialize", "Successfully initialized infrared sensor %d", ir);
         }
-
-        logs[ir].operational = functional[ir];
     }
 }
 
 float infrared_burst_sample(const infrared_E ir, const uint8_t samples, uint16_t delay_ms)
 {
-    static const uint8_t minimum_delay_between_readings_ms = 40;
+    const uint8_t minimum_delay_between_readings_ms = 40;
 
     uint32_t average = 0;
 
@@ -126,7 +128,6 @@ float infrared_burst_sample(const infrared_E ir, const uint8_t samples, uint16_t
             if (reading >= 0)
             {
                 average += reading;
-                DELAY_MS(delay_ms);
             }
 #if TESTING
             else
@@ -134,6 +135,7 @@ float infrared_burst_sample(const infrared_E ir, const uint8_t samples, uint16_t
                 ESP_LOGE("infrared_burst_sample", "Error reading sample %d", sample);
             }
 #endif
+            DELAY_MS(delay_ms);
         }
 
         average /= samples;
@@ -142,7 +144,7 @@ float infrared_burst_sample(const infrared_E ir, const uint8_t samples, uint16_t
     const float linearized_averaged_distance_cm = infrared_apply_linearizing_fx(ir, average);
 
     logs[ir].raw_values = average;
-    logs[ir].distances = 0;
+    logs[ir].distances  = linearized_averaged_distance_cm;
 
     return linearized_averaged_distance_cm;
 }

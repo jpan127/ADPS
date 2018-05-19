@@ -20,19 +20,22 @@ static void execute_self_test_routine(void)
     {
         ESP_LOGI("SELF_TEST", "Part 1: Testing servo...");
         {
+            motor_move(motor_servo, motor_dir_a_forward, 0.0f);
+            DELAY_SEC_WITHOUT_CONTEXT_SWITCH(1);
             for (uint8_t duty = 0; duty < 180; duty++)
             {
                 motor_move(motor_servo, motor_dir_a_forward, (float)duty);
-                DELAY_US(MS_TO_US(10));
+                DELAY_US(MS_TO_US(5));
             }
 
             for (int16_t duty = 180; duty >= 0; duty--)
             {
                 motor_move(motor_servo, motor_dir_a_forward, (float)duty);
-                DELAY_US(MS_TO_US(10));
+                DELAY_US(MS_TO_US(5));
             }
 
             motor_stop(motor_servo);
+            DELAY_SEC_WITHOUT_CONTEXT_SWITCH(1);
         }
 
         ESP_LOGI("SELF_TEST", "Part 2: Testing wheels...");
@@ -48,7 +51,7 @@ static void execute_self_test_routine(void)
             DELAY_SEC_WITHOUT_CONTEXT_SWITCH(2UL);
             motor_stop(motor_wheels);
             DELAY_SEC_WITHOUT_CONTEXT_SWITCH(1UL);
-            
+
             ESP_LOGI("SELF_TEST", "\tTesting left pivot...");
             motor_move(motor_wheels, motor_dir_pivot_left, 40.0f);
             DELAY_SEC_WITHOUT_CONTEXT_SWITCH(2UL);
@@ -67,7 +70,6 @@ static void execute_self_test_routine(void)
             motor_stop(motor_delivery);
             DELAY_SEC_WITHOUT_CONTEXT_SWITCH(1UL);
 
-            //// @TODO : Does not work for some reason, double check GPIOs
             ESP_LOGI("SELF_TEST", "\tTesting delivery backward...");
             motor_move(motor_delivery, motor_dir_delivery_backward, 100.0f);
             DELAY_SEC_WITHOUT_CONTEXT_SWITCH(2UL);
@@ -80,16 +82,18 @@ static void execute_self_test_routine(void)
 
 void task_self_test(task_param_T params)
 {
-    DELAY_SEC_WITHOUT_CONTEXT_SWITCH(1UL);
 
     ESP_LOGI("task_self_test", "Task initialized and starting...");
+    DELAY_SEC_WITHOUT_CONTEXT_SWITCH(1UL);
 
     // Main Loop
-    while(1)
+    while (1)
     {
         if (xSemaphoreTake(SelfTestSemaphore, MAX_DELAY))
         {
+            set_suspend_state(true);
             execute_self_test_routine();
+            set_suspend_state(false);
         }
     }
 }

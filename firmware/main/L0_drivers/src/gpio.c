@@ -30,7 +30,7 @@ static gpio_S gpio_map[GPIO_NUM_MAX] =
 void gpio_init(void)
 {
     // Base configuration
-    gpio_config_t config = 
+    gpio_config_t config =
     {
         .intr_type    = GPIO_INTR_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -48,7 +48,7 @@ void gpio_init(void)
 
 uint32_t gpio_get_pin_number(gpio_E gpio)
 {
-    if (gpio_last_invalid != gpio)
+    if (gpio < gpio_last_invalid)
     {
         return (uint32_t)gpio_map[gpio].pin;
     }
@@ -60,7 +60,7 @@ uint32_t gpio_get_pin_number(gpio_E gpio)
 
 void gpio_set_output_value(gpio_E gpio, bool value)
 {
-    if (gpio_last_invalid != gpio)
+    if (gpio < gpio_last_invalid)
     {
         ESP_ERROR_CHECK(gpio_set_level(gpio_map[gpio].pin, value));
     }

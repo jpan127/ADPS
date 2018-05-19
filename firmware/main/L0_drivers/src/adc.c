@@ -7,6 +7,7 @@ static bool adc_init_map[ADC1_CHANNEL_MAX] = { 0 };
 
 /**
  *  Converts a GPIO enumeration to an ADC 1 channel enumeration
+ *  Always a valid enumeration but user must check if it is MAX or not
  *  @param gpio : The input to convert
  *  @returns    : An ADC 1 channel
  */

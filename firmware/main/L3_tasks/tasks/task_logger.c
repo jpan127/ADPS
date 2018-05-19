@@ -37,57 +37,6 @@ static struct
     infrared_logs_S * infrared_logs;
 } logs;
 
-/**
- *  Custom and specific snprintf solely for printing log_watermark to a buffer
- *  This will circumvent the additional stack and potentital dynamic allocation of [snprintf]
- *  @param buffer   : Buffer to print to
- *  @param name     : Name of task
- *  @param value    : Value of watermark
- *  @NOTE           : Make sure the buffer is large enough to hold at least 3 + name + number of digits ~= 64
- */
-static void static_snprintf_watermark(char * buffer, const char * const name, float value)
-{
-    static const uint8_t category = (const uint8_t)(packet_type_log_wmark);
-    
-    static const char category_as_digits[] = 
-    { 
-        '0' + (category / 10), 
-        '0' + (category % 10),
-    };
-
-    static const uint8_t num_digits = 2;
-
-    uint8_t digits[10] = { 0 };
-
-    *(buffer++) = category_as_digits[0];
-    *(buffer++) = category_as_digits[1];
-    *(buffer++) = ':';
-    
-    memcpy(buffer, name, strlen(name));
-    buffer += strlen(name);
-
-    *(buffer++) = ':';
-    *(buffer++) = '0';
-    *(buffer++) = '.';
-
-    for (uint8_t digit = 0; digit < num_digits; digit++)
-    {
-        value *= 10;
-        digits[digit] = (uint32_t)(floor(value)) % 10;
-    }
-
-    // Write converted digits to buffer
-    for (uint8_t digit = 0; digit < num_digits; digit++)
-    {
-        *(buffer++) = (char)((uint8_t)('0') + (uint8_t)(digits[digit]));
-    }
-
-    *(buffer++) = '%';
-
-    // Ensure null termination
-    *(buffer) = '\0';
-}
-
 void init_task_logger(void)
 {
     // Initialize all the pointers of the struct
@@ -105,10 +54,10 @@ void task_logger(task_param_T params)
     DELAY_MS(1000);
 
     // All the muxes are time multplexed across this period
-    const uint16_t delay_period = 1000;
+    const uint16_t delay_period_ms = 1000;
 
     // Split up all the muxes to be able to log everything in the span of 1 second in even intervals
-    const uint16_t delay_between_muxes_ms = delay_period / mux_last_invalid;
+    const uint16_t delay_between_muxes_ms = delay_period_ms / mux_last_invalid;
 
     // Mux for selecting which logs to send to the server
     logging_mux_E mux = mux_client;
@@ -116,7 +65,7 @@ void task_logger(task_param_T params)
     char buffer[64] = { 0 };
 
     // Get task handles to check watermarks
-    rtos_task_control_block_S * tcbs = NULL;
+    rtos_task_context_block_S * tcbs = NULL;
     size_t num_tasks = 0;
     tasks_get_tcbs(&tcbs, &num_tasks);
 
@@ -166,7 +115,6 @@ void task_logger(task_param_T params)
 
                     snprintf(buffer, sizeof(buffer), "%%u:duty_b%u:%%f", motor);
                     log_data_float(buffer, packet_type_log_motor, &logs.motor_logs->duty[motor].b);
-                    // ESP_LOGI("motor", "[%u] %f %f", motor, logs.motor_logs->duty[motor].a, logs.motor_logs->duty[motor].b);
                 }
                 break;
             }
@@ -191,7 +139,7 @@ void task_logger(task_param_T params)
                     // Calculate how much of the allocated stack size was ever used
                     const float stack_utilization = (float)(tcbs[i].stack_size - watermark) / (float)tcbs[i].stack_size;
 
-                    static_snprintf_watermark(buffer, task_name, stack_utilization);
+                    snprintf(buffer, sizeof(buffer), "%%u:%s:%%u", task_name);
 
                     log_data_float(buffer, packet_type_log_wmark, &stack_utilization);
                 }
@@ -217,7 +165,7 @@ void task_logger(task_param_T params)
         }
 
         // Iterate through the muxes
-        mux = (mux_last_invalid-1 == mux) ? (mux_first_invalid + 1) : (mux + 1);
+        mux = (mux_last_invalid >= mux+1) ? (mux_first_invalid + 1) : (mux + 1);
 
         // Delay between next mux
         DELAY_MS(delay_between_muxes_ms);

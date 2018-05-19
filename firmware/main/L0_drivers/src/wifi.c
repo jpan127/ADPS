@@ -61,10 +61,10 @@ static void setup_ip_info(const char *ip, const char *gw, const char *nm)
 {
     tcpip_adapter_ip_info_t ip_info = { 0 };
 
-    inet_pton(AF_INET, ip,  &ip_info.ip);
-    inet_pton(AF_INET, gw,  &ip_info.gw);
-    inet_pton(AF_INET, nm,  &ip_info.netmask);
-    
+    inet_pton(AF_INET, ip, &ip_info.ip);
+    inet_pton(AF_INET, gw, &ip_info.gw);
+    inet_pton(AF_INET, nm, &ip_info.netmask);
+
     tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info);
 }
 

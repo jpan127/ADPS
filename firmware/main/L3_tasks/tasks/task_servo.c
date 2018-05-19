@@ -5,10 +5,7 @@
 #include "cmd_handler.h"
 
 
-/**
- *  @TODO : This task may not be needed so can put the servo config in another function init_motors()
- *          Keep this task for testing maybe
- */
+
 static const motor_E motor = motor_servo;
 static bool initialized = true;
 
@@ -18,7 +15,7 @@ void init_task_servo(void)
     {
         .dir_a  = GPIO_NOT_USING,
         .dir_b  = GPIO_NOT_USING,
-        .config = 
+        .config =
         {
             .pwm_a     = gpio_servo_pwm,
             .pwm_b     = GPIO_NOT_USING,
@@ -39,7 +36,7 @@ void init_task_servo(void)
  */
 static void servo_boot_up_routine(void)
 {
-    static const uint8_t delay_between_adjustments_ms = 10;
+    const uint8_t delay_between_adjustments_ms = 10;
 
     ESP_LOGI("task_servo", "Initialized servo, running boot up routine...");
 
@@ -84,8 +81,8 @@ void task_servo(task_param_T params)
     {
         if (xSemaphoreTake(ServoSemaphore, MAX_DELAY))
         {
-            const command_packet_S * const packet = cmd_handler_get_last_packet();
-            motor_move(motor_servo, motor_dir_a_forward, packet->command[0]);
+            const uint8_t last_commanded_servo_duty = cmd_handler_get_last_commanded_servo_duty();
+            motor_move(motor_servo, motor_dir_a_forward, last_commanded_servo_duty);
         }
     }
 #endif

@@ -20,13 +20,25 @@ static uint8_t task_rx_params[THREAD_POOL_SIZE]          = { 0 };
 
 
 /// @ { It is annoying to find the right tasks to enable during testing so just comment / uncomment these defines for now
+#if TESTING
     // #define TEST_TASK_TX
-    // #define TEST_TASK_RX
-    // #define TEST_TASK_SERVO
     // #define TEST_TASK_LOGGER
-    // #define TEST_TASK_DETECTION
-    // #define TEST_TASK_DELIVERY
+    #define TEST_TASK_RX
+    #define TEST_TASK_SERVO
+    #define TEST_TASK_DETECTION
+    #define TASK_NAVGIGATION
+    #define TEST_TASK_DELIVERY
+    // #define TEST_TASK_SELF_TEST
+#else
+    #define TEST_TASK_TX
+    #define TEST_TASK_RX
+    #define TEST_TASK_SERVO
+    #define TEST_TASK_LOGGER
+    #define TEST_TASK_DETECTION
+    #define TASK_NAVGIGATION
+    #define TEST_TASK_DELIVERY
     #define TEST_TASK_SELF_TEST
+#endif
 /// @ }
 
 /**
@@ -71,13 +83,13 @@ static void adps_create_task_thread_pool(const char * const base_name,
         // Create the task
         rtos_create_task_with_params(
             function,
-            task_names[i], 
+            task_names[i],
             stack_size,
             priority,
             task_params
         );
     }
-}                                         
+}
 
 /// Initializes the state of modules that are not tasks
 static void adps_init_modules(void)
@@ -116,7 +128,7 @@ static void adps_init_tasks(void)
 static void adps_create_low_priority_tasks(void)
 {
 #ifdef TEST_TASK_LOGGER
-    rtos_create_task(&task_logger, "task_logger", _8KB , PRIORITY_LOW);
+    rtos_create_task(&task_logger, "task_logger", _8KB, PRIORITY_LOW);
 #endif
 }
 
@@ -133,7 +145,9 @@ static void adps_create_medium_priority_tasks(void)
     adps_create_task_thread_pool("task_rx", PRIORITY_MED, _16KB, task_rx, false);
 #endif
 
-    // rtos_create_task(&task_navigation , "task_navigation" , _8KB , PRIORITY_MED);
+#ifdef TASK_NAVGIGATION
+    rtos_create_task(&task_navigation , "task_navigation" , _8KB, PRIORITY_MED);
+#endif
 
 #ifdef TEST_TASK_SERVO
     rtos_create_task(&task_servo, "task_servo", _8KB , PRIORITY_MED);
@@ -141,7 +155,7 @@ static void adps_create_medium_priority_tasks(void)
 
 #ifdef TEST_TASK_DETECTION
     rtos_create_task_with_params(
-        &task_detection, 
+        &task_detection,
         "task_detection",
         _8KB,
         PRIORITY_MED,
@@ -154,9 +168,30 @@ static void adps_create_medium_priority_tasks(void)
 #endif
 }
 
+void task_init(void * params)
+{
+    ESP_LOGI("task_init", "...");
+
+#ifdef TEST_TASK_SELF_TEST
+    while (true == get_suspend_state())
+    {
+        DELAY_MS(1);
+    }
+#endif
+
+    adps_create_low_priority_tasks();
+
+    adps_create_medium_priority_tasks();
+
+    // Suspend this task forever
+    vTaskSuspend(NULL);
+}
+
 /// Creates all high priority tasks
 static void adps_create_high_priority_tasks(void)
 {
+    rtos_create_task(&task_init, "task_init", _4KB, PRIORITY_HIGHEST);
+
 #ifdef TEST_TASK_SELF_TEST
     rtos_create_task(&task_self_test, "task_self_test", _8KB, PRIORITY_HIGH);
 #endif
@@ -168,10 +203,6 @@ void app_main(void)
     adps_init_modules();
 
     adps_init_tasks();
-
-    adps_create_low_priority_tasks();
-
-    adps_create_medium_priority_tasks();
 
     adps_create_high_priority_tasks();
 }
