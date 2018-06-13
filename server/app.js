@@ -148,16 +148,6 @@ io.on('connection',function(socket){
             client = new net.Socket();
         });
     });
-    socket.on('housenumber',function(data){
-        var newjson = {
-            housenumber_found: 0,
-            housenumber: data.message
-        }
-        var json = JSON.stringify(newjson);
-        var fs = require('fs');
-        fs.writeFile('C:/Users/Andrew/Documents/SJSU/ADPS/numbers/housenumber.txt', json, 'utf8');
-        restart_state_machine(); 
-    });
     socket.on('exit', function(ignore) { 
         socket.disconnect(true);
         console.log("Server disconnecting.");
@@ -330,7 +320,7 @@ function navigating_sidewalk(){
 function looking_for_path() {
     current_state = state[1];
 
-    console.log("House number found. Delivering");
+    console.log("HLooking for path");
                 //STOP
                 
                 client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
