@@ -17,3 +17,5 @@ build/*
 /build/*
 
 data/*
+
+/server/node_modules*
