@@ -109,8 +109,6 @@
             </div>
             <div class="col-sm-4 text-center">
                 <h3> <img src="custom.png"></img></h3>
-                <input id="housenumber"  class="form-control"   type="text" placeholder="House Number"  value="790"     /><br>
-                <button id="send"   onclick="set_house_number()"> Set House Number    </button>
                 <button id="deliverMotor"   onclick="deliverMotor()"> Deliver Motor    </button>
                 <button id="pivleft"   onclick="pivotLeft()"> PIV LEFT    </button>
                 <button id="pivright"   onclick="pivotRight()"> PIV RIght    </button>
@@ -450,10 +448,7 @@
         function changeLog(id, value){
             document.getElementById(id).innerHTML = value;
         }
-        function set_house_number() {
-            var number = document.getElementById("housenumber").value
-            socket.emit('housenumber', { message: number });
-        }
+
     </script>
 </body>
 </html>
