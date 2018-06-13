@@ -109,9 +109,12 @@
             </div>
             <div class="col-sm-4 text-center">
                 <h3> <img src="custom.png"></img></h3>
-                <input id="ipAddr"  class="form-control"   type="text" placeholder="IP Address"  value="127.0.0.1"     /><br>
-                <input id="packetBody" class="form-control" type="text" placeholder="Packet Body" size=64 value="Test body - leave blank" /><br>
-                <button id="send"   onclick="sendPacket()"> Send    </button>
+                <input id="housenumber"  class="form-control"   type="text" placeholder="House Number"  value="790"     /><br>
+                <button id="send"   onclick="set_house_number()"> Set House Number    </button>
+                <button id="deliverMotor"   onclick="deliverMotor()"> Deliver Motor    </button>
+                <button id="pivleft"   onclick="pivotLeft()"> PIV LEFT    </button>
+                <button id="pivright"   onclick="pivotRight()"> PIV RIght    </button>
+                <button id="stopall"   onclick="stopall()"> stopall  </button>
             </div>            
         </div>
             <div class="row">
@@ -145,7 +148,7 @@
             <th class="tg-us36">sockets_closed</th>
             <th class="tg-us36">server_connections</th>
             <th class="tg-us36">packets_sent</th>
-            <th class="tg-us36"></th>
+            <th class="tg-us36">sensor</th>
             <th class="tg-us36"></th>
           </tr>
           <tr>
@@ -154,7 +157,7 @@
             <td id="sockets_closed" class="tg-us36"></td>
             <td id="server_connections" class="tg-us36"></td>
             <td id="packets_sent" class="tg-us36"></td>
-            <td class="tg-us36"></td>
+            <td id="sensor" class="tg-us36"></td>
             <td class="tg-us36"></td>
           </tr>
           <tr>
@@ -295,6 +298,23 @@
     
     <script>
         var socket = io();
+
+        window.onload = function(){
+            var valid = ["sockets_created","sockets_closed", "server_connections", "packets_sent",
+                "server_port", "state", "queue_size", "packets_received",
+                "rx_packets", "tx_packets", "packets_dropped", 
+                "duty_a0","duty_a1","duty_a2","duty_b0","duty_b1","duty_b2",
+                "device_ip", "device_gw", "device_sn","station_ssid",
+                "task_tx0", "task_rx0, sensor"];
+            var i = 0;
+            for(i = 0; i < valid.length ; i++){
+                var key = valid[i];
+                if(localStorage.hasOwnProperty(key)){
+                    document.getElementById(key).innerHTML  = localStorage[key] ;
+                }
+            }
+        }
+
         socket.on('stream', function(image){
             var img = document.getElementById("play");
             img.src = image;
@@ -305,8 +325,9 @@
                 "rx_packets", "tx_packets", "packets_dropped", 
                 "duty_a0","duty_a1","duty_a2","duty_b0","duty_b1","duty_b2",
                 "device_ip", "device_gw", "device_sn","station_ssid",
-                "task_tx0", "task_rx0"].indexOf(payload[1]) >= 0) {
+                "task_tx0", "task_rx0, sensor"].indexOf(payload[1]) >= 0) {
                 document.getElementById(payload[1]).innerHTML = payload[2];
+            localStorage[payload[1]] = payload[2];
             }
 
             else { 
@@ -383,7 +404,23 @@
         function decRight(){
             socket.emit('event', { message: 11 });
             console.log("decRight\n");
-        }        
+        }    
+        function deliverMotor(){
+            socket.emit('event', { message: 15 });
+            console.log("deliverMotor\n");
+        }   
+        function pivotLeft(){
+            socket.emit('event', { message: 16 });
+            console.log("pivleft\n");
+        }   
+        function pivotRight(){
+            socket.emit('event', { message: 17 });
+            console.log("pivright\n");
+        }   
+        function stopall(){
+            socket.emit('event', { message: 20 });
+            console.log("stopall\n");
+        }                                               
         function exit() {
             socket.emit('exit');
         }
@@ -412,7 +449,11 @@
         }   
         function changeLog(id, value){
             document.getElementById(id).innerHTML = value;
-        }        
+        }
+        function set_house_number() {
+            var number = document.getElementById("housenumber").value
+            socket.emit('housenumber', { message: number });
+        }
     </script>
 </body>
 </html>
