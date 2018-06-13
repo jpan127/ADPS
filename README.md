@@ -1,39 +1,28 @@
-# ADPS : Autonomous Postal Delivery System
+# APDS : Autonomous Postal Delivery System
 
 ----
-### ADPS-Firmware
+### Firmware
 
     Firmware for the ESP32 microcontroller
 
 ##### Tasks
-
-logger
-
-    Logs useful information from all modules
-
-rx
-
-    Pool of tasks to service incoming client connections
-    
-tx
-
-    Pool of client tasks to connect to a remote server
-
-navigation
-
-    Handles driving the motors of the wheels of the robot
+| Task       | Description                                              |
+|------------|----------------------------------------------------------|
+| logger     | Logs useful information from all modules                 |
+| rx         | Pool of tasks to service incoming client connections     |
+| tx         | Pool of client tasks to connect to a remote server       |
+| navigation | Services wheel control / navigation commands             |
+| detection  | Periodically reads from the infrared sensors             |
+| self_test  | Executes a self test to check if everything is working   |
+| servo      | Controls the servo that is attached to the side camera   |
 
 ----
 ### Sidewalk Recognition
 
-##### Using OpenCV Version XXX
-    JP is working on a C++ version
-    Avi is working on a Python version
-
-##### Algorithms Used
-    GaussianBlur
-    Canny
-    HoughLinesP
+An application utilizing OpenCV is responsible for analyzing and filtering an image frame to detect the lines of interest.
+Each image frame is then split into sub-grids.  Intersections of all lines are calculated and the sub-grid with the global maximum of intersections
+is then chosen as location of the vantage point.  From this information, the system understands where the path / sidewalk is leading towards and the
+system can adjust navigation accordingly.
 
 ----
 ### Node.js Server Setup

@@ -422,10 +422,6 @@
         function exit() {
             socket.emit('exit');
         }
-        function sendPacket() {
-            var body = document.getElementById("packetBody").value;
-            socket.emit('packet', { body });
-        }
         function openTab(evt, tabName) {
             var i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("tabcontent");
