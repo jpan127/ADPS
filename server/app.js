@@ -4,7 +4,8 @@ var http = require("http").Server(app);
 var io = require("socket.io")(http); 
 
 var net = require('net');
- 
+
+var jsonfile = require('jsonfile');
 var Log = require('log'),
     log = new Log('debug')
  
@@ -18,11 +19,9 @@ app.get('/', function(req,res){
 
 require('events').EventEmitter.prototype._maxListeners = 100; //max listeners
 
+var PythonShell = require('python-shell');
 
 var client = new net.Socket();  
- 
-
-
 
 client.on('err', function(err){
             // handle the error safely
@@ -32,13 +31,15 @@ client.on('err', function(err){
 
 io.on('connection',function(socket){ 
 
-
     //////////////////////////////////////////////////////////////////
     // Logging server stuff //
     var server = net.createServer(function(sock) {
         sock.on('err', function(err){
-            // handle the error safely
-            console.log(err)
+            console.log("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n\n");
+            console.log(err);
+            console.log("\n\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            server.close();
+            server.listen(5002, '192.168.43.12');  
         });
         sock.on('data', function(data) {
             //console.log(data);
@@ -91,19 +92,25 @@ io.on('connection',function(socket){
         });
     });
 
-    server.listen(5001, '192.168.43.12'); 
+    server.listen(5002, '192.168.43.12'); 
     ///////////////////////////////////////////////////////////////// 
 
 
     var connected = false;
-	socket.on('stream',function(image){
-		socket.broadcast.emit('stream', image);
-	});
+    socket.on('stream',function(image){
+        socket.broadcast.emit('stream', image);
+    });
     socket.on('err', function(err){
             // handle the error safely
             console.log(err)
         });
-	socket.on('event',function(data){
+    socket.on('event',function(data){
+        
+        if(data.message == 20) {
+            clearInterval(repeat);
+            data.message = 14;
+        }
+
         client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
             console.log('Connected to 192.168.43.250'); 
             console.log('Local client sending:', data.message);
@@ -116,12 +123,12 @@ io.on('connection',function(socket){
                 console.log(err)
             });
         });
-	});
+    });
     socket.on('dirEvent',function(data){
         client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
             console.log('Connected to 192.168.43.250'); 
             console.log('Local client sending:', data.message);
-            buf = new Buffer([data.message, 0x4B, 0xFF]); // 0x4B is temp value 75
+            buf = new Buffer([data.message, 0x32, 0xFF]); // 032
             client.write(buf);
             client.destroy();
             client = new net.Socket();
@@ -140,6 +147,16 @@ io.on('connection',function(socket){
             client.destroy();
             client = new net.Socket();
         });
+    });
+    socket.on('housenumber',function(data){
+        var newjson = {
+            housenumber_found: 0,
+            housenumber: data.message
+        }
+        var json = JSON.stringify(newjson);
+        var fs = require('fs');
+        fs.writeFile('C:/Users/Andrew/Documents/SJSU/ADPS/numbers/housenumber.txt', json, 'utf8');
+        restart_state_machine(); 
     });
     socket.on('exit', function(ignore) { 
         socket.disconnect(true);
@@ -171,11 +188,6 @@ io.on('connection',function(socket){
         //process.exit(); 
         client.destroy();
         client = new net.Socket();
-
-        //TODO: Flag for connected status
-        //If still connected, send another packet (TEST)
-        //If not connected, reconnect and send (test?)
-        //If different IP, keep first open and open another client connection
     })
  
 });
@@ -197,6 +209,201 @@ http.on('err', function(err){
 process.on('uncaughtException', function(err) {
   console.log('Caught exception: ' + err);
 });
+
+
+var state = ["NAVIGATING_SIDEWALK", "LOOKING_FOR_PATH" ,"FOUND_PATH_TO_HOUSE", "NAVIGATING_PATH" ,"REACHED_DOOR" , "DELIVER_PACKAGE" ]
+var current_state;
+var repeat;
+var state_repeat;
+call_number_recognition();
+call_video_stream();
+//init_state_machine();
+
+
+function init_state_machine() {
+    // Initial state Navigating Sidewalk
+
+                client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
+                    console.log('Connected to 192.168.43.250'); 
+                    console.log('Local client sending:', 0);
+                    buf = new Buffer([14, 0x4, 0xFF]); // 0x4B is temp value 75
+                    client.write(buf);
+                    client.destroy();
+                    client = new net.Socket();
+                    client.on('err', function(err){
+                        // handle the error safely
+                        console.log(err)
+                    });
+                });
+
+    repeat = setInterval(navigating_sidewalk, 500);
+}
+
+function restart_state_machine(){
+    stop_state_machine();
+    init_state_machine();
+}
+
+function stop_state_machine(){
+    clearInterval(repeat);
+    clearInterval(state_repeat);
+}
+
+function call_video_stream() {
+    console.log("Calling video stream script.\n");
+    var pyshell = new PythonShell('../sidewalk/python/video_stream.py')
+}
+
+function navigating_sidewalk(){
+    //Read
+    current_state = state[0];
+
+    console.log("navigating sidewalk");
+
+    var file = 'front.json';
+    jsonfile.readFile(file, function(err, obj) {
+        //console.log(obj.angle);
+
+        if(obj.angle >= 85 && obj.angle <= 95 ){
+                client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
+                    console.log('Connected to 192.168.43.250'); 
+                    console.log('Local client sending:', 0);
+                    buf = new Buffer([0, 0x1E, 0xFF,18, 0, 0xFF]); // 0x4B is temp value 75
+                    client.write(buf);
+
+                    client.destroy();
+                    client = new net.Socket();
+                    client.on('err', function(err){
+                        // handle the error safely
+                        console.log(err)
+                    });
+                });        
+        } else if (obj.angle > 85 ) {
+                client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
+                    console.log('Connected to 192.168.43.250'); 
+                    console.log('Local client sending:', 0);
+                    buf = new Buffer([7, 0x2, 0xFF, 18, 0, 0xFF]); // 0x4B is temp value 75
+                    client.write(buf);
+
+                    client.destroy();
+                    client = new net.Socket();
+                    client.on('err', function(err){
+                        // handle the error safely
+                        console.log(err)
+                    });
+                });                  
+        } else if (obj.angle < 95 ) {
+                client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
+                    console.log('Connected to 192.168.43.250'); 
+                    console.log('Local client sending:', 0);
+                    buf = new Buffer([6, 0x2, 0xFF, 18, 0, 0xFF]); // 0x4B is temp value 75
+                    client.write(buf);
+
+                    client.destroy();
+                    client = new net.Socket();
+                    client.on('err', function(err){
+                        // handle the error safely
+                        console.log(err)
+                    });
+                });                  
+        } else {
+                client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
+                    console.log('Connected to 192.168.43.250'); 
+                    console.log('Local client sending:', 14);
+                    buf = new Buffer([14, 0x4B, 0xFF, 18, 0, 0xFF]); // 0x4B is temp value 75
+                    client.write(buf);
+
+                    client.destroy();
+                    client = new net.Socket();
+                    client.on('err', function(err){
+                        // handle the error safely
+                        console.log(err)
+                    });
+                });        
+        }
+        return 0;
+
+    })
+    //output
+}
+
+function looking_for_path() {
+    current_state = state[1];
+
+    console.log("House number found. Delivering");
+                //STOP
+                
+                client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
+                    console.log('Connected to 192.168.43.250'); 
+                    console.log('Local client sending:', 0);
+                    buf = new Buffer([14, 0x4, 0xFF, 18, 1, 0xFF]); // 0x4B is temp value 75
+                    client.write(buf);
+                    client.destroy();
+                    client = new net.Socket();
+                    client.on('err', function(err){
+                        // handle the error safely
+                        console.log(err)
+                    });
+                });  
+                setTimeout(found_path_to_house, 1000);                 
+
+}
+
+function found_path_to_house() {
+    current_state = state[2];
+
+    console.log("found path to house");
+                    client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
+                    console.log('Connected to 192.168.43.250'); 
+                    console.log('Local client sending:', 0);
+                    buf = new Buffer([17, 0x4, 0xFF, 18, 2, 0xFF]); // 0x4B is temp value 75
+                    client.write(buf);
+                    client.destroy();
+                    client = new net.Socket();
+                    client.on('err', function(err){
+                        // handle the error safely
+                        console.log(err)
+                    });
+                });  
+                setTimeout(navigating_path, 1000);      
+    // Pivot 90 degrees and go down new path
+}
+
+
+function navigating_path() {
+    current_state = state[4];
+    console.log("navigate path");
+                    client.connect(5000, "192.168.43.250", function() { //192.168.43.250 port 5000
+                    console.log('Connected to 192.168.43.250'); 
+                    console.log('Local client sending:', 0);
+                    buf = new Buffer([0,0x32, 0xFF, 18, 3, 0xFF]);
+                    client.write(buf);
+                    client.destroy();
+                    client = new net.Socket();
+                    client.on('err', function(err){
+                        // handle the error safely
+                        console.log(err)
+                    });
+                });  
+
+
+    console.log("navigating_path");
+    // continue until sensors reach door
+}
+
+function reached_door() {
+    current_state = state[5];
+
+    console.log("reached_door");
+    // deliver package
+}
+
+function deliver_package() {
+    current_state = state[5];
+
+    console.log("deliver package");
+    // deliver package
+}
 
 function ascii_to_hexa(str) {
     var arr1 = [];
