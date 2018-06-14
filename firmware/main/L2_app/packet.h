@@ -56,7 +56,7 @@ parser_status_E command_packet_parser(const uint8_t * const buffer, command_pack
  * @param type    : The type of the packet
  * @param message : The string format
  */
-void log_to_server(packet_type_E type, const char *message, ...);
+void log_to_server(const packet_type_E type, const char * message, ...);
 
 /**
  *  Inline wrappers for logging log data
@@ -64,9 +64,9 @@ void log_to_server(packet_type_E type, const char *message, ...);
  *      - float
  *      - const char *
  */
-inline void log_data(const char *message, uint8_t category, const uint32_t *data)    { if (data && message) LOG_LOG(message, category, *data); }
-inline void log_data_float(const char *message, uint8_t category, const float *data) { if (data && message) LOG_LOG(message, category, *data); }
-inline void log_data_string(const char *message, uint8_t category, const char *data) { if (data && message) LOG_LOG(message, category,  data); }
+inline void log_data(const char * message, const uint8_t category, const uint32_t * data)    { if (data && message) LOG_LOG(message, category, *data); }
+inline void log_data_float(const char * message, const uint8_t category, const float * data) { if (data && message) LOG_LOG(message, category, *data); }
+inline void log_data_string(const char * message, const uint8_t category, const char * data) { if (data && message) LOG_LOG(message, category,  data); }
 
 /// Returns a pointer to the packet logging struct
 packet_logs_S * packet_get_logs(void);

@@ -149,7 +149,7 @@ float infrared_burst_sample(const infrared_E ir, const uint8_t samples, uint16_t
     return linearized_averaged_distance_cm;
 }
 
-void infrared_burst_sample_all(const uint8_t samples, uint16_t delay_ms, infrared_readings_S * const readings)
+void infrared_burst_sample_all(const uint8_t samples, const uint16_t delay_ms, infrared_readings_S * const readings)
 {
     for (infrared_E ir = (infrared_E)0; ir < infrared_max; ir++)
     {

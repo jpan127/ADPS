@@ -13,7 +13,7 @@
 /// Current state of the state machine, updated from the server
 static navigation_state_E current_navigation_state = navigation_state_navigating_sidewalk;
 
-void navigation_backup(float duty, const uint32_t delay_ms)
+void navigation_backup(const float duty, const uint32_t delay_ms)
 {
     motor_stop(motor_wheels);
     {

@@ -24,13 +24,13 @@ typedef struct
  *  @param port       : The port number to bind the client socket to
  *  @returns          : Success status
  */
-bool tcp_client_create_socket(int *tcp_socket, uint32_t port);
+bool tcp_client_create_socket(int * tcp_socket, const uint32_t port);
 
 /**
  *  Closes an open TCP socket
  *  @param tcp_socket : Socket handle
  */
-void tcp_client_close_socket(int *tcp_socket);
+void tcp_client_close_socket(int * tcp_socket);
 
 /**
  *  Connects a client socket to a server
@@ -39,7 +39,7 @@ void tcp_client_close_socket(int *tcp_socket);
  *  @param server_port : Port number of server to connect to
  *  @returns           : Success status
  */
-bool tcp_client_connect_to_server(int *tcp_socket, char *server_ip, uint16_t server_port);
+bool tcp_client_connect_to_server(int * tcp_socket, const char * server_ip, const uint16_t server_port);
 
 /**
  *  Sends a packet after it has already connected to a server
@@ -48,7 +48,7 @@ bool tcp_client_connect_to_server(int *tcp_socket, char *server_ip, uint16_t ser
  *  @param size       : Size of packet
  *  @returns          : Success status
  */
-bool tcp_client_send_packet(const int tcp_socket, uint8_t *packet, uint8_t size);
+bool tcp_client_send_packet(const int tcp_socket, const uint8_t * packet, const uint8_t size);
 
 /// Returns a pointer to the TCP client logging struct
 tcp_client_logs_S * tcp_client_get_logs(void);

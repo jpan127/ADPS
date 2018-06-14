@@ -102,7 +102,7 @@ static bool tcp_bind_socket(void)
  *  @param queue_size : Size of queue to listen in
  *  @returns          : Success status
  */
-static bool tcp_start_listening(uint8_t queue_size)
+static bool tcp_start_listening(const uint8_t queue_size)
 {
     bool success = false;
 
@@ -121,7 +121,7 @@ static bool tcp_start_listening(uint8_t queue_size)
     return success;
 }
 
-bool tcp_server_init(uint32_t port, uint8_t queue_size)
+bool tcp_server_init(const uint32_t port, const size_t queue_size)
 {
     /**
      *  If any of the steps fail, the rest of the steps should be skipped
@@ -157,7 +157,7 @@ bool tcp_server_init(uint32_t port, uint8_t queue_size)
     return success;
 }
 
-bool tcp_server_receive(int client_sock, uint8_t *buffer, int *size)
+bool tcp_server_receive(const int client_sock, uint8_t * buffer, size_t * size)
 {
     bool success = true;
 

@@ -8,7 +8,7 @@
 /// Logging struct for TCP client
 static tcp_client_logs_S logs = { 0 };
 
-bool tcp_client_create_socket(int *tcp_socket, uint32_t port)
+bool tcp_client_create_socket(int * tcp_socket, const uint32_t port)
 {
     // Counter for getting error ENOBUFS
     static uint32_t no_buffer_counter = 0;
@@ -47,7 +47,7 @@ bool tcp_client_create_socket(int *tcp_socket, uint32_t port)
     return success;
 }
 
-void tcp_client_close_socket(int *tcp_socket)
+void tcp_client_close_socket(int * tcp_socket)
 {
     if (*tcp_socket > 0)
     {
@@ -62,7 +62,7 @@ void tcp_client_close_socket(int *tcp_socket)
     }
 }
 
-bool tcp_client_connect_to_server(int *tcp_socket, char *server_ip, uint16_t server_port)
+bool tcp_client_connect_to_server(int * tcp_socket, const char * server_ip, const uint16_t server_port)
 {
     bool success = false;
 
@@ -93,7 +93,7 @@ bool tcp_client_connect_to_server(int *tcp_socket, char *server_ip, uint16_t ser
     return success;
 }
 
-bool tcp_client_send_packet(const int tcp_socket, uint8_t *packet, uint8_t size)
+bool tcp_client_send_packet(const int tcp_socket, const uint8_t * packet, const uint8_t size)
 {
     const int bytes = send(tcp_socket, packet, size, 0);
 

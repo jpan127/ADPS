@@ -57,7 +57,7 @@ float infrared_burst_sample(const infrared_E ir, const uint8_t samples, uint16_t
  *  @param delay_ms : The delay between samples
  *  @param readings : Struct to contain all the sensor readings in distance in cm
  */
-void infrared_burst_sample_all(const uint8_t samples, uint16_t delay_ms, infrared_readings_S * const readings);
+void infrared_burst_sample_all(const uint8_t samples, const uint16_t delay_ms, infrared_readings_S * const readings);
 
 /// Returns the infrared logging struct
 infrared_logs_S * infrared_get_logs(void);

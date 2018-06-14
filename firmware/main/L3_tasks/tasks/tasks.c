@@ -124,7 +124,7 @@ void tasks_get_tcbs(rtos_task_context_block_S ** handles, size_t * size)
     *size    = num_tasks;
 }
 
-void rtos_create_task(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority)
+void rtos_create_task(TaskFunction_t function, const char * name, const uint32_t stack, const rtos_priority_E priority)
 {
     TaskHandle_t handle = NULL;
 
@@ -140,7 +140,7 @@ void rtos_create_task(TaskFunction_t function, const char * name, const uint32_t
     register_task_handle(handle, stack);
 }
 
-void rtos_create_task_with_params(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority, task_param_T params)
+void rtos_create_task_with_params(TaskFunction_t function, const char * name, const uint32_t stack, const rtos_priority_E priority, task_param_T params)
 {
     TaskHandle_t handle = NULL;
 

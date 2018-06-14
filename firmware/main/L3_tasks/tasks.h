@@ -57,8 +57,8 @@ void init_create_all_semaphores(void);
 void tasks_get_tcbs(rtos_task_context_block_S ** handles, size_t * size);
 
 /// Wrapper function over [xTaskCreate] that also registers the task handle
-void rtos_create_task(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority);
-void rtos_create_task_with_params(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority, task_param_T params);
+void rtos_create_task(TaskFunction_t function, const char * name, const uint32_t stack, const rtos_priority_E priority);
+void rtos_create_task_with_params(TaskFunction_t function, const char * name, const uint32_t stack, const rtos_priority_E priority, task_param_T params);
 
 /// Set the state of the machine to be suspended or active
 void set_suspend_state(const bool on);

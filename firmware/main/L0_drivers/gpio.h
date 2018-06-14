@@ -44,11 +44,11 @@ void gpio_init(void);
  *  @param gpio : The gpio to lookup
  *  @returns    : The pin number as as integer
  */
-uint32_t gpio_get_pin_number(gpio_E gpio);
+uint32_t gpio_get_pin_number(const gpio_E gpio);
 
 /**
  *  Sets the state of an output GPIO
  *  @param gpi   : The gpio to configure
  *  @param value : The state to set to
  */
-void gpio_set_output_value(gpio_E gpio, bool value);
+void gpio_set_output_value(const gpio_E gpio, const bool value);

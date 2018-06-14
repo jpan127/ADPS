@@ -58,7 +58,7 @@ void pwm_init(const pwm_config_S * config);
  *  Starts a PWM module
  *  @param pwm_pair : Pair of unit and timer specific to the chosen pwm
  */
-void pwm_start(pwm_S * pwm_pair);
+void pwm_start(const pwm_S * pwm_pair);
 
 /**
  *  Generate a duty cycle for the specified PWM module
@@ -67,11 +67,11 @@ void pwm_start(pwm_S * pwm_pair);
  *  @param duty       : A duty percentage 0.00f - 100.00f or a microsecond whole number
  *  @param percentage : True to interpret duty as a float, false to interpret as uint32_t microseconds
  */
-void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E duty_type);
+void pwm_generate(const pwm_S * pwm_pair, const pwm_E pwm, pwm_duty_U duty, const pwm_duty_type_E duty_type);
 
 /**
  *  Initialize a PWM module
  *  @param pwm_pair : Pair of unit and timer specific to the chosen pwm
  *  @param pwm      : Which PWM of the specified module to target
  */
-void pwm_stop(pwm_S * pwm_pair, pwm_E pwm);
+void pwm_stop(const pwm_S * pwm_pair, const pwm_E pwm);

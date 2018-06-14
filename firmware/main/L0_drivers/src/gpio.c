@@ -46,7 +46,7 @@ void gpio_init(void)
     }
 }
 
-uint32_t gpio_get_pin_number(gpio_E gpio)
+uint32_t gpio_get_pin_number(const gpio_E gpio)
 {
     if (gpio < gpio_last_invalid)
     {
@@ -58,7 +58,7 @@ uint32_t gpio_get_pin_number(gpio_E gpio)
     }
 }
 
-void gpio_set_output_value(gpio_E gpio, bool value)
+void gpio_set_output_value(const gpio_E gpio, const bool value)
 {
     if (gpio < gpio_last_invalid)
     {

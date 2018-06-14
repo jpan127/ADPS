@@ -80,7 +80,7 @@ bool motor_init(const motor_E motor, const motor_config_S * config);
  *  @param direction : The type of movement
  *  @param duty      : The duty percentage
  */
-void motor_move(motor_E motor, motor_direction_E direction, float duty);
+void motor_move(const motor_E motor, const motor_direction_E direction, const float duty);
 
 /**
  *  Adjusts the duty cycle by decrementing by a step size
@@ -89,13 +89,13 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty);
  *  @param step        : The step size
  *  @param adjust_type : Increment or decrement
  */
-void motor_adjust_duty(motor_E motor, motor_direction_E direction, float step, duty_adjust_E adjust_type);
+void motor_adjust_duty(const motor_E motor, const motor_direction_E direction, const float step, const duty_adjust_E adjust_type);
 
 /**
  *  Stops the motor by setting duty to 0%
  *  @param motor : The motor to stop
  */
-void motor_stop(motor_E motor);
+void motor_stop(const motor_E motor);
 
 /// Returns true if the wheels are paused, false if not
 bool motor_are_wheels_paused(void);
