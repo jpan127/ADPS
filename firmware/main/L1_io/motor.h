@@ -21,15 +21,22 @@ typedef enum
     motor_max,
 } motor_E;
 
+/// Enumerates which wheel
+typedef enum
+{
+    motor_left_wheel = 0,
+    motor_right_wheel,
+} motor_wheel_E;
+
 /// Enumerates the type of movement
 typedef enum
 {
     motor_dir_both_forward = 0,
     motor_dir_both_backward,
-    motor_dir_a_forward,    ///< A = left @TODO : Fix this
-    motor_dir_a_backward,   ///< A = left
-    motor_dir_b_forward,    ///< B = right
-    motor_dir_b_backward,   ///< B = right
+    motor_dir_left_forward,
+    motor_dir_left_backward,
+    motor_dir_right_forward,
+    motor_dir_right_backward,
     motor_dir_left,
     motor_dir_right,
     motor_dir_delivery_forward,

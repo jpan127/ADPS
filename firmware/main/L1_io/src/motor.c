@@ -101,28 +101,28 @@ void motor_move(const motor_E motor, const motor_direction_E direction, const fl
             logs.duty[motor].b = duty;
             break;
         }
-        case motor_dir_a_forward:
+        case motor_dir_left_forward:
         {
             gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_forward);
             pwm_generate(&motor_map[motor].config.pwm, PWM_A, pwm_duty, duty_type);
             logs.duty[motor].a = duty;
             break;
         }
-        case motor_dir_a_backward:
+        case motor_dir_left_backward:
         {
             gpio_set_output_value(motor_map[motor].dir_a, motor_polarity_backward);
             pwm_generate(&motor_map[motor].config.pwm, PWM_A, pwm_duty, duty_type);
             logs.duty[motor].a = duty;
             break;
         }
-        case motor_dir_b_forward:
+        case motor_dir_right_forward:
         {
             gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_forward);
             pwm_generate(&motor_map[motor].config.pwm, PWM_B, pwm_duty, duty_type);
             logs.duty[motor].b = duty;
             break;
         }
-        case motor_dir_b_backward:
+        case motor_dir_right_backward:
         {
             gpio_set_output_value(motor_map[motor].dir_b, motor_polarity_backward);
             pwm_generate(&motor_map[motor].config.pwm, PWM_B, pwm_duty, duty_type);
@@ -291,8 +291,8 @@ void motor_pause_wheels(void)
 {
     const motor_E motor_to_pause = motor_wheels;
 
-    previous_wheel_motor_duties[0] = logs.duty[motor_to_pause].a;
-    previous_wheel_motor_duties[1] = logs.duty[motor_to_pause].b;
+    previous_wheel_motor_duties[motor_left_wheel]  = logs.duty[motor_to_pause].a;
+    previous_wheel_motor_duties[motor_right_wheel] = logs.duty[motor_to_pause].b;
 
     motor_stop(motor_to_pause);
 
@@ -303,8 +303,8 @@ void motor_resume_wheels(void)
 {
     const motor_E motor_to_resume = motor_wheels;
 
-    motor_move(motor_to_resume, motor_dir_left , previous_wheel_motor_duties[0]);
-    motor_move(motor_to_resume, motor_dir_right, previous_wheel_motor_duties[1]);
+    motor_move(motor_to_resume, motor_dir_left , previous_wheel_motor_duties[motor_left_wheel]);
+    motor_move(motor_to_resume, motor_dir_right, previous_wheel_motor_duties[motor_right_wheel]);
 
     pause_wheel_motors = false;
 }

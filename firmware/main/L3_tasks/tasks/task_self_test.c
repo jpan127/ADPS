@@ -20,17 +20,17 @@ static void execute_self_test_routine(void)
     {
         ESP_LOGI("SELF_TEST", "Part 1: Testing servo...");
         {
-            motor_move(motor_servo, motor_dir_a_forward, 0.0f);
+            motor_move(motor_servo, motor_dir_left_forward, 0.0f);
             DELAY_SEC_WITHOUT_CONTEXT_SWITCH(1);
             for (uint8_t duty = 0; duty < 180; duty++)
             {
-                motor_move(motor_servo, motor_dir_a_forward, (float)duty);
+                motor_move(motor_servo, motor_dir_left_forward, (float)duty);
                 DELAY_US(MS_TO_US(5));
             }
 
             for (int16_t duty = 180; duty >= 0; duty--)
             {
-                motor_move(motor_servo, motor_dir_a_forward, (float)duty);
+                motor_move(motor_servo, motor_dir_left_forward, (float)duty);
                 DELAY_US(MS_TO_US(5));
             }
 
