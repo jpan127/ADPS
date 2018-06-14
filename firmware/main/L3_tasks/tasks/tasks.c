@@ -1,9 +1,8 @@
 #include "tasks.h"
-// Framework libraries
-#include "rom/ets_sys.h"
 // Project libraries
 #include "server.h"
 #include "packet.h"
+#include "repeater.h"
 
 
 
@@ -38,32 +37,29 @@ bool get_suspend_state(void)
     return suspended;
 }
 
+static bool attempt_to_init_server_socket(void)
+{
+    const uint8_t queue_size = 5;
+    return tcp_server_init(SERVER_PORT, queue_size);
+}
+
 void init_server_socket(void)
 {
-    const uint8_t queue_size  = 5;
-    const uint32_t one_second = 1000 * 1000;
-    bool server_created       = false;
-    int timeout_count         = 10;
-
-    while (!server_created)
+    const repeat_S repeat_task =
     {
-        server_created = tcp_server_init(SERVER_PORT, queue_size);
-        if (server_created)
-        {
-            xEventGroupSetBits( StatusEventGroup, BIT_SERVER_READY );
-            ESP_LOGI("init_server_socket", "SUCCESSFULLY initialized server");
-            break;
-        }
-        else
-        {
-            if (--timeout_count <= 0)
-            {
-                ESP_LOGE("init_server_socket", "FAILED to initialize server");
-                break;
-            }
-            // Retry in 1 second
-            ets_delay_us(one_second);
-        }
+        .num_retries = 10,
+        .delay_ms    = 1000,
+        .callback    = &attempt_to_init_server_socket,
+    };
+
+    if (!repeater_execute(&repeat_task))
+    {
+        ESP_LOGE("init_server_socket", "FAILED to initialize server");
+    }
+    else
+    {
+        xEventGroupSetBits( StatusEventGroup, BIT_SERVER_READY );
+        ESP_LOGI("init_server_socket", "SUCCESSFULLY initialized server");
     }
 }
 

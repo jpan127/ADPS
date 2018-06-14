@@ -3,6 +3,7 @@
 #include "client.h"
 #include "packet.h"
 #include "wifi.h"
+#include "repeater.h"
 
 /**
  *  [task_tx] will create multiple tasks
@@ -117,22 +118,6 @@ static bool reopen_socket(int *client_socket, uint32_t port, uint8_t task_id, co
     return init_task_tx(client_socket, port, task_id, delay_between_retry_ms);
 }
 
-static bool wait_until_wifi_is_connected(void)
-{
-    // 30 second retry
-    const uint8_t delay_between_checks_ms = 200;
-    int16_t retries = 150;
-
-    // Stay in this loop while wifi is not connected
-    while (!wifi_is_connected() && retries > 0)
-    {
-        DELAY_MS(delay_between_checks_ms);
-        retries--;
-    }
-
-    return wifi_is_connected();
-}
-
 void task_tx(task_param_T params)
 {
     const uint16_t delay_between_client_reconnect_ms = 100;
@@ -142,8 +127,15 @@ void task_tx(task_param_T params)
 
     int client_socket = -1;
 
+    const repeat_S repeat_task =
+    {
+        .num_retries = 150,
+        .delay_ms    = 200,
+        .callback    = &wifi_is_connected,
+    };
+
     // Wait until wifi is connected
-    if (!wait_until_wifi_is_connected())
+    if (!repeater_execute(&repeat_task))
     {
         ESP_LOGE("task_tx", "[%d] Wireless is not initialized and client task is terminating...", task_params.task_id);
         vTaskSuspend(NULL);
