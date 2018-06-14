@@ -33,6 +33,5 @@ void cmd_handler_service_command(const command_packet_S * const packet);
  */
 void cmd_handler_set_override(const bool on);
 
-command_packet_S * cmd_handler_get_last_packet(void);
-
+/// Returns the last packet with a navigation opcode
 command_packet_S * cmd_handler_get_last_navigation_packet(void);

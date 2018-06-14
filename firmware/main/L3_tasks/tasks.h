@@ -22,6 +22,7 @@ typedef struct
     uint32_t task_id;
 } rtos_task_context_block_S;
 
+/// Type for a FreeRTOS task parameter
 typedef void * task_param_T;
 
 /*/////////////////////////////////////////////////////////////
@@ -59,8 +60,10 @@ void tasks_get_tcbs(rtos_task_context_block_S ** handles, size_t * size);
 void rtos_create_task(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority);
 void rtos_create_task_with_params(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority, task_param_T params);
 
+/// Set the state of the machine to be suspended or active
 void set_suspend_state(const bool on);
 
+/// Returns the current state of suspense
 bool get_suspend_state(void);
 
 /*/////////////////////////////
@@ -127,6 +130,14 @@ void task_logger(task_param_T params);
  */
 void task_detection(task_param_T params);
 
+/**
+ *  Pends on a semaphore to move the delivery motor
+ *  @param : none
+ */
 void task_delivery(task_param_T params);
 
+/**
+ *  Runs through a sequence of tests which verify the actuators are working properly
+ *  @param : none
+ */
 void task_self_test(task_param_T params);
