@@ -34,7 +34,7 @@ typedef struct
  *  @param port       : The port number of the server
  *  @param queue_size : The queue size to listen for
  */
-bool tcp_server_init(uint32_t port, uint8_t queue_size);
+bool tcp_server_init(const uint32_t port, const size_t queue_size);
 
 /**
  *  Receive bytes from an accepted client connection into a buffer
@@ -43,7 +43,7 @@ bool tcp_server_init(uint32_t port, uint8_t queue_size);
  *  @param size        : Size of buffer
  *  @returns           : False if any error encountered
  */
-bool tcp_server_receive(int client_sock, uint8_t *buffer, int *size);
+bool tcp_server_receive(const int client_sock, uint8_t * buffer, size_t * size);
 
 /// Returns the socket handle
 int tcp_server_get_socket(void);

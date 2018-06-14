@@ -42,7 +42,7 @@ void pwm_init(const pwm_config_S * config)
     ESP_LOGI("pwm_init", "Initialized PWM Configuration.");
 }
 
-void pwm_start(pwm_S * pwm_pair)
+void pwm_start(const pwm_S * pwm_pair)
 {
     ESP_ERROR_CHECK(mcpwm_start(pwm_pair->unit, pwm_pair->timer));
 }
@@ -59,7 +59,7 @@ static void pwm_generate_duty(const pwm_S * pwm_pair, const mcpwm_operator_t opr
     }
 }
 
-void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E duty_type)
+void pwm_generate(const pwm_S * pwm_pair, const pwm_E pwm, pwm_duty_U duty, const pwm_duty_type_E duty_type)
 {
     // Make sure duty is less than 100
     duty.percent = MIN(100.0f, duty.percent);
@@ -113,7 +113,7 @@ void pwm_generate(pwm_S * pwm_pair, pwm_E pwm, pwm_duty_U duty, pwm_duty_type_E 
 #endif
 }
 
-void pwm_stop(pwm_S * pwm_pair, pwm_E pwm)
+void pwm_stop(const pwm_S * pwm_pair, const pwm_E pwm)
 {
     switch (pwm)
     {

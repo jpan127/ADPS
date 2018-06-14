@@ -94,7 +94,7 @@ void task_rx(task_param_T params)
     uint8_t buffer[RECV_BUFFER_SIZE] = { 0 };
 
     // Size of packet
-    int32_t size = 0;
+    size_t size = 0;
 
     // Command packet
     command_packet_S packet = { 0 };

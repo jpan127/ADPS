@@ -23,7 +23,7 @@ static wifi_logs_S logs =
     .station_ssid = NETWORK_SSID,
 };
 
-static void EventHandler(void *ctx, system_event_t *event)
+static void EventHandler(void * ctx, system_event_t * event)
 {
     static const char *TAG = "WifiEventHandler";
 
@@ -57,7 +57,7 @@ static void EventHandler(void *ctx, system_event_t *event)
     }
 }
 
-static void setup_ip_info(const char *ip, const char *gw, const char *nm)
+static void setup_ip_info(const char * ip, const char * gw, const char * nm)
 {
     tcpip_adapter_ip_info_t ip_info = { 0 };
 

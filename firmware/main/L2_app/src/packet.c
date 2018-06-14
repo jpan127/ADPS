@@ -18,7 +18,7 @@ static packet_logs_S logs = { 0 };
 /// Packet waits a maximum of this many millseconds
 static const TickType_t max_packet_wait = 100;
 
-static uint8_t packet_strlen_buffer(char * buffer, const size_t size)
+static uint8_t packet_strlen_buffer(const char * buffer, const size_t size)
 {
     uint8_t length = 0;
 
@@ -33,7 +33,7 @@ static uint8_t packet_strlen_buffer(char * buffer, const size_t size)
     return length;
 }
 
-static void packet_vsnprintf(packet_type_E type, const char *message, va_list arg_list)
+static void packet_vsnprintf(const packet_type_E type, const char * message, va_list arg_list)
 {
     // Buffer for post-formatted message
     char buffer[MAX_PACKET_SIZE + 2] = { 0 };
@@ -64,7 +64,7 @@ static void packet_vsnprintf(packet_type_E type, const char *message, va_list ar
     logs.packet_counts[type]++;
 }
 
-void log_to_server(packet_type_E type, const char *message, ...)
+void log_to_server(const packet_type_E type, const char * message, ...)
 {
     va_list arg_list;
     va_start(arg_list, message);

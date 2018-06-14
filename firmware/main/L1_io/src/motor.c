@@ -68,7 +68,7 @@ bool motor_init(const motor_E motor, const motor_config_S * config)
     return success;
 }
 
-void motor_move(motor_E motor, motor_direction_E direction, float duty)
+void motor_move(const motor_E motor, const motor_direction_E direction, const float duty)
 {
     // The right motor has a slight hardware-offset that causes the motors to move out of sync if using the same duty
     const float right_motor_negative_offset = 5.0f;
@@ -186,7 +186,7 @@ void motor_move(motor_E motor, motor_direction_E direction, float duty)
 #endif
 }
 
-void motor_adjust_duty(motor_E motor, motor_direction_E direction, float step, duty_adjust_E adjust_type)
+void motor_adjust_duty(const motor_E motor, const motor_direction_E direction, const float step, const duty_adjust_E adjust_type)
 {
     /**
      *  Limit duty to 100.0f, before setting, even though underneath pwm limits it already, this way the current values in [logs] are accurate
@@ -275,7 +275,7 @@ void motor_adjust_duty(motor_E motor, motor_direction_E direction, float step, d
     }
 }
 
-void motor_stop(motor_E motor)
+void motor_stop(const motor_E motor)
 {
     pwm_stop(&motor_map[motor].config.pwm, PWM_AB);
     logs.duty[motor].a = 0;
