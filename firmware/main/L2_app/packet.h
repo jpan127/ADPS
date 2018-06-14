@@ -36,7 +36,7 @@ typedef struct
     uint32_t rx_packets;                                ///< Number of received packets
     uint32_t tx_packets;                                ///< Number of transmitted packets
     uint32_t packets_dropped;                           ///< Number of packets dropped
-    uint32_t packet_counts[packet_type_log_infrared];   ///< Number of packets for each type
+    uint32_t packet_counts[packet_type_last_invalid];   ///< Number of packets for each type
 } packet_logs_S;
 
 /**
