@@ -42,13 +42,13 @@ static void servo_boot_up_routine(void)
 
     for (uint8_t duty = 0; duty < 180; duty++)
     {
-        motor_move(motor, motor_dir_a_forward, (float)duty);
+        motor_move(motor, motor_dir_left_forward, (float)duty);
         DELAY_MS(delay_between_adjustments_ms);
     }
 
     for (int16_t duty = 180; duty >= 0; duty--)
     {
-        motor_move(motor, motor_dir_a_forward, (float)duty);
+        motor_move(motor, motor_dir_left_forward, (float)duty);
         DELAY_MS(delay_between_adjustments_ms);
     }
 
@@ -67,7 +67,7 @@ void task_servo(task_param_T params)
     }
     else
     {
-        motor_move(motor, motor_dir_a_forward, 0);
+        motor_move(motor, motor_dir_left_forward, 0);
         DELAY_MS(100);
         servo_boot_up_routine();
         ESP_LOGI("task_servo", "Task initialized and starting...");
@@ -82,7 +82,7 @@ void task_servo(task_param_T params)
         if (xSemaphoreTake(ServoSemaphore, MAX_DELAY))
         {
             const uint8_t last_commanded_servo_duty = cmd_handler_get_last_commanded_servo_duty();
-            motor_move(motor_servo, motor_dir_a_forward, last_commanded_servo_duty);
+            motor_move(motor_servo, motor_dir_left_forward, last_commanded_servo_duty);
         }
     }
 #endif

@@ -47,8 +47,8 @@ static void service_navigation_command(void)
         case packet_opcode_stop          : { motor_stop(motor_wheels);                                                                      break; }
         case packet_opcode_move_forward  : { motor_move(motor_wheels, motor_dir_both_forward, packet->command[0]);                          break; }
         case packet_opcode_move_backward : { motor_move(motor_wheels, motor_dir_both_backward , packet->command[0]);                        break; }
-        case packet_opcode_move_left     : { motor_move(motor_wheels, motor_dir_a_forward, packet->command[0]);                             break; }
-        case packet_opcode_move_right    : { motor_move(motor_wheels, motor_dir_b_forward, packet->command[0]);                             break; }
+        case packet_opcode_move_left     : { motor_move(motor_wheels, motor_dir_left_forward, packet->command[0]);                          break; }
+        case packet_opcode_move_right    : { motor_move(motor_wheels, motor_dir_right_forward, packet->command[0]);                         break; }
         case packet_opcode_incr_forward  : { motor_adjust_duty(motor_wheels, motor_dir_both_forward, packet->command[0], duty_increment);   break; }
         case packet_opcode_incr_backward : { motor_adjust_duty(motor_wheels, motor_dir_both_backward , packet->command[0], duty_increment); break; }
         case packet_opcode_incr_left     : { motor_adjust_duty(motor_wheels, motor_dir_left, packet->command[0], duty_increment);           break; }
