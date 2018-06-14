@@ -1,4 +1,6 @@
 #include "repeater.h"
+// Framework libraries
+#include "rom/ets_sys.h"
 
 
 
@@ -6,7 +8,7 @@ bool repeater_execute(const repeat_S * const repeater)
 {
     bool success = false;
 
-    if (repeater)
+    if (repeater && repeater->callback)
     {
         for (uint32_t r = 0; r < repeater->num_retries; r++)
         {
@@ -21,7 +23,14 @@ bool repeater_execute(const repeat_S * const repeater)
             // If failed, wait a bit and try again
             else
             {
-                DELAY_MS(repeater->delay_ms);
+                if (taskSCHEDULER_RUNNING == xTaskGetSchedulerState())
+                {
+                    DELAY_MS(repeater->delay_ms);
+                }
+                else
+                {
+                    ets_delay_us(repeater->delay_ms * 1000U);
+                }
             }
         }
     }

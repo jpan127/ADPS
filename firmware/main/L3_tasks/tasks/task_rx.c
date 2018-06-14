@@ -9,6 +9,7 @@
 #include "motor.h"
 #include "wifi.h"
 #include "cmd_handler.h"
+#include "repeater.h"
 
 
 
@@ -47,26 +48,17 @@ static int accept_blocking(uint8_t task_id, const int server_socket)
     return client_socket;
 }
 
-static bool wait_until_wifi_is_connected(void)
-{
-    // 30 second time out
-    const uint8_t delay_between_checks_ms = 200;
-    int16_t retries = 150;
-
-    // Stay in this loop while wifi is not connected
-    while (!wifi_is_connected() && retries > 0)
-    {
-        DELAY_MS(delay_between_checks_ms);
-        retries--;
-    }
-
-    return wifi_is_connected();
-}
-
 void task_rx(task_param_T params)
 {
     // This task takes an input parameter which designates its task ID
     const uint8_t task_id = *((uint8_t *)params);
+
+    const repeat_S repeat_task =
+    {
+        .num_retries = 150,
+        .delay_ms    = 200,
+        .callback    = &wifi_is_connected,
+    };
 
     // Wait for server to be created before starting
     if (!xEventGroupWaitBits(StatusEventGroup,   ///< Event group handle
@@ -80,7 +72,7 @@ void task_rx(task_param_T params)
         vTaskSuspend(NULL);
     }
     // Wait until wifi is connected
-    else if (!wait_until_wifi_is_connected())
+    else if (!repeater_execute(&repeat_task))
     {
         ESP_LOGE("task_tx", "[%d] Wireless is not initialized and client task is terminating...", task_id);
         vTaskSuspend(NULL);
