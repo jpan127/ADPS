@@ -242,12 +242,12 @@ function debug_log(str, str2 = 0) {
     }
 }
 
-function clientConnect(arg1, arg2) {
+function clientConnect(opcode, inputValue) {
 
     client.connect(clientPort, clientAddress, function() { 
         debug_log('Connected to ', clientAddress); 
         debug_log('Local client sending:', data.message);
-        buf = new Buffer([arg1, arg2, dummyValue]); 
+        buf = new Buffer([opcode, inputValue, dummyValue]); 
         client.write(buf);
         client.destroy();
         client = new net.Socket();
@@ -258,12 +258,12 @@ function clientConnect(arg1, arg2) {
     });
 }
 
-function clientConnectSendState(arg1, arg2, curState) {
+function clientConnectSendState(opcode, inputValue, curState) {
 
     client.connect(clientPort, clientAddress, function() {
         debug_log('Connected to ', clientAddress); 
         debug_log('Local client sending:', data.message);
-        buf = new Buffer([7, 0x2, dummyValue, 18, curState, dummyValue]);
+        buf = new Buffer([opcode, inputValue, dummyValue, 18, curState, dummyValue]);
         client.write(buf);
         client.destroy();
         client = new net.Socket();
