@@ -1,0 +1,8 @@
+build/*
+build2/*
+.sconsign.dblite
+*.elf
+*.bin
+*.map
+*.obj
+*.o

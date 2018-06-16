@@ -1,0 +1,327 @@
+import os
+import sys
+import SCons
+
+
+
+# Global variables
+TARGET           = "apds"
+BUILD_DIR        = "build2"
+PROJECT_ROOT_DIR = Dir(".")
+ESP_IDF_DIR      = Dir("C:/Users/JP/Desktop/ESP32/esp-idf/components")
+
+#=======================================================#
+#                   Helper Functions                    #
+#=======================================================#
+
+def get_all_subdirectories(root_dir):
+    """
+    Traverses and saves all subdirectories into a list
+    @param root_dir : Starting directory to traverse
+    @returns        : List of all directories
+    """
+    subdirs = [root_dir]
+    for root, dirs, files in os.walk(root_dir):
+        subdirs += [os.path.join(root, dir) for dir in dirs]
+    return Flatten(subdirs)
+
+#=======================================================#
+#                   Shared Variables                    #
+#=======================================================#
+
+# Path to compiler
+XTENSA_GCC = os.path.join(
+    PROJECT_ROOT_DIR.abspath,
+    "tools/xtensa-esp32-elf/bin",
+    "xtensa-esp32-elf-gcc.exe"
+)
+
+# All header paths for the compiler and linker
+CPPPATH = [
+    "main/main",
+    "main/include",
+    # get_all_subdirectories("main/include"),
+    "main/L0_drivers",
+    "main/L1_io",
+    "main/L1_utils",
+    "main/L2_app",
+    "main/L3_tasks",
+    get_all_subdirectories(ESP_IDF_DIR.Dir("heap").abspath),
+    get_all_subdirectories(ESP_IDF_DIR.Dir("driver").abspath),
+    # get_all_subdirectories(ESP_IDF_DIR.Dir("freertos").abspath),
+    ESP_IDF_DIR.Dir("freertos/include"),
+    get_all_subdirectories(ESP_IDF_DIR.Dir("log").abspath),
+    get_all_subdirectories(ESP_IDF_DIR.Dir("esp32").abspath),
+    get_all_subdirectories(ESP_IDF_DIR.Dir("lwip").abspath),
+    get_all_subdirectories(ESP_IDF_DIR.Dir("soc").abspath),
+    get_all_subdirectories(ESP_IDF_DIR.Dir("vfs").abspath),
+    get_all_subdirectories(ESP_IDF_DIR.Dir("tcpip_adapter").abspath),
+    get_all_subdirectories(ESP_IDF_DIR.Dir("nvs_flash").abspath),
+]
+
+# All the static libraries necessary for linking
+LIBS = [
+    "app_trace",
+    "app_update",
+    "bootloader_support",
+    "bt",
+    "coap",
+    "console",
+    "cxx",
+    "driver",
+    "esp32",
+    "core",
+    "rtc",
+    "net80211",
+    "pp",
+    "wpa",
+    "smartconfig",
+    "coexist",
+    "wps",
+    "wpa2",
+    "espnow",
+    "phy",
+    "esp_adc_cal",
+    "ethernet",
+    "expat",
+    "fatfs",
+    "freertos",
+    "heap",
+    "idf_test",
+    "jsmn",
+    "json",
+    "libsodium",
+    "log",
+    "lwip",
+    "main",
+    "mbedtls",
+    "mdns",
+    "micro-ecc",
+    "newlib",
+    "nghttp",
+    "nvs_flash",
+    "openssl",
+    "pthread",
+    "sdmmc",
+    "soc",
+    "spi_flash",
+    "spiffs",
+    "tcpip_adapter",
+    "ulp",
+    "vfs",
+    "wear_levelling",
+    "wpa_supplicant",
+    "xtensa-debug-module",
+    "gcc",
+    "stdc++",
+    "gcov",
+    "hal",
+    "c",
+    "m"
+]
+
+#=======================================================#
+#             Compiler / Linker Environment             #
+#=======================================================#
+
+# The compiler and linker environment
+xtensa_env = Environment(
+
+    # Linker will produce an ELF file
+    PROGSUFFIX = ".elf",
+
+    # Inherit from the calling terminal's environment
+    ENV = {
+        "PATH" : os.environ["PATH"]
+    },
+
+    # Include paths
+    CPPPATH = CPPPATH,
+
+    # Specify custom compiler / linker
+    CC   = XTENSA_GCC,
+    CXX  = XTENSA_GCC,
+    LINK = XTENSA_GCC,
+
+    # Compile command
+    CCCOM = " ".join([
+        "$CC",
+        "$CHANGED_SOURCES",
+        "-c",
+        "-o $TARGET",
+        "$CFLAGS",
+        "$_CCCOMCOM",
+        # "$CCCOMSTR",
+    ]),
+
+    # Compiler flags
+    CFLAGS = [
+        "-std=gnu99",
+        "-Og",
+        "-ggdb",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fstrict-volatile-bitfields",
+        "-mlongcalls",
+        "-nostdlib",
+        "-Wall",
+        "-Werror=all",
+        "-Wno-error=unused-function",
+        "-Wno-error=unused-but-set-variable",
+        "-Wno-error=unused-variable",
+        "-Wno-error=deprecated-declarations",
+        "-Wextra",
+        "-Wno-unused-parameter",
+        "-Wno-sign-compare",
+        "-Wno-old-style-declaration",
+    ],
+
+    # Needs to be modified to add start-group and end-group for the libraries to be linked
+    # without relying on the order specified in the LIBS list
+    # https://stackoverflow.com/questions/35966243/how-do-you-pass-the-start-group-and-end-group-flags-to-gcc-when-using-scons
+    LINKCOM = " ".join([
+        "$LINK",
+        "$LINKFLAGS",
+        "$__RPATH",
+        "$SOURCES",
+        "$_LIBDIRFLAGS",
+        "-Wl,--start-group",                                    # Newly added
+        "$_LIBFLAGS",
+        "-Wl,--end-group",                                      # Newly added
+        "-o $TARGET",                                           # Output ELF file
+        "-Wl,-Map={}/bin/{}.map".format(BUILD_DIR, TARGET),     # Output MAP file
+    ]),
+
+    # Suffixes for compile / link commands
+    INCPREFIX     = "-I",
+    LIBDIRPREFIX  = "-L",
+    LIBLINKPREFIX = "$LIBPREFIX",
+    LIBPREFIX     = "-l",
+    LIBSUFFIX     = "",
+
+    # Linker flags
+    LINKFLAGS = [
+        # Do not use GCC standard library
+        "-nostdlib",
+        # Linker options
+        "-Wl,--gc-sections",
+        "-Wl,-static",
+        "-Wl,--undefined=uxTopUsedPriority",
+        "-Wl,-EL",
+        # Undefine these symbols to force linked libraries to define them
+        "-u call_user_start_cpu0",
+        "-u __cxa_guard_dummy",
+        "-u __cxx_fatal_exception",
+        "-u ld_include_panic_highint_hdl",
+        # Linker scripts
+        "-Tesp32_out.ld",
+        "-Tesp32.common.ld",
+        "-Tesp32.rom.ld",
+        "-Tesp32.peripherals.ld",
+        "-Tesp32.rom.spiram_incompatible_fns.ld",
+    ],
+
+    # Linker libraries
+    LIBS = LIBS,
+
+    # Linker library paths
+    LIBPATH = [
+        Dir("libs").abspath,
+    ],
+
+)
+
+# Depending on verbosity setting, change output messages
+if ARGUMENTS.get("v") is None:
+    xtensa_env.Replace(
+        LINKCOMSTR = "[Linking $TARGET]",
+        CCCOMSTR   = "[Compiling $TARGET]",
+    )
+
+#=======================================================#
+#                ESP32 Flash Environment                #
+#=======================================================#
+
+# ESP32 flashing environment with scripts
+esp32_flasher_env = Environment(
+
+    # Substitute variables
+    PYTHON     = "C:/python35/python.exe",
+    SCRIPT     = "C:/Users/JP/Desktop/ESP32/esp-idf/components/esptool_py/esptool/esptool.py",
+    CHIP       = "esp32",
+    PORT       = "COM5",
+    BAUD       = "921600",
+    FLASH_MODE = "dio",
+    FLASH_FREQ = "40m",
+
+    # Sections of the memory map
+    SECTIONS = {
+        "0x1000"  : "bootloader.bin",
+        "0x8000"  : "partitions_singleapp.bin",
+        "0x10000" : "{}.bin".format(TARGET),
+    },
+
+    # This environment consists of 2 builders
+    BUILDERS = {
+        # Creates a binary file from the ELF file
+        "CreateBinary" : Builder(
+            action = Action(
+                " ".join([
+                    "$PYTHON",                                    # Python version + path
+                    "$SCRIPT",                                    # Script name + path
+                    "--chip $CHIP",                               # Microcontroller type
+                    "elf2image",                                  # Command
+                    "--flash_mode $FLASH_MODE",                   # Flash mode
+                    "--flash_freq $FLASH_FREQ",                   # Flash frequency
+                    "--flash_size 2MB",                           # Flash size
+                    "-o {}/bin/{}.bin".format(BUILD_DIR, TARGET), # Output file
+                    "$SOURCE",                                    # Input ELF file
+                ]),
+                "[Creating binary {}.bin]".format(TARGET),
+            ),
+        ),
+        # Flashes the microcontroller using a COM port
+        "FlashMicrocontroller" : Builder(
+            action = Action(
+                " ".join([
+                "$PYTHON",                      # Python version + path
+                "$SCRIPT",                      # Script name + path
+                "--chip $CHIP",                 # Microcontroller type
+                "--port $PORT",                 # COM port
+                "--baud $BAUD",                 # Baud rate
+                "--before \"default_reset\"",   # Before step
+                "--after \"hard_reset\"",       # After step
+                "write_flash",                  # Command
+                "-z",                           # Not sure
+                "--flash_mode $FLASH_MODE",     # Flash mode
+                "--flash_freq $FLASH_FREQ",     # Flash frequency
+                "--flash_size detect",          # Flash size
+                "0x1000  ${SECTIONS[0x1000]}",  # Section 1
+                "0x8000  ${SECTIONS[0x8000]}",  # Section 2
+                "0x10000 ${SECTIONS[0x10000]}", # Section 3
+                ]),
+                "[Flashing microcontroller on $PORT at $BAUD]",
+            ),
+        )
+    },
+
+)
+
+#=======================================================#
+#                       SConscript                      #
+#=======================================================#
+
+# Call sconscript for variant dir
+SConscript(
+    "Sconscript.py",
+    variant_dir = BUILD_DIR,
+    duplicate   = 0,
+    exports     = [
+        "TARGET",
+        "PROJECT_ROOT_DIR",
+        "BUILD_DIR",
+        "get_all_subdirectories",
+        "xtensa_env",
+        "esp32_flasher_env",
+    ]
+)

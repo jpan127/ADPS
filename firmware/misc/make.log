@@ -1,0 +1,518 @@
+PROJECT_PATH= COMPONENT_DIRS= make -C /c/Users/JP/Desktop/ESP32/esp-idf/components/bootloader/subproject V= BUILD_DIR_BASE=/c/Users/JP/Desktop/APDS/firmware/build/bootloader TEST_COMPONENTS= TESTS_ALL= /c/Users/JP/Desktop/APDS/firmware/build/bootloader/bootloader.bin
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/bootloader/bootloader_support -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/bootloader_support/component.mk COMPONENT_NAME=bootloader_support build
+
+true
+ "Target 'component-bootloader_support-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/bootloader/bootloader_support/libbootloader_support.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/bootloader/log -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/log/component.mk COMPONENT_NAME=log build
+
+true
+ "Target 'component-log-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/bootloader/log/liblog.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/bootloader/spi_flash -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/spi_flash/component.mk COMPONENT_NAME=spi_flash build
+
+true
+ "Target 'component-spi_flash-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/bootloader/spi_flash/libspi_flash.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/bootloader/micro-ecc -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/micro-ecc/component.mk COMPONENT_NAME=micro-ecc build
+
+true
+ "Target 'component-micro-ecc-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/bootloader/micro-ecc/libmicro-ecc.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/bootloader/soc -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/soc/component.mk COMPONENT_NAME=soc build
+
+true
+ "Target 'component-soc-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/bootloader/soc/libsoc.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/bootloader/main -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/bootloader/subproject/main/component.mk COMPONENT_NAME=main build
+
+true
+ "Target 'component-main-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/bootloader/main/libmain.a'"
+   # echo which build target built this file
+
+echo LD build/bootloader/bootloader.elf
+
+xtensa-esp32-elf-gcc -nostdlib -u call_user_start_cpu0  -Wl,--gc-sections -Wl,-static -Wl,--start-group  -L/c/Users/JP/Desktop/APDS/firmware/build/bootloader/bootloader_support -lbootloader_support -L/c/Users/JP/Desktop/APDS/firmware/build/bootloader/log -llog -L/c/Users/JP/Desktop/APDS/firmware/build/bootloader/spi_flash -lspi_flash -L/c/Users/JP/Desktop/APDS/firmware/build/bootloader/micro-ecc -lmicro-ecc -L/c/Users/JP/Desktop/APDS/firmware/build/bootloader/soc -lsoc -L/c/Users/JP/Desktop/APDS/firmware/build/bootloader/main -lmain -L /c/Users/JP/Desktop/ESP32/esp-idf/components/bootloader/subproject/main -T esp32.bootloader.ld -T /c/Users/JP/Desktop/ESP32/esp-idf/components/esp32/ld/esp32.rom.ld -T /c/Users/JP/Desktop/ESP32/esp-idf/components/esp32/ld/esp32.rom.spiram_incompatible_fns.ld -T /c/Users/JP/Desktop/ESP32/esp-idf/components/esp32/ld/esp32.peripherals.ld -T esp32.bootloader.rom.ld -lgcc -lstdc++ -lgcov -Wl,--end-group -Wl,-EL -o /c/Users/JP/Desktop/APDS/firmware/build/bootloader/bootloader.elf -Wl,-Map=/c/Users/JP/Desktop/APDS/firmware/build/bootloader/bootloader.map
+
+python /c/Users/JP/Desktop/ESP32/esp-idf/components/esptool_py/esptool/esptool.py --chip esp32 elf2image --flash_mode "dio" --flash_freq "40m" --flash_size "2MB"  -o /c/Users/JP/Desktop/APDS/firmware/build/bootloader/bootloader.bin /c/Users/JP/Desktop/APDS/firmware/build/bootloader/bootloader.elf
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/app_trace -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/app_trace/component.mk COMPONENT_NAME=app_trace build
+
+true
+ "Target 'component-app_trace-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/app_trace/libapp_trace.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/app_update -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/app_update/component.mk COMPONENT_NAME=app_update build
+
+true
+ "Target 'component-app_update-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/app_update/libapp_update.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/aws_iot -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/aws_iot/component.mk COMPONENT_NAME=aws_iot build
+
+true
+ "Target 'component-aws_iot-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/aws_iot/libaws_iot.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/bootloader_support -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/bootloader_support/component.mk COMPONENT_NAME=bootloader_support build
+
+true
+ "Target 'component-bootloader_support-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/bootloader_support/libbootloader_support.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/bt -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/bt/component.mk COMPONENT_NAME=bt build
+
+true
+ "Target 'component-bt-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/bt/libbt.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/coap -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/coap/component.mk COMPONENT_NAME=coap build
+
+true
+ "Target 'component-coap-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/coap/libcoap.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/console -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/console/component.mk COMPONENT_NAME=console build
+
+true
+ "Target 'component-console-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/console/libconsole.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/cxx -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/cxx/component.mk COMPONENT_NAME=cxx build
+
+true
+ "Target 'component-cxx-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/cxx/libcxx.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/driver -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/driver/component.mk COMPONENT_NAME=driver build
+
+true
+ "Target 'component-driver-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/driver/libdriver.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/esp32 -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/esp32/component.mk COMPONENT_NAME=esp32 build
+
+true
+ "Target 'component-esp32-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/esp32/libesp32.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/esp_adc_cal -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/esp_adc_cal/component.mk COMPONENT_NAME=esp_adc_cal build
+
+true
+ "Target 'component-esp_adc_cal-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/esp_adc_cal/libesp_adc_cal.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/ethernet -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/ethernet/component.mk COMPONENT_NAME=ethernet build
+
+true
+ "Target 'component-ethernet-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/ethernet/libethernet.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/expat -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/expat/component.mk COMPONENT_NAME=expat build
+
+true
+ "Target 'component-expat-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/expat/libexpat.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/fatfs -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/fatfs/component.mk COMPONENT_NAME=fatfs build
+
+true
+ "Target 'component-fatfs-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/fatfs/libfatfs.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/freertos -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/freertos/component.mk COMPONENT_NAME=freertos build
+
+true
+ "Target 'component-freertos-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/freertos/libfreertos.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/heap -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/heap/component.mk COMPONENT_NAME=heap build
+
+true
+ "Target 'component-heap-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/heap/libheap.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/idf_test -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/idf_test/component.mk COMPONENT_NAME=idf_test build
+
+true
+ "Target 'component-idf_test-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/idf_test/libidf_test.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/jsmn -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/jsmn/component.mk COMPONENT_NAME=jsmn build
+
+true
+ "Target 'component-jsmn-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/jsmn/libjsmn.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/json -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/json/component.mk COMPONENT_NAME=json build
+
+true
+ "Target 'component-json-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/json/libjson.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/libsodium -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/libsodium/component.mk COMPONENT_NAME=libsodium build
+
+true
+ "Target 'component-libsodium-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/libsodium/liblibsodium.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/log -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/log/component.mk COMPONENT_NAME=log build
+
+true
+ "Target 'component-log-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/log/liblog.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/lwip -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/lwip/component.mk COMPONENT_NAME=lwip build
+
+true
+ "Target 'component-lwip-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/lwip/liblwip.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/main -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/APDS/firmware/main/component.mk COMPONENT_NAME=main build
+
+true
+ "Target 'component-main-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/main/libmain.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/mbedtls -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/mbedtls/component.mk COMPONENT_NAME=mbedtls build
+
+true
+ "Target 'component-mbedtls-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/mbedtls/libmbedtls.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/mdns -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/mdns/component.mk COMPONENT_NAME=mdns build
+
+true
+ "Target 'component-mdns-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/mdns/libmdns.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/micro-ecc -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/micro-ecc/component.mk COMPONENT_NAME=micro-ecc build
+
+true
+ "Target 'component-micro-ecc-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/micro-ecc/libmicro-ecc.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/newlib -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/newlib/component.mk COMPONENT_NAME=newlib build
+
+true
+ "Target 'component-newlib-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/newlib/libnewlib.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/nghttp -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/nghttp/component.mk COMPONENT_NAME=nghttp build
+
+true
+ "Target 'component-nghttp-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/nghttp/libnghttp.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/nvs_flash -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/nvs_flash/component.mk COMPONENT_NAME=nvs_flash build
+
+true
+ "Target 'component-nvs_flash-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/nvs_flash/libnvs_flash.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/openssl -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/openssl/component.mk COMPONENT_NAME=openssl build
+
+true
+ "Target 'component-openssl-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/openssl/libopenssl.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/pthread -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/pthread/component.mk COMPONENT_NAME=pthread build
+
+true
+ "Target 'component-pthread-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/pthread/libpthread.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/sdmmc -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/sdmmc/component.mk COMPONENT_NAME=sdmmc build
+
+true
+ "Target 'component-sdmmc-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/sdmmc/libsdmmc.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/soc -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/soc/component.mk COMPONENT_NAME=soc build
+
+true
+ "Target 'component-soc-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/soc/libsoc.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/spi_flash -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/spi_flash/component.mk COMPONENT_NAME=spi_flash build
+
+true
+ "Target 'component-spi_flash-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/spi_flash/libspi_flash.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/spiffs -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/spiffs/component.mk COMPONENT_NAME=spiffs build
+
+true
+ "Target 'component-spiffs-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/spiffs/libspiffs.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/tcpip_adapter -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/tcpip_adapter/component.mk COMPONENT_NAME=tcpip_adapter build
+
+true
+ "Target 'component-tcpip_adapter-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/tcpip_adapter/libtcpip_adapter.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/ulp -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/ulp/component.mk COMPONENT_NAME=ulp build
+
+true
+ "Target 'component-ulp-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/ulp/libulp.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/vfs -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/vfs/component.mk COMPONENT_NAME=vfs build
+
+true
+ "Target 'component-vfs-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/vfs/libvfs.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/wear_levelling -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/wear_levelling/component.mk COMPONENT_NAME=wear_levelling build
+
+true
+ "Target 'component-wear_levelling-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/wear_levelling/libwear_levelling.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/wpa_supplicant -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/wpa_supplicant/component.mk COMPONENT_NAME=wpa_supplicant build
+
+true
+ "Target 'component-wpa_supplicant-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/wpa_supplicant/libwpa_supplicant.a'"
+   # echo which build target built this file
+
+make -C /c/Users/JP/Desktop/APDS/firmware/build/xtensa-debug-module -f /c/Users/JP/Desktop/ESP32/esp-idf/make/component_wrapper.mk COMPONENT_MAKEFILE=/c/Users/JP/Desktop/ESP32/esp-idf/components/xtensa-debug-module/component.mk COMPONENT_NAME=xtensa-debug-module build
+
+true
+ "Target 'component-xtensa-debug-module-build' responsible for
+  '/c/Users/JP/Desktop/APDS/firmware/build/xtensa-debug-module/libxtensa-debug-module.a'"
+   # echo which build target built this file
+
+echo LD build/hello-world.elf
+
+xtensa-esp32-elf-gcc
+ -nostdlib
+ -u
+ call_user_start_cpu0
+
+ -Wl,--gc-sections
+ -Wl,-static
+ -Wl,--start-group
+
+ -L/c/Users/JP/Desktop/APDS/firmware/build/app_trace
+ -lapp_trace
+ -L/c/Users/JP/Desktop/APDS/firmware/build/app_update
+ -lapp_update
+ -L/c/Users/JP/Desktop/APDS/firmware/build/aws_iot
+
+ -L/c/Users/JP/Desktop/APDS/firmware/build/bootloader_support
+ -lbootloader_support
+ -L/c/Users/JP/Desktop/APDS/firmware/build/bt
+ -lbt
+ -L/c/Users/JP/Desktop/APDS/firmware/build/coap
+ -lcoap
+ -L/c/Users/JP/Desktop/APDS/firmware/build/console
+ -lconsole
+ -L/c/Users/JP/Desktop/APDS/firmware/build/cxx
+ -lcxx
+ -u
+ __cxa_guard_dummy
+ -u
+ __cxx_fatal_exception
+ -L/c/Users/JP/Desktop/APDS/firmware/build/driver
+ -ldriver
+ -L/c/Users/JP/Desktop/APDS/firmware/build/esp32
+ -lesp32
+ /c/Users/JP/Desktop/ESP32/esp-idf/components/esp32/libhal.a
+ -L/c/Users/JP/Desktop/ESP32/esp-idf/components/esp32/lib
+ -lcore
+ -lrtc
+ -lnet80211
+ -lpp
+ -lwpa
+ -lsmartconfig
+ -lcoexist
+ -lwps
+ -lwpa2
+ -lespnow
+ -lphy
+ -L
+ /c/Users/JP/Desktop/ESP32/esp-idf/components/esp32/ld
+ -T
+ esp32_out.ld
+ -u
+ ld_include_panic_highint_hdl
+ -T
+ esp32.common.ld
+ -T
+ esp32.rom.ld
+ -T
+ esp32.peripherals.ld
+ -T
+ esp32.rom.spiram_incompatible_fns.ld
+ -L/c/Users/JP/Desktop/APDS/firmware/build/esp_adc_cal
+ -lesp_adc_cal
+ -L/c/Users/JP/Desktop/APDS/firmware/build/ethernet
+ -lethernet
+ -L/c/Users/JP/Desktop/APDS/firmware/build/expat
+ -lexpat
+ -L/c/Users/JP/Desktop/APDS/firmware/build/fatfs
+ -lfatfs
+ -L/c/Users/JP/Desktop/APDS/firmware/build/freertos
+ -lfreertos
+ -Wl,--undefined=uxTopUsedPriority
+ -L/c/Users/JP/Desktop/APDS/firmware/build/heap
+ -lheap
+ -L/c/Users/JP/Desktop/APDS/firmware/build/idf_test
+ -lidf_test
+ -L/c/Users/JP/Desktop/APDS/firmware/build/jsmn
+ -ljsmn
+ -L/c/Users/JP/Desktop/APDS/firmware/build/json
+ -ljson
+ -L/c/Users/JP/Desktop/APDS/firmware/build/libsodium
+ -llibsodium
+ -L/c/Users/JP/Desktop/APDS/firmware/build/log
+ -llog
+ -L/c/Users/JP/Desktop/APDS/firmware/build/lwip
+ -llwip
+ -L/c/Users/JP/Desktop/APDS/firmware/build/main
+ -lmain
+ -L/c/Users/JP/Desktop/APDS/firmware/build/mbedtls
+ -lmbedtls
+ -L/c/Users/JP/Desktop/APDS/firmware/build/mdns
+ -lmdns
+ -L/c/Users/JP/Desktop/APDS/firmware/build/micro-ecc
+ -lmicro-ecc
+ -L/c/Users/JP/Desktop/APDS/firmware/build/newlib
+ /c/Users/JP/Desktop/ESP32/esp-idf/components/newlib/lib/libc.a
+ /c/Users/JP/Desktop/ESP32/esp-idf/components/newlib/lib/libm.a
+ -lnewlib
+ -L/c/Users/JP/Desktop/APDS/firmware/build/nghttp
+ -lnghttp
+ -L/c/Users/JP/Desktop/APDS/firmware/build/nvs_flash
+ -lnvs_flash
+ -L/c/Users/JP/Desktop/APDS/firmware/build/openssl
+ -lopenssl
+ -L/c/Users/JP/Desktop/APDS/firmware/build/pthread
+ -lpthread
+ -L/c/Users/JP/Desktop/APDS/firmware/build/sdmmc
+ -lsdmmc
+ -L/c/Users/JP/Desktop/APDS/firmware/build/soc
+ -lsoc
+ -L/c/Users/JP/Desktop/APDS/firmware/build/spi_flash
+ -lspi_flash
+ -L/c/Users/JP/Desktop/APDS/firmware/build/spiffs
+ -lspiffs
+ -L/c/Users/JP/Desktop/APDS/firmware/build/tcpip_adapter
+ -ltcpip_adapter
+ -L/c/Users/JP/Desktop/APDS/firmware/build/ulp
+ -lulp
+ -L/c/Users/JP/Desktop/APDS/firmware/build/vfs
+ -lvfs
+ -L/c/Users/JP/Desktop/APDS/firmware/build/wear_levelling
+ -lwear_levelling
+ -L/c/Users/JP/Desktop/APDS/firmware/build/wpa_supplicant
+ -lwpa_supplicant
+ -L/c/Users/JP/Desktop/APDS/firmware/build/xtensa-debug-module
+ -lxtensa-debug-module
+ -lgcc
+ -lstdc++
+ -lgcov
+ -Wl,--end-group
+ -Wl,-EL
+ -o
+ /c/Users/JP/Desktop/APDS/firmware/build/hello-world.elf
+ -Wl,-Map=/c/Users/JP/Desktop/APDS/firmware/build/hello-world.map
+
+python
+ /c/Users/JP/Desktop/ESP32/esp-idf/components/esptool_py/esptool/esptool.py
+ --chip
+ esp32
+ elf2image
+ --flash_mode
+ "dio"
+ --flash_freq
+ "40m"
+ --flash_size
+ "2MB"
+ -o
+ /c/Users/JP/Desktop/APDS/firmware/build/hello-world.bin
+ /c/Users/JP/Desktop/APDS/firmware/build/hello-world.elf
+
+echo "To flash all build output, run 'make flash' or:"
+
+echo
+ python
+ /c/Users/JP/Desktop/ESP32/esp-idf/components/esptool_py/esptool/esptool.py
+ --chip
+ esp32
+ --port
+ "COM5"
+ --baud
+ 921600
+ --before
+ "default_reset"
+ --after
+ "hard_reset"
+ write_flash
+ -z
+ --flash_mode
+ "dio"
+ --flash_freq
+ "40m"
+ --flash_size
+ detect
+ 0x1000
+ /c/Users/JP/Desktop/APDS/firmware/build/bootloader/bootloader.bin
+ 0x10000
+ /c/Users/JP/Desktop/APDS/firmware/build/hello-world.bin
+ 0x8000
+ /c/Users/JP/Desktop/APDS/firmware/build/partitions_singleapp.bin
+
