@@ -76,8 +76,6 @@ void log_to_server(packet_type_E type, const char *message, ...)
 
 parser_status_E command_packet_parser(const uint8_t * const buffer, command_packet_S * const packet)
 {
-    static parser_state_E state = parser_state_opcode;
-
     parser_status_E status = parser_status_complete;
 
     packet->opcode     = buffer[0];

@@ -21,11 +21,6 @@
 #define CLIENT_PORT      (6000)
 #define REMOTE_PORT      (5002)
 
-// #define REMOTE_IP        ("172.20.10.3")
-// #define DEVICE_IP        ("172.20.43.250")
-// #define DEVICE_GW        ("172.20.1.1")
-// #define DEVICE_SN        ("255.255.255.0")
-
 // Station configuration
 #define REMOTE_IP        ("192.168.43.12")
 #define DEVICE_IP        ("192.168.43.250")

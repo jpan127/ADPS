@@ -16,6 +16,7 @@ EventGroupHandle_t StatusEventGroup;
 
 static wifi_logs_S logs =
 {
+    .is_connected = false,
     .device_ip    = DEVICE_IP,
     .device_gw    = DEVICE_GW,
     .device_sn    = DEVICE_SN,
@@ -60,10 +61,10 @@ static void setup_ip_info(const char *ip, const char *gw, const char *nm)
 {
     tcpip_adapter_ip_info_t ip_info = { 0 };
 
-    inet_pton(AF_INET, ip,  &ip_info.ip);
-    inet_pton(AF_INET, gw,  &ip_info.gw);
-    inet_pton(AF_INET, nm,  &ip_info.netmask);
-    
+    inet_pton(AF_INET, ip, &ip_info.ip);
+    inet_pton(AF_INET, gw, &ip_info.gw);
+    inet_pton(AF_INET, nm, &ip_info.netmask);
+
     tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info);
 }
 
@@ -114,13 +115,22 @@ void init_wifi(void)
     // Connect
     ESP_ERROR_CHECK(esp_wifi_connect());
     ESP_LOGI("init_wifi", "Connecting wifi...");
+}
 
+bool wifi_is_connected(void)
+{
     // Wait for wifi connection before creating sockets
-    xEventGroupWaitBits(StatusEventGroup,   // Event group handle
-                        BIT_CONNECTED,      // Bits to wait for
-                        true,               // Clear on exit
-                        true,               // Wait for all bits
-                        TICK_MS(ONE_MIN));  // Ticks to wait
+    const EventBits_t uxBits = xEventGroupWaitBits(
+        StatusEventGroup,   ///< Event group handle
+        BIT_CONNECTED,      ///< Bits to wait for
+        false,              ///< Clear on exit
+        true,               ///< Wait for all bits
+        0                   ///< Ticks to wait
+    );
+
+    logs.is_connected = (uxBits & BIT_CONNECTED);
+
+    return logs.is_connected;
 }
 
 wifi_logs_S * wifi_get_logs(void)

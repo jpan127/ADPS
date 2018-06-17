@@ -1,0 +1,12 @@
+#include "packet_structure.h"
+
+const char * opcode_to_string(const packet_opcode_E opcode)
+{
+    switch (opcode)
+    {
+{% for enumeration, value in PACKET_OPCODES.items() %}
+        case {{enumeration}}: { return "{{enumeration}}"; break; }
+{% endfor  %}
+        default: { return "NULL??????"; break; }
+    }
+};

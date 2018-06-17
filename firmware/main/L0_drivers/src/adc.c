@@ -7,6 +7,7 @@ static bool adc_init_map[ADC1_CHANNEL_MAX] = { 0 };
 
 /**
  *  Converts a GPIO enumeration to an ADC 1 channel enumeration
+ *  Always a valid enumeration but user must check if it is MAX or not
  *  @param gpio : The input to convert
  *  @returns    : An ADC 1 channel
  */
@@ -40,7 +41,7 @@ bool adc1_initialize(const gpio_E gpio)
     {
         // Enable GPIO
         const adc_unit_t adc_unit = ADC_UNIT_1;
-        adc_gpio_init(channel, adc_unit);
+        adc_gpio_init(adc_unit, channel);
 
         // Set ADC resolution
         const adc_bits_width_t adc_resolution = ADC_WIDTH_12Bit;

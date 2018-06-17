@@ -16,3 +16,9 @@ Command,2,Length,1,Error,1,Move Backward,1
 ,,,,,,Servo Duty,12
 ,,,,,,Manual Mode,13
 ,,,,,,Stop,14
+,,,,,,Deliver,15
+,,,,,,Pivot Left,16
+,,,,,,Pivot Right,17
+,,,,,,Change State,18
+,,,,,,Execute Self Test,19
+,,,,,,Set Suspend,20
