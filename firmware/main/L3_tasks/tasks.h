@@ -1,6 +1,9 @@
 #pragma once
 // Project libraries
 #include "common.h"
+// FreeRTOS libraries
+#include "freertos/semphr.h"
+#include "packet.h"
 
 
 
@@ -11,13 +14,34 @@ typedef struct
     uint32_t port;      ///< Unique port number for each task
 } task_tx_params_S;
 
+/// Application level TCB used for logging
+typedef struct
+{
+    TaskHandle_t handle;
+    uint32_t stack_size;
+    uint32_t task_id;
+} rtos_task_context_block_S;
+
 typedef void * task_param_T;
 
-/*/////////////////////////////
- *                            *
- *   General Initialization   *
- *                            *
- *////////////////////////////*/
+/*/////////////////////////////////////////////////////////////
+ *                                                            *
+ *                     Externed Variables                     *
+ *                                                            *
+ *////////////////////////////////////////////////////////////*/
+
+/// @ { Semaphores defined in the tasks that use them
+extern SemaphoreHandle_t SelfTestSemaphore;
+extern SemaphoreHandle_t DeliverySemaphore;
+extern SemaphoreHandle_t NavigationSemaphore;
+extern SemaphoreHandle_t ServoSemaphore;
+/// @ }
+
+/*/////////////////////////////////////////////////////////////
+ *                                                            *
+ *                   General Initialization                   *
+ *                                                            *
+ *////////////////////////////////////////////////////////////*/
 
 /// Initializes a single server socket
 void init_server_socket(void);
@@ -25,15 +49,19 @@ void init_server_socket(void);
 /// Creates all queues
 void init_create_all_queues(void);
 
-/// Stores a task handle so that each task can be referenced later
-void register_task_handle(TaskHandle_t handle);
+/// Creates all semaphores
+void init_create_all_semaphores(void);
 
-/// Grabs the task handles and the number of tasks created
-void tasks_get_task_handles(TaskHandle_t ** handles, size_t * size);
+/// Grabs the application thread control blocks for all threads
+void tasks_get_tcbs(rtos_task_context_block_S ** handles, size_t * size);
 
 /// Wrapper function over [xTaskCreate] that also registers the task handle
 void rtos_create_task(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority);
 void rtos_create_task_with_params(TaskFunction_t function, const char * name, const uint32_t stack, rtos_priority_E priority, task_param_T params);
+
+void set_suspend_state(const bool on);
+
+bool get_suspend_state(void);
 
 /*/////////////////////////////
  *                            *
@@ -44,6 +72,7 @@ void rtos_create_task_with_params(TaskFunction_t function, const char * name, co
 void init_task_logger(void);
 void init_task_navigation(void);
 void init_task_servo(void);
+void init_task_delivery(void);
 
 /*/////////////////////////////
  *                            *
@@ -66,7 +95,7 @@ void task_tx(task_param_T params);
 /**
  *  A pool of [task_rx] receives packets from lwip and services the command
  *      1. Receives packet from lwip
- *      2. Services the command 
+ *      2. Services the command
  *  @param : A task ID (uint32_t)
  */
 void task_rx(task_param_T params);
@@ -97,3 +126,7 @@ void task_logger(task_param_T params);
  *  @param : [gpio_E] GPIO number that is connected to the sensor
  */
 void task_detection(task_param_T params);
+
+void task_delivery(task_param_T params);
+
+void task_self_test(task_param_T params);

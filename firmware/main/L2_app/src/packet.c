@@ -7,22 +7,33 @@
 /// Current state/status of the parser
 typedef enum
 {
-    parser_state_type     = 0,
-    parser_state_opcode   = 1,
-    parser_state_command1 = 2,
-    parser_state_command2 = 3,
+    parser_state_opcode = 0,
+    parser_state_command1,
+    parser_state_command2,
 } parser_state_E;
 
 /// Logging struct for packet
-static packet_logs_S logs =
-{
-    .rx_packets    = 0,
-    .tx_packets    = 0,
-    .packet_errors = 0,
-    .packet_counts = { 0 },
-};
+static packet_logs_S logs = { 0 };
 
-static void log_vsnprintf(packet_type_E type, const char *message, va_list arg_list)
+/// Packet waits a maximum of this many millseconds
+static const TickType_t max_packet_wait = 100;
+
+static uint8_t packet_strlen_buffer(char * buffer, const size_t size)
+{
+    uint8_t length = 0;
+
+    for (length = 0; length < size; length++)
+    {
+        if (buffer[length] == 0)
+        {
+            break;
+        }
+    }
+
+    return length;
+}
+
+static void packet_vsnprintf(packet_type_E type, const char *message, va_list arg_list)
 {
     // Buffer for post-formatted message
     char buffer[MAX_PACKET_SIZE + 2] = { 0 };
@@ -30,28 +41,24 @@ static void log_vsnprintf(packet_type_E type, const char *message, va_list arg_l
     // Print warning if larger than the max packet size
     if (strlen(message) > MAX_PACKET_SIZE + 2)
     {
-        ESP_LOGE("log_vsnprintf", "Message over max buffer size.\n");
+        ESP_LOGE("packet_vsnprintf", "Message over max buffer size.\n");
     }
 
     // Prints formatted message to buffer with null-termination
-    vsnprintf(buffer+2, sizeof(diagnostic_packet_S), message, arg_list);
+    vsnprintf(buffer+2, sizeof(diagnostic_packet_S) - 2, message, arg_list);
 
-#if TESTING
-    switch (type)
-    {
-        case packet_type_error : ESP_LOGE("", "%s", buffer+2); break;   ///< Errors go to LOGE
-        default                : ESP_LOGI("", "%s", buffer+2); break;   ///< All else goes to LOGI
-    }
-#else
     buffer[0] = (uint8_t)type;
-    buffer[1] = strlen(buffer) - 2;
+    buffer[1] = packet_strlen_buffer(buffer+2, MAX_PACKET_SIZE);
 
     // Convert buffer to diagnostic packet
     diagnostic_packet_S * const packet = (diagnostic_packet_S *)(&buffer);
 
     // Send to TX queue
-    xQueueSend(MessageTxQueue, packet, MAX_DELAY);
-#endif
+    if (!xQueueSend(MessageTxQueue, packet, max_packet_wait))
+    {
+        ESP_LOGE("packet_vsnprintf", "MessageTxQueue full, failed to send to queue");
+        logs.packets_dropped++;
+    }
 
     logs.tx_packets++;
     logs.packet_counts[type]++;
@@ -62,47 +69,26 @@ void log_to_server(packet_type_E type, const char *message, ...)
     va_list arg_list;
     va_start(arg_list, message);
     {
-        log_vsnprintf(type, message, arg_list);
+        packet_vsnprintf(type, message, arg_list);
     }
     va_end(arg_list);
 }
 
-parser_status_E command_packet_parser(uint8_t byte, command_packet_S *packet)
+parser_status_E command_packet_parser(const uint8_t * const buffer, command_packet_S * const packet)
 {
-    static parser_state_E state = parser_state_type;
+    parser_status_E status = parser_status_complete;
 
-    switch (state)
+    packet->opcode     = buffer[0];
+    packet->command[0] = buffer[1];
+    packet->command[1] = buffer[2];
+
+    // Sanity check
+    if (packet->opcode >= packet_opcode_last_invalid)
     {
-        case parser_state_type:
-
-            packet->type = byte;
-            state = parser_state_opcode;
-            return parser_status_in_progress;
-        
-        case parser_state_opcode:
-        
-            packet->opcode = byte;
-            state = parser_state_command1;
-            return parser_status_in_progress;
-        
-        case parser_state_command1:
-        
-            packet->command.bytes[0] = byte;
-            state = parser_state_command2;
-            return parser_status_in_progress;
-        
-        case parser_state_command2:
-        
-            packet->command.bytes[1] = byte;
-            state = parser_state_type;
-            return parser_status_complete;
-        
-        default:
-        
-            ESP_LOGE("command_packet_parser", "Reached impossible state: %d!\n", state);
-            state = parser_state_type;
-            return parser_status_error;
+        status = parser_status_error;
     }
+
+    return status;
 }
 
 packet_logs_S * packet_get_logs(void)

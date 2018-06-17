@@ -15,8 +15,6 @@
 // Project settings
 #include "config.h"
 #include "credentials.h"    // Must include this to connect to wifi, @NOTE : create your own as it is gitignored
-// Project libraries
-#include "packet.h"
 
 
 
@@ -28,24 +26,24 @@
 /// Divide tasks into three priorities
 typedef enum
 {
-    PRIORITY_LOW  = 5,
-    PRIORITY_MED  = 6,
-    PRIORITY_HIGH = 7,
+    PRIORITY_LOW     = 2,
+    PRIORITY_MED     = 3,
+    PRIORITY_HIGH    = 4,
+    PRIORITY_HIGHEST = 5,
 } rtos_priority_E;
 
 // Task creation stack sizes
-#define _512B   (128)
-#define _1KB    (256)
-#define _2KB    (512)
-#define _4KB    (1024)
-#define _8KB    (2048)
-#define _16KB   (4096)
-#define _32KB   (8192)
-#define _64KB   (16384)
+#define _512B   (512U)
+#define _1KB    (1024U)
+#define _2KB    (2048U)
+#define _4KB    (4096U)
+#define _8KB    (8192U)
+#define _16KB   (16384U)
 
 // Helper macros for size comparison or related
 #define MAX(a, b)   ((a > b) ? (a) : (b))
 #define MIN(a, b)   ((a < b) ? (a) : (b))
+#define MAX_MIN_CLAMP(value, min, max) (MAX(MIN(value, max), min))
 
 // Tick/time macros
 #define TICK_MS(ms)         (ms / portTICK_PERIOD_MS)
@@ -53,7 +51,7 @@ typedef enum
 #define DELAY_US(us)        (ets_delay_us(us))
 #define MAX_DELAY           (portMAX_DELAY)
 #define NO_DELAY            (0)
-#define ONE_MIN             (60*1000)
+#define ONE_MIN             (60U * 1000U)
 
 // Event group bits
 #define BIT_START           (1 << 0)

@@ -2,26 +2,33 @@
 // Project libraries
 #include "client.h"
 #include "packet.h"
-
-
+#include "wifi.h"
 
 /**
  *  [task_tx] will create multiple tasks
  *  Each static function here is independent of the calling task and will be used by all
  */
 
+
+
 /**
  *  Opens a socket with a timeout
- *  @param client_socket : The socket handle
- *  @param port          : The port to open with
- *  @param task_id       : The ID of the calling task
- *  @returns             : Success status
+ *  @param client_socket          : The socket handle
+ *  @param port                   : The port to open with
+ *  @param task_id                : The ID of the calling task
+ *  @param delay_between_retry_ms : Delay between retries, can be NULL
+ *  @returns                      : Success status
+ *  @note                         : Socket creation can return ENOBUFS, in which case, retrying after a delay most likely will succeed
  */
-static bool open_socket_with_timeout(int *client_socket, uint32_t port, uint8_t task_id)
+static bool open_socket_with_timeout(int *client_socket, uint32_t port, uint8_t task_id, const uint16_t * delay_between_retry_ms)
 {
+    const uint16_t two_second_ms = 2000;
+
     bool client_created = false;
-    int timeout_count = 10;
-    const uint16_t one_second_ms = 1000;
+    int8_t timeout_count = 60;
+
+    // If specified, use parameter delay, otherwise, use default one second
+    const uint16_t delay_ms = (delay_between_retry_ms) ? (*delay_between_retry_ms) : (two_second_ms);
 
     // Initialize client
     while (!client_created && timeout_count > 0)
@@ -30,12 +37,14 @@ static bool open_socket_with_timeout(int *client_socket, uint32_t port, uint8_t 
 
         if (!client_created)
         {
-            if (--timeout_count <= 0)
+            --timeout_count;
+        #if EXTRA_DEBUG_MSGS
+            if (timeout_count <= 0)
             {
                 ESP_LOGE("init_socket_tx_task", "[%d] FAILED to create client", task_id);
             }
-            // Retry in 1 second
-            DELAY_MS(one_second_ms);
+        #endif
+            DELAY_MS(delay_ms);
         }
     }
 
@@ -51,9 +60,12 @@ static bool open_socket_with_timeout(int *client_socket, uint32_t port, uint8_t 
  */
 static bool connect_socket_with_timeout(int *client_socket, uint32_t port, uint8_t task_id)
 {
+    /// @TODO : Perfect place for leaky bucket
+    const uint16_t two_second_ms = 2000;
+    const uint8_t max_timeout_count = 100;
+
     bool connected = false;
-    int timeout_count = 10;
-    const uint16_t one_second_ms = 1000;
+    int8_t timeout_count = max_timeout_count;
 
     // Connect to server
     while (!connected && timeout_count > 0)
@@ -62,12 +74,13 @@ static bool connect_socket_with_timeout(int *client_socket, uint32_t port, uint8
 
         if (!connected)
         {
-            if (--timeout_count <= 0)
+            --timeout_count;
+            if (timeout_count <= 0)
             {
-                ESP_LOGE("connect_socket_with_timeout", "[%d] FAILED to connect client to remote server", task_id);
+                ESP_LOGE("connect_socket_with_timeout", "[task_tx %d] FAILED to connect client to remote server out of %d retries", task_id, max_timeout_count);
             }
-            // Retry in 1 second
-            DELAY_MS(one_second_ms);
+            // Retry in 2 seconds
+            DELAY_MS(two_second_ms);
         }
     }
 
@@ -82,13 +95,10 @@ static bool connect_socket_with_timeout(int *client_socket, uint32_t port, uint8
  *  @returns             : Success status
  *  @note                : Needs to be initialized after scheduler starts because it depends on the tasks input parameters
  */
-static bool init_task_tx(int *client_socket, uint32_t port, uint8_t task_id)
+static bool init_task_tx(int *client_socket, uint32_t port, uint8_t task_id, const uint16_t * delay_between_retry_ms)
 {
-    bool success = false;
-
-    success = open_socket_with_timeout(client_socket, port, task_id);
-
-    if (success) success = connect_socket_with_timeout(client_socket, port, task_id);
+    const bool success = (open_socket_with_timeout(client_socket, port, task_id, delay_between_retry_ms) &&
+                          connect_socket_with_timeout(client_socket, port, task_id));
 
     return success;
 }
@@ -100,28 +110,53 @@ static bool init_task_tx(int *client_socket, uint32_t port, uint8_t task_id)
  *  @param task_id       : The ID of the calling task
  *  @returns             : Success status
  */
-static bool reopen_socket(int *client_socket, uint32_t port, uint8_t task_id)
+static bool reopen_socket(int *client_socket, uint32_t port, uint8_t task_id, const uint16_t * delay_between_retry_ms)
 {
     tcp_client_close_socket(client_socket);
 
-    return init_task_tx(client_socket, port, task_id);
+    return init_task_tx(client_socket, port, task_id, delay_between_retry_ms);
+}
+
+static bool wait_until_wifi_is_connected(void)
+{
+    // 30 second retry
+    const uint8_t delay_between_checks_ms = 200;
+    int16_t retries = 150;
+
+    // Stay in this loop while wifi is not connected
+    while (!wifi_is_connected() && retries > 0)
+    {
+        DELAY_MS(delay_between_checks_ms);
+        retries--;
+    }
+
+    return wifi_is_connected();
 }
 
 void task_tx(task_param_T params)
 {
+    const uint16_t delay_between_client_reconnect_ms = 100;
+
     // Each task_tx has its own input parameter with its designated task ID and port number
     const task_tx_params_S task_params = *((task_tx_params_S *)params);
 
-    // Initialize the client socket first
     int client_socket = -1;
-    if (!init_task_tx(&client_socket, task_params.port, task_params.task_id))
+
+    // Wait until wifi is connected
+    if (!wait_until_wifi_is_connected())
+    {
+        ESP_LOGE("task_tx", "[%d] Wireless is not initialized and client task is terminating...", task_params.task_id);
+        vTaskSuspend(NULL);
+    }
+    // Initialize the client socket first
+    else if (!init_task_tx(&client_socket, task_params.port, task_params.task_id, NULL))
     {
         ESP_LOGE("task_tx", "[%d] Client task failed to initialize socket and is terminating...", task_params.task_id);
         vTaskSuspend(NULL);
     }
     else
     {
-        ESP_LOGI("task_tx", "[%d] Task initialized", task_params.task_id);
+        ESP_LOGI("task_tx", "[%d] Task starting...", task_params.task_id);
     }
 
     // Diagnostic packet
@@ -134,31 +169,23 @@ void task_tx(task_param_T params)
     // Main loop
     while (1)
     {
-        // // Block until received packet from queue
-        // xQueueReceive(MessageTxQueue, &packet, MAX_DELAY);
-
-        packet.type = 5;
-        packet.length = 5;
-        packet.payload[0] = 'h';
-        packet.payload[1] = 'e';
-        packet.payload[2] = 'l';
-        packet.payload[3] = 'l';
-        packet.payload[4] = 'o';
-        current_packet_size = 5;
+        // Block until received packet from queue
+        xQueueReceive(MessageTxQueue, &packet, MAX_DELAY);
 
         // Size of packet to send is 1 (type) + 1 (length) + length
         current_packet_size = 2 + packet.length;
 
         // Send packet, function already prints error message, nothing to handle
-        tcp_client_send_packet(&client_socket, buffer, current_packet_size);
+        tcp_client_send_packet(client_socket, buffer, current_packet_size);
 
         // Close and reopen socket, also prints its own error message, nothing to handle
-        reopen_socket(&client_socket, task_params.port, task_params.task_id);
+        if (!reopen_socket(&client_socket, task_params.port, task_params.task_id, &delay_between_client_reconnect_ms))
+        {
+            ESP_LOGE("task_tx", "[%d] FAILED to create client", task_params.task_id);
+        }
 
         // Clear buffer so data doesnt overlap
         // Only need to clear current_packet_size because other bytes are untouched
-        // memset(&packet, 0, current_packet_size);
-
-        DELAY_MS(5000);
+        memset(&packet, 0, current_packet_size);
     }
 }

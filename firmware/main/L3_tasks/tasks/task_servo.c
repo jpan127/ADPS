@@ -2,6 +2,7 @@
 
 #include "motor.h"
 #include "gpio.h"
+#include "cmd_handler.h"
 
 
 
@@ -14,7 +15,7 @@ void init_task_servo(void)
     {
         .dir_a  = GPIO_NOT_USING,
         .dir_b  = GPIO_NOT_USING,
-        .config = 
+        .config =
         {
             .pwm_a     = gpio_servo_pwm,
             .pwm_b     = GPIO_NOT_USING,
@@ -30,32 +31,59 @@ void init_task_servo(void)
     }
 }
 
-void task_servo(task_param_T params)
+/**
+ *  Boot up routine to test the servo turning to both sides of the spectrum
+ */
+static void servo_boot_up_routine(void)
 {
-    if (!initialized)
+    const uint8_t delay_between_adjustments_ms = 10;
+
+    ESP_LOGI("task_servo", "Initialized servo, running boot up routine...");
+
+    for (uint8_t duty = 0; duty < 180; duty++)
     {
-        vTaskSuspend(NULL);
+        motor_move(motor, motor_dir_a_forward, (float)duty);
+        DELAY_MS(delay_between_adjustments_ms);
     }
 
+    for (int16_t duty = 180; duty >= 0; duty--)
+    {
+        motor_move(motor, motor_dir_a_forward, (float)duty);
+        DELAY_MS(delay_between_adjustments_ms);
+    }
+
+    motor_stop(motor);
+}
+
+void task_servo(task_param_T params)
+{
+    // Wait a second to make sure servo is properly initialized
+    DELAY_MS(1000);
+
+    if (!initialized)
+    {
+        ESP_LOGE("task_servo", "Did not successfully initialize servo, suspending task...");
+        vTaskSuspend(NULL);
+    }
+    else
+    {
+        motor_move(motor, motor_dir_a_forward, 0);
+        DELAY_MS(100);
+        servo_boot_up_routine();
+        ESP_LOGI("task_servo", "Task initialized and starting...");
+    }
+
+#if TESTING
+    vTaskSuspend(NULL);
+#else
     // Main loop
     while(1)
     {
-        for (float duty = 0; duty < 180; duty++)
+        if (xSemaphoreTake(ServoSemaphore, MAX_DELAY))
         {
-            motor_move(motor, motor_dir_a_forward, duty);
-            DELAY_MS(20);
+            const uint8_t last_commanded_servo_duty = cmd_handler_get_last_commanded_servo_duty();
+            motor_move(motor_servo, motor_dir_a_forward, last_commanded_servo_duty);
         }
-
-        motor_stop(motor);
-        DELAY_MS(2000);
-
-        for (float duty = 180; duty >= 0; duty--)
-        {
-            motor_move(motor, motor_dir_a_forward, duty);
-            DELAY_MS(20);
-        }
-
-        motor_stop(motor);
-        DELAY_MS(2000);
     }
+#endif
 }

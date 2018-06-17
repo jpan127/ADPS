@@ -16,7 +16,7 @@
 typedef enum
 {
     motor_wheels = 0,
-    motor_shaft,
+    motor_delivery,
     motor_servo,
     motor_max,
 } motor_E;
@@ -26,10 +26,16 @@ typedef enum
 {
     motor_dir_both_forward = 0,
     motor_dir_both_backward,
-    motor_dir_a_forward,
-    motor_dir_a_backward,
-    motor_dir_b_forward,
-    motor_dir_b_backward,
+    motor_dir_a_forward,    ///< A = left @TODO : Fix this
+    motor_dir_a_backward,   ///< A = left
+    motor_dir_b_forward,    ///< B = right
+    motor_dir_b_backward,   ///< B = right
+    motor_dir_left,
+    motor_dir_right,
+    motor_dir_delivery_forward,
+    motor_dir_delivery_backward,
+    motor_dir_pivot_left,
+    motor_dir_pivot_right,
 } motor_direction_E;
 
 /// Enumerates whether to increment or decrement duty
@@ -44,20 +50,20 @@ typedef struct
 {
     gpio_E dir_a;          ///< GPIO for PWM operator A direction
     gpio_E dir_b;          ///< GPIO for PWM operator B direction
-    pwm_config_S config;    ///< Configuration for PWM
+    pwm_config_S config;   ///< Configuration for PWM
 } motor_config_S;
 
 /// Struct for storing duty values of both PWM A and PWM B
 typedef struct
 {
-    pwm_duty_U a;
-    pwm_duty_U b;
+    float a;
+    float b;
 } duty_S;
 
 /// Struct for logging duty percentages of all motors
 typedef struct
 {
-    duty_S duty[motor_max];   
+    duty_S duty[motor_max];
 } motor_logs_S;
 
 /**
@@ -90,6 +96,15 @@ void motor_adjust_duty(motor_E motor, motor_direction_E direction, float step, d
  *  @param motor : The motor to stop
  */
 void motor_stop(motor_E motor);
+
+/// Returns true if the wheels are paused, false if not
+bool motor_are_wheels_paused(void);
+
+/// Pauses the wheels and saves the duties
+void motor_pause_wheels(void);
+
+/// Resumes the wheels and restores the duties
+void motor_resume_wheels(void);
 
 /// Returns a pointer to the motor logging struct
 motor_logs_S * motor_get_logs(void);

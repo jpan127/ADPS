@@ -6,6 +6,7 @@
     Firmware for the ESP32 microcontroller
 
 ##### Tasks
+|------------|----------------------------------------------------------|
 | Task       | Description                                              |
 |------------|----------------------------------------------------------|
 | logger     | Logs useful information from all modules                 |
@@ -15,6 +16,7 @@
 | detection  | Periodically reads from the infrared sensors             |
 | self_test  | Executes a self test to check if everything is working   |
 | servo      | Controls the servo that is attached to the side camera   |
+|------------|----------------------------------------------------------|
 
 ----
 ### Sidewalk Recognition

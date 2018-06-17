@@ -9,7 +9,7 @@
 static tcp_server_logs_S logs =
 {
     .server_port      = 0,
-    .socket           = -1,
+    .socket           = -1,                 ///< Current socket descriptor
     .state            = socket_unconnected,
     .queue_size       = 0,
     .packets_received = 0,
@@ -28,11 +28,11 @@ static bool tcp_create_socket(void)
         // Create socket
         logs.socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-        if (logs.socket == -1) 
+        if (logs.socket == -1)
         {
             ESP_LOGE("tcp_create_socket", "Error creating socket: %s", strerror(errno));
         }
-        else 
+        else
         {
             // Set socket option to re-usable
             const int option = 1;
@@ -40,7 +40,7 @@ static bool tcp_create_socket(void)
             ESP_LOGI("server::tcp_create_socket", "Socket successfully created on port %d", logs.server_port);
             logs.state = socket_created;
             success = true;
-        }        
+        }
     }
     else
     {
@@ -81,13 +81,13 @@ static bool tcp_bind_socket(void)
         .sin_port        = htons(logs.server_port),
     };
 
-    if (bind(logs.socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) 
+    if (bind(logs.socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
     {
         // If failed, close socket
         tcp_close_socket();
         ESP_LOGE("tcp_bind_socket", "Error binding: %s", strerror(errno));
     }
-    else 
+    else
     {
         logs.state = socket_binded;
         ESP_LOGI("server::tcp_bind_socket", "Socket successfully binded.");
@@ -106,12 +106,12 @@ static bool tcp_start_listening(uint8_t queue_size)
 {
     bool success = false;
 
-    if (listen(logs.socket, queue_size) < 0) 
+    if (listen(logs.socket, queue_size) < 0)
     {
         logs.queue_size = queue_size;
         ESP_LOGE("tcp_start_listening", "Error starting to listen on socket. Error: %s", strerror(errno));
     }
-    else 
+    else
     {
         logs.state = socket_listening;
         ESP_LOGI("server::tcp_start_listening", "Listening on socket port %u", logs.server_port);
@@ -123,13 +123,20 @@ static bool tcp_start_listening(uint8_t queue_size)
 
 bool tcp_server_init(uint32_t port, uint8_t queue_size)
 {
+    /**
+     *  If any of the steps fail, the rest of the steps should be skipped
+     *  1. Create socket
+     *  2. Bind socket
+     *  3. Listen
+     */
+
     bool success = true;
 
     // Store port
     logs.server_port = port;
 
     // Create socket first
-    success &= tcp_create_socket();
+    if (success) success &= tcp_create_socket();
 
     // Then bind socket to port
     if (success) success &= tcp_bind_socket();
@@ -150,7 +157,7 @@ bool tcp_server_init(uint32_t port, uint8_t queue_size)
     return success;
 }
 
-bool tcp_server_receive(int client_sock, uint8_t *buffer, uint16_t *size)
+bool tcp_server_receive(int client_sock, uint8_t *buffer, int *size)
 {
     bool success = true;
 
@@ -158,26 +165,26 @@ bool tcp_server_receive(int client_sock, uint8_t *buffer, uint16_t *size)
 
     ssize_t size_read = 1;
 
-    ESP_LOGI("server::tcp_server_receive", "Starting receive...");
-
     // While there is still data to be read from socket
     while (size_read > 0)
     {
         // Read data from socket
-        size_read = recv(client_sock,      ///< Socket
-                         buffer + *size,   ///< Address in buffer to start writing to
-                         RECV_BUFFER_SIZE, ///< Size to read
-                         0);               ///< Flags
-
-        // Add number of bytes read
-        *size += size_read;
+        size_read = recv(
+            client_sock,      ///< Socket
+            buffer + *size,   ///< Address in buffer to start writing to
+            RECV_BUFFER_SIZE, ///< Size to read
+            0                 ///< Flags
+        );
 
         if (size_read < 0)
         {
-            ESP_LOGE("tcp_server_receive", "Error receiving on socket %i. Error: %s", client_sock, strerror(errno));
+            ESP_LOGE("tcp_server_receive", "Error receiving on socket %i | Error: %s", client_sock, strerror(errno));
             success = false;
             break;
         }
+
+        // Add number of bytes read
+        *size += size_read;
     }
 
     if (*size > 0)
@@ -195,7 +202,6 @@ bool tcp_server_receive(int client_sock, uint8_t *buffer, uint16_t *size)
         buffer[*size] = '\0';
     }
 
-    ESP_LOGI("server::tcp_server_receive", "Received %i bytes : %s", *size, buffer);
     return success;
 }
 

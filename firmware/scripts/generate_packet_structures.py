@@ -5,11 +5,12 @@ import os
 from enum import IntEnum, Enum, unique
 from pprint import PrettyPrinter
 from argparse import ArgumentParser
+from collections import OrderedDict
 
 
 """
 Quick Start:
-    python generate_packet_structures.py --csv structures.csv --c_template packet_structure_h.jinja --template_path ./
+    python generate_packet_structures.py --csv structures.csv --template packet_structure_h.jinja --template_path ./
 """
 
 #=============================================#
@@ -82,7 +83,7 @@ class _Enumeration(object):
     Represents a C enum structure
     """
     def __init__(self, enums, type):
-        self.enums = {}
+        self.enums = OrderedDict()
         prefix = ""
         if type == _EnumerationType.Type:
             prefix = "packet_type_"
@@ -120,10 +121,10 @@ def _parse_args():
     arg_parser = ArgumentParser()
     arg_parser.add_argument("--csv"            , required=True  , help="Path to CSV file to parse inputs from")
     arg_parser.add_argument("--template_path"  , required=True  , help="Path to template")
-    arg_parser.add_argument("--c_template"     , required=True  , help="Name of C template")
+    arg_parser.add_argument("--template"     , required=True  , help="Name of C template")
     # arg_parser.add_argument("--js_template" , required=True  , help="Path to JavaScript template")
-    # arg_parser.add_argument("--target_path" , required=False , help="Output path, if not specified, outputs to same folder as script")
-    arg_parser.add_argument("--target_name" , required=False , help="Output file name, if not specified, defaults to \'packet_structure.*\'")
+    arg_parser.add_argument("--target_path"    , required=False , help="Output path, if not specified, outputs to same folder as script")
+    arg_parser.add_argument("--target_name"    , required=False , help="Output file name, if not specified, defaults to \'packet_structure.*\'")
     return arg_parser.parse_args()
 
 
@@ -146,20 +147,20 @@ def _convert_csv_to_dicts(data):
 
     # Get column names and indices
     raw_columns = list(data)
-    columns = {}
+    columns = OrderedDict()
     for index, col in enumerate(raw_columns):
         if not col.startswith("Unnamed"):
             columns[index] = col
 
     # Create a dictionary for each structure
-    structures = {}
+    structures = OrderedDict()
     matrix = data.as_matrix()
     for index, col in columns.items():
 
         # Parse the fields
         fields = [ matrix[0][index], matrix[0][index+1] ]
-        
-        values = {}
+
+        values = OrderedDict()
         for row in matrix[1:]:
             # Ignore not-a-number grids
             if type(row[index]) == float and math.isnan(row[index]):
@@ -179,7 +180,7 @@ def _convert_csv_to_dicts(data):
             structures[col] = _Structure(values)
         elif _EnumerationType.exist(col):
             structures[col] = _Enumeration(values, _EnumerationType.value_to_key(col))
-        else:  
+        else:
             raise ValueError("{} is not a valid structure or enumeration type".format(col))
 
         # PP.pprint(structures[col].get_values())
@@ -223,9 +224,10 @@ def _autogenerate_code(template_path, template_name, target_path, target_name, s
     @param target_name   : Name of output file
     @param structures    : Data values to populate template with
     """
-    c_template  = _load_template(template_path, template_name)
+    h_template = _load_template(template_path, template_name + "_h.jinja")
+    c_template = _load_template(template_path, template_name + "_c.jinja")
 
-    c_args = {
+    args = {
         "MAX_PACKET_SIZE"      : "128",
         "PACKET_TYPES"         : structures[_EnumerationType.Type.value].get_values(),
         "PACKET_OPCODES"       : structures[_EnumerationType.Opcode.value].get_values(),
@@ -234,15 +236,20 @@ def _autogenerate_code(template_path, template_name, target_path, target_name, s
     }
 
     # Render both templates
-    _render_template(c_template  , c_args  , target_path, target_name + ".h")
+    _render_template(h_template, args, target_path, target_name + ".h")
+    _render_template(c_template, args, os.path.join(target_path, "src"), target_name + ".c")
 
 
 def main():
     """
     Main function
     """
+
     # Parse arguments
     args = _parse_args()
+
+    # Path for generated output
+    target_path = "./" if not args.target_path else args.target_path
 
     target_name = args.target_name if args.target_name is not None else "packet_structure"
 
@@ -252,7 +259,7 @@ def main():
     structures = _convert_csv_to_dicts(data)
 
     # Autogenerate code based on the data populated in the pandas frame
-    _autogenerate_code(args.template_path, args.c_template, "./", target_name, structures)
+    _autogenerate_code(args.template_path, args.template, target_path, target_name, structures)
 
 
 if __name__ == '__main__':

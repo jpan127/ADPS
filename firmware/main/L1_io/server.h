@@ -10,7 +10,7 @@
  */
 
 /// State of socket
-typedef enum 
+typedef enum
 {
     socket_unconnected = 0,
     socket_closed,
@@ -43,7 +43,7 @@ bool tcp_server_init(uint32_t port, uint8_t queue_size);
  *  @param size        : Size of buffer
  *  @returns           : False if any error encountered
  */
-bool tcp_server_receive(int client_sock, uint8_t *buffer, uint16_t *size);
+bool tcp_server_receive(int client_sock, uint8_t *buffer, int *size);
 
 /// Returns the socket handle
 int tcp_server_get_socket(void);

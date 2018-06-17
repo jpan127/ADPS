@@ -7,6 +7,8 @@
 #include "server.h"
 #include "packet.h"
 #include "motor.h"
+#include "wifi.h"
+#include "cmd_handler.h"
 
 
 
@@ -24,53 +26,43 @@ static int accept_blocking(uint8_t task_id, const int server_socket)
     socklen_t client_address_size = sizeof(client_address);
 
     // Accept connection and save client socket handle
-    const int client_socket = accept( server_socket, 
-                                      (struct sockaddr *)&client_address, 
-                                      &client_address_size);
+    const int client_socket = accept(
+        server_socket,
+        (struct sockaddr *)&client_address,
+        &client_address_size
+    );
 
     // Error accepting
-    if (client_socket < 0) 
+    if (client_socket < 0)
     {
         ESP_LOGE("accept_blocking", "[%d] Error accepting from client | Server Socket: %i | Error: %s", task_id, server_socket, strerror(errno));
     }
+#if EXTRA_DEBUG_MSGS
     else
     {
         ESP_LOGI("accept_blocking", "[%d] Accepted from client | Server Socket: %i", task_id, server_socket);
     }
+#endif
 
     return client_socket;
 }
 
-/**
- *  Interprets a command packet and calls the respective API
- *  @param packet : The packet to parse
- */
-static void service_command(command_packet_S *packet)
+static bool wait_until_wifi_is_connected(void)
 {
-    // const motor_E motor = motor_wheels;
+    // 30 second time out
+    const uint8_t delay_between_checks_ms = 200;
+    int16_t retries = 150;
 
-    // switch (packet->opcode)
-    // {
-    //     case command_move_forward  : motor_move(motor, MOTOR_DIRECTION_FORWARD,       packet->command.bytes[0]);    break;
-    //     case command_move_backward : motor_move(motor, MOTOR_DIRECTION_BACKWARD,      packet->command.bytes[0]);    break;
-    //     case command_move_left     : motor_move(motor, MOTOR_DIRECTION_LEFT,          packet->command.bytes[0]);    break;
-    //     case command_move_right    : motor_move(motor, MOTOR_DIRECTION_RIGHT,         packet->command.bytes[0]);    break;
+    // Stay in this loop while wifi is not connected
+    while (!wifi_is_connected() && retries > 0)
+    {
+        DELAY_MS(delay_between_checks_ms);
+        retries--;
+    }
 
-    //     case command_incr_forward  : motor_increment(motor, MOTOR_DIRECTION_FORWARD,  packet->command.bytes[0]);    break;
-    //     case command_incr_backward : motor_increment(motor, MOTOR_DIRECTION_BACKWARD, packet->command.bytes[0]);    break;
-    //     case command_incr_left     : motor_increment(motor, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]);    break;
-    //     case command_incr_right    : motor_increment(motor, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]);    break;
-
-    //     case command_decr_forward  : motor_decrement(motor, MOTOR_DIRECTION_FORWARD,  packet->command.bytes[0]);    break;
-    //     case command_decr_backward : motor_decrement(motor, MOTOR_DIRECTION_BACKWARD, packet->command.bytes[0]);    break;
-    //     case command_decr_left     : motor_decrement(motor, MOTOR_DIRECTION_LEFT,     packet->command.bytes[0]);    break;
-    //     case command_decr_right    : motor_decrement(motor, MOTOR_DIRECTION_RIGHT,    packet->command.bytes[0]);    break;
-
-    //     default                    : LOG_ERROR("Undefined opcode found: %d", packet->opcode);                       break;
-    // }
+    return wifi_is_connected();
 }
 
-/// @TODO : Change all logging to go through [packet]
 void task_rx(task_param_T params)
 {
     // This task takes an input parameter which designates its task ID
@@ -87,15 +79,22 @@ void task_rx(task_param_T params)
         ESP_LOGE("task_rx", "Suspending task #%d because server was not created.", task_id);
         vTaskSuspend(NULL);
     }
+    // Wait until wifi is connected
+    else if (!wait_until_wifi_is_connected())
+    {
+        ESP_LOGE("task_tx", "[%d] Wireless is not initialized and client task is terminating...", task_id);
+        vTaskSuspend(NULL);
+    }
+    else
+    {
+        ESP_LOGI("task_rx", "[%d] Task initialized and starting...", task_id);
+    }
 
     // Buffer needed to receive packets
     uint8_t buffer[RECV_BUFFER_SIZE] = { 0 };
 
     // Size of packet
-    uint16_t size = 0;
-
-    // Parser status
-    parser_status_E status = parser_status_idle;
+    int32_t size = 0;
 
     // Command packet
     command_packet_S packet = { 0 };
@@ -110,24 +109,38 @@ void task_rx(task_param_T params)
         int client_socket = accept_blocking(task_id, server_socket);
 
         // If connection and no error
-        if (client_socket)
+        if (client_socket > 0)
         {
             // Receive into buffer
             tcp_server_receive(client_socket, buffer, &size);
 
-            // // Parse each byte from buffer
-            // for (uint16_t i=0; i<size; i++)
-            // {
-            //     status = command_packet_parser(buffer[i], &packet);
-            //     if (parser_status_complete == status)
-            //     {
-            //         // // Send to task_command
-            //         // xQueueSend(MessageRxQueue, &packet, MAX_DELAY);
-            //         ESP_LOGI("task_rx", "%u %u %u", packet.type, packet.opcode, packet.command.half_word);
-            //         // service_command(&packet);
-            //     }
-            // }
-    
+            // Get a pointer to the buffer
+            uint8_t * buffer_ptr = (uint8_t *)(&buffer[0]);
+
+            // Loop through all the commands in the buffer
+            while (size > 0)
+            {
+                // Parse the commands
+                const parser_status_E status = command_packet_parser(buffer_ptr, &packet);
+
+                if (parser_status_complete == status)
+                {
+                    if (packet.opcode < packet_opcode_last_invalid)
+                    {
+                        ESP_LOGI("task_rx", "Servicing command : %s : %u %u", opcode_to_string(packet.opcode), packet.opcode, packet.command[0]);
+                        cmd_handler_service_command(&packet);
+                    }
+                    else
+                    {
+                        ESP_LOGE("task_rx", "Invalid packet opcode : %d", packet.opcode);
+                    }
+                }
+
+                // Advance the buffer pointer
+                buffer_ptr += sizeof(packet);
+                size       -= sizeof(packet);
+            }
+
             tcp_client_close_socket(&client_socket);
         }
     }
