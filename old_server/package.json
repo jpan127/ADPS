@@ -1,0 +1,11 @@
+{
+  "name": "goldengate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "socket.io": "*",
+    "express" : "*",
+    "log": "*"
+  }
+}
