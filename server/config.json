@@ -1,0 +1,7 @@
+{
+    "protocol_json_file" : {
+        "value" : "protocol.json",
+        "_comment" : "JSON file that holds the packet types"
+    },
+    "environment" : "development"
+}

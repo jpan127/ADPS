@@ -1,0 +1,42 @@
+{
+    "type" : {
+        "info" : 0,
+        "error" : 1,
+        "status" : 2,
+        "log" : 3
+    },
+    "log_type" : {
+        "client" : 0,
+        "server" : 1,
+        "packet" : 2,
+        "motor" : 3,
+        "wifi" : 4,
+        "wmark" : 5,
+        "infrared_left" : 6,
+        "infrared_right" : 7,
+        "infrared_bottom" : 8
+    },
+    "opcode" : {
+        "move_forward" : 0,
+        "move_backward" : 1,
+        "move_left" : 2,
+        "move_right" : 3,
+        "incr_forward" : 4,
+        "incr_backward" : 5,
+        "incr_left" : 6,
+        "incr_right" : 7,
+        "decr_forward" : 8,
+        "decr_backward" : 9,
+        "decr_left" : 10,
+        "decr_right" : 11,
+        "servo_duty" : 12,
+        "manual_mode" : 13,
+        "stop" : 14,
+        "deliver" : 15,
+        "pivot_left" : 16,
+        "pivot_right" : 17,
+        "change_state" : 18,
+        "execute_self_test" : 19,
+        "set_suspend" : 20
+    }
+}

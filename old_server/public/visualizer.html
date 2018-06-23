@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Systems Control</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+    <style>
+        .container {
+            padding: 80px 120px;
+        }
+
+        /* Style the tab */
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            padding: 14px 16px;
+        }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        .tab button.active {
+            background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+            display: none;
+            padding: 6px 30px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span> 
+          </button>
+          <a class="navbar-brand" href="#">APDS</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="index.html">HOME</a></li>
+            <li><a href="emit.html">CAMERA</a></li>
+            <li><a href="visualizer.html">CONTROL PAGE</a></li>
+            <li><a href="#contact">CONTACT</a></li>
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">MORE
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
+                <li><a href="#">I</a></li>
+                <li><a href="#">Like</a></li>
+                <li><a href="#">Penguins</a></li> 
+              </ul>
+            </li>
+            <li><a href="#"><span class="glyphicon glyphicon-search"></span></a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    
+
+<div class="row">
+    <br><br><br>
+    <div class="tab">
+      <button class="tablinks" onclick="openTab(event, 'Controls')">Controls</button>
+      <button class="tablinks" onclick="openTab(event, 'Logging')">Logging</button>
+    </div>
+
+    <div id="Controls" class="tabcontent">
+        <div class="row">
+            <div class="col-sm-4 text-center">
+                <h3> <img src="state.png"></img></h3>
+            </div>
+            <div class="col-sm-4 text-center">
+                <h3> <img src="servo.png"></img></h3>
+                <input id="dutyCycle"  class="form-control"   type="text"  value="100"/><br>
+                <button id="send"   onclick="sendDutyCycle()"> Send    </button>
+            </div>
+            <div class="col-sm-4 text-center">
+                <h3> <img src="custom.png"></img></h3>
+                <button id="deliverMotor"   onclick="deliverMotor()"> Deliver Motor    </button>
+                <button id="pivleft"   onclick="pivotLeft()"> PIV LEFT    </button>
+                <button id="pivright"   onclick="pivotRight()"> PIV RIght    </button>
+                <button id="stopall"   onclick="stopall()"> stopall  </button>
+            </div>            
+        </div>
+            <div class="row">
+      <div class="col-sm-8 text-center">
+        <h3> <img src="steer.png"></img></h3>
+
+         <img src="dpad.png" usemap="#imgmap"></img>
+                <map name="imgmap">
+                        <area shape="circle" coords="401,232,50" onclick="goForward()">
+                        <area shape="circle" coords="290,360,50" onclick="goLeft()" >
+                        <area shape="circle" coords="520,350,50" onclick="goRight()">
+                        <area shape="circle" coords="410,470,50" onclick="goBack()">
+                        <area shape="circle" coords="405,360,40" onclick="stay()">
+                        <area shape="circle" coords="410,40,30" onclick="incForward()">
+                        <area shape="circle" coords="410,105,30" onclick="decForward()">
+                        <area shape="circle" coords="85,300,30" onclick="incLeft()" >
+                        <area shape="circle" coords="85,400,30" onclick="decLeft()" >
+                        <area shape="circle" coords="735,300,30" onclick="incRight()">
+                        <area shape="circle" coords="735,400,30" onclick="decRight()">
+                        <area shape="circle" coords="410,620,30" onclick="incBack()">
+                        <area shape="circle" coords="410,685,30" onclick="decBack()">
+                </map>  
+
+      </div>
+      <div class="col-sm-4 text-center">
+        <h3> <img src="logging.png"></img></h3>
+        <table class="table table-bordered table-dark">
+          <tr>
+            <th class="tg-us36"><b>Client</b></th>
+            <th class="tg-us36">sockets_created</th>
+            <th class="tg-us36">sockets_closed</th>
+            <th class="tg-us36">server_connections</th>
+            <th class="tg-us36">packets_sent</th>
+            <th class="tg-us36">sensor</th>
+            <th class="tg-us36"></th>
+          </tr>
+          <tr>
+            <td class="tg-us36"></td>
+            <td id="sockets_created" class="tg-us36"></td>
+            <td id="sockets_closed" class="tg-us36"></td>
+            <td id="server_connections" class="tg-us36"></td>
+            <td id="packets_sent" class="tg-us36"></td>
+            <td id="sensor" class="tg-us36"></td>
+            <td class="tg-us36"></td>
+          </tr>
+          <tr>
+            <td class="tg-us36"><b>Server</b></td>
+            <td class="tg-us36">server_port</td>
+            <td class="tg-us36">state</td>
+            <td class="tg-us36">queue_size</td>
+            <td class="tg-us36">packets_received</td>
+            <td class="tg-us36"></td>
+            <td class="tg-us36"></td>
+          </tr>
+          <tr>
+            <td class="tg-yw4l"></td>
+            <td id="server_port" class="tg-yw4l"></td>
+            <td id="state" class="tg-yw4l"></td>
+            <td id="queue_size" class="tg-yw4l"></td>
+            <td id="packets_received" class="tg-yw4l"></td>
+            <td class="tg-yw4l"></td>
+            <td class="tg-yw4l"></td>
+          </tr>
+          <tr>
+            <td class="tg-us36"><b>Packets</b></td>
+            <td class="tg-us36">rx_packets</td>
+            <td class="tg-us36">tx_packets</td>
+            <td class="tg-us36">packets_dropped</td>
+            <td class="tg-us36">packet_counts (for each type)</td>
+            <td class="tg-us36"></td>
+            <td class="tg-us36"></td>
+          </tr>
+          <tr>
+            <td class="tg-yw4l"></td>
+            <td id="rx_packets" class="tg-yw4l"></td>
+            <td id="tx_packets" class="tg-yw4l"></td>
+            <td id="packets_dropped" class="tg-yw4l"></td>
+            <td id="packet_counts" class="tg-yw4l"></td>
+            <td class="tg-yw4l"></td>
+            <td class="tg-yw4l"></td>
+          </tr>
+          <tr>
+            <td class="tg-us36"><b>Motor</b></td>
+            <td class="tg-us36">duty_a0</td>
+            <td class="tg-us36">duty_b0</td>
+            <td class="tg-us36">duty_a1</td>
+            <td class="tg-us36">duty_b1</td>
+            <td class="tg-us36">duty_a2</td>
+            <td class="tg-us36">duty_b2</td>
+          </tr>
+          <tr>
+            <td class="tg-yw4l"></td>
+            <td id="duty_a0" class="tg-yw4l"></td>
+            <td id="duty_b0" class="tg-yw4l"></td>
+            <td id="duty_a1" class="tg-yw4l"></td>
+            <td id="duty_b1" class="tg-yw4l"></td>
+            <td id="duty_a2" class="tg-yw4l"></td>
+            <td id="duty_b2" class="tg-yw4l"></td>
+          </tr>
+          <tr>
+            <td class="tg-us36"><b>Wifi</b></td>
+            <td class="tg-us36">device_ip</td>
+            <td class="tg-us36">device_gw</td>
+            <td class="tg-us36">device_sn</td>
+            <td class="tg-us36">station_ssid</td>
+            <td class="tg-us36"></td>
+            <td class="tg-us36"></td>
+          </tr>
+          <tr>
+            <td class="tg-yw4l"></td>
+            <td id="device_ip" class="tg-yw4l"></td>
+            <td id="device_gw" class="tg-yw4l"></td>
+            <td id="device_sn" class="tg-yw4l"></td>
+            <td id="station_ssid" class="tg-yw4l"></td>
+            <td class="tg-yw4l"></td>
+            <td class="tg-yw4l"></td>
+          </tr>
+          <tr>
+            <td class="tg-us36"><b>Watermarks</b></td>
+            <td class="tg-us36">task_tx</td>
+            <td class="tg-us36">task_rx</td>
+            <td class="tg-us36">task_navigation</td>
+            <td class="tg-us36">task_servo</td>
+            <td class="tg-us36">task_detection</td>
+            <td class="tg-us36">task_logger</td>
+          </tr>
+          <tr>
+            <td class="tg-yw4l"></td>
+            <td id="task_tx0" class="tg-yw4l"></td>
+            <td id="task_rx0" class="tg-yw4l"></td>
+            <td id="task_navigation" class="tg-yw4l"></td>
+            <td id="task_servo" class="tg-yw4l"></td>
+            <td id="task_detection" class="tg-yw4l"></td>
+            <td id="task_logger" class="tg-yw4l"></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+        <div class="row">
+        <textarea id="diagnostic" class="datalog form-control" rows="4" cols="40">
+        </textarea>
+        </div>
+
+      <div class="col-sm-8 text-center">
+        <img id="play">
+      </div>
+    </div>
+    </div>
+
+    <div id="Logging" class="tabcontent">
+
+
+    <div class="container text-center">
+        
+        <h3>ADPS Systems Control</h3>
+
+        <p>The purpose of this page is to allow control and monitoring of the robot's status.
+        This page should include:
+        <br> Motor/Camera control section 
+        <br> Packet Sending
+        <br> Data logging 
+        <br> States / Faults
+        </p>
+    </div>
+
+    <div id="logger"></div>
+
+    <br>
+    <div>
+        <h3> Emergency Exit </h3>
+        <button id="exit"       onclick="exit()">       Close   </button>
+    </div>
+  
+      
+    </div>    
+</div>
+
+    
+
+    <br><br>
+    
+    <script>
+        var socket = io();
+
+        window.onload = function(){
+            var valid = ["sockets_created","sockets_closed", "server_connections", "packets_sent",
+                "server_port", "state", "queue_size", "packets_received",
+                "rx_packets", "tx_packets", "packets_dropped", 
+                "duty_a0","duty_a1","duty_a2","duty_b0","duty_b1","duty_b2",
+                "device_ip", "device_gw", "device_sn","station_ssid",
+                "task_tx0", "task_rx0, sensor"];
+            var i = 0;
+            for(i = 0; i < valid.length ; i++){
+                var key = valid[i];
+                if(localStorage.hasOwnProperty(key)){
+                    document.getElementById(key).innerHTML  = localStorage[key] ;
+                }
+            }
+        }
+
+        socket.on('stream', function(image){
+            var img = document.getElementById("play");
+            img.src = image;
+        });
+        socket.on('log', function(payload){
+            if(["sockets_created","sockets_closed", "server_connections", "packets_sent",
+                "server_port", "state", "queue_size", "packets_received",
+                "rx_packets", "tx_packets", "packets_dropped", 
+                "duty_a0","duty_a1","duty_a2","duty_b0","duty_b1","duty_b2",
+                "device_ip", "device_gw", "device_sn","station_ssid",
+                "task_tx0", "task_rx0, sensor"].indexOf(payload[1]) >= 0) {
+                document.getElementById(payload[1]).innerHTML = payload[2];
+            localStorage[payload[1]] = payload[2];
+            }
+
+            else { 
+                //Diagnostic error
+            }
+        });
+        socket.on('infoDiag', function(payload){
+            var d = new Date();
+            var n = d.toISOString();
+            document.getElementById("diagnostic").innerHTML += ( "[" + n + "]" +"[INFO]: "+ payload[0] + "\n");
+        }); 
+        socket.on('errorDiag', function(payload){
+            var d = new Date();
+            var n = d.toISOString();            
+            document.getElementById("diagnostic").innerHTML += ("[" + n + "]" +"[ERROR]: "+ payload[0] + "\n");
+        });     
+        socket.on('statusDiag', function(payload){
+            var d = new Date();
+            var n = d.toISOString();
+            document.getElementById("diagnostic").innerHTML += ("[" + n + "]" +"[STATUS]: "+ payload[0] + "\n");
+        });            
+
+        var myTextArea = $('#datalog');
+        //myTextArea.val(myTextArea.val() + 'goForward\n');
+
+        function goForward(){
+            socket.emit('dirEvent', { message: 0 });
+            console.log("goForward\n");
+        }
+        function goBack(){
+            socket.emit('dirEvent', { message: 1 });
+            console.log("goBack\n");
+        }
+        function goLeft(){
+            socket.emit('dirEvent', { message: 2 });
+            console.log("goLeft\n");
+        }
+        function goRight(){
+            socket.emit('dirEvent', { message: 3 });
+            console.log("goRight\n");
+        }
+        function stay(){
+            socket.emit('event', { message: 14 });
+            console.log("Stay\n");
+        }
+        function incForward(){
+            socket.emit('event', { message: 4 });
+            console.log("incForward\n");
+        }
+        function incBack(){
+            socket.emit('event', { message: 5 });
+            console.log("incBack\n");
+        }
+        function incLeft(){
+            socket.emit('event', { message: 6 });
+            console.log("incLeft\n");
+        }
+        function incRight(){
+            socket.emit('event', { message: 7 });
+            console.log("incRight\n");
+        }        
+        function decForward(){
+            socket.emit('event', { message: 8 });
+            console.log("decForward\n");
+        }
+        function decBack(){
+            socket.emit('event', { message: 9 });
+            console.log("decBack\n");
+        }
+        function decLeft(){
+            socket.emit('event', { message: 10 });
+            console.log("decLeft\n");
+        }
+        function decRight(){
+            socket.emit('event', { message: 11 });
+            console.log("decRight\n");
+        }    
+        function deliverMotor(){
+            socket.emit('event', { message: 15 });
+            console.log("deliverMotor\n");
+        }   
+        function pivotLeft(){
+            socket.emit('event', { message: 16 });
+            console.log("pivleft\n");
+        }   
+        function pivotRight(){
+            socket.emit('event', { message: 17 });
+            console.log("pivright\n");
+        }   
+        function stopall(){
+            socket.emit('event', { message: 20 });
+            console.log("stopall\n");
+        }                                               
+        function exit() {
+            socket.emit('exit');
+        }
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }   
+        function sendDutyCycle() {
+            var body = document.getElementById("dutyCycle").value;
+            body = parseInt(body);
+            console.log(body);
+            socket.emit('dutyEvent', { message: body });
+        }   
+        function changeLog(id, value){
+            document.getElementById(id).innerHTML = value;
+        }
+
+    </script>
+</body>
+</html>

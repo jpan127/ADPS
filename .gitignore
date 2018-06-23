@@ -19,3 +19,9 @@ build/*
 data/*
 
 /server/node_modules*
+
+.sconsign.dblite
+
+__pycache__/*
+
+*.pyc
