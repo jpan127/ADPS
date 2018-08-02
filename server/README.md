@@ -13,3 +13,25 @@ The Jetson TX2 is in charge of running multiple processes and maintaining a myri
     - The state machine should be fault tolerant
 - Communication
     - Should be asynchronously communicating with the external microcontroller through UART
+
+### Setup
+
+Requirements: Python 3
+sudo pip3 install -r requirements.txt
+
+- config.json
+Shows how to run the server code. Points to protocol.json file that stores all the opcodes and communication protocol information.
+
+- app.py
+Entrypoint into the server.
+
+- server.py
+Contains route information. POST request {ACTION} sends commands to the server to do commands. aiohttp allows use of async tasks, but we cannot use synchronous tasks or it will block.
+
+- run_coverage.sh
+Runs unit tests from the folder /tests
+
+### Future Plans
+- Rubocop or syntax checkers on automation
+- Automation in general with Ansible/Jenkins/Concourse
+- Develop a remote control for robot control, can use POST requests to send information perhaps
