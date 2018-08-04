@@ -7,7 +7,7 @@ import inspect
 
 from common.utils import logger_create
 
-from jetson_io.uart import LogPacket, process_uart
+from jetson_io.uart.microcontroller.uart import LogPacket, process_uart
 
 
 
