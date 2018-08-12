@@ -10,7 +10,7 @@ from aiohttp import web
 from tasks import tasks
 from app.state_machine.state_machine_inputs import StateMachineInputs
 from app.log_store import LogStore
-from jetson_io.uart import process_uart, LogPacket
+from jetson_io.uart.microcontroller.uart import process_uart, LogPacket
 
 
 
@@ -139,12 +139,13 @@ class ApdsServer(object):
             )
 
         # Add a reader (asynchronous interrupt) to the event loop for UART serial data
-        self._add_reader_process_uart(packet_queue)
+        # self._add_reader_process_uart(packet_queue)
 
     def _add_reader_process_uart(self, packet_queue):
         """
         Registers an asynchronous callback for when the UART receives bytes
         @param packet_queue : Queue to add logging packets to
+        @note               : Needs testing on Jetson
         """
         # UART possible ports
         PORTS = {

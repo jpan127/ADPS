@@ -12,7 +12,7 @@ from tasks import tasks
 from app.state_machine.state_machine import StateMachine, SystemState
 from app.state_machine.state_machine_inputs import StateMachineInputs
 from app.log_store import LogStore
-from jetson_io.uart import LogPacket
+from jetson_io.uart.microcontroller.uart import LogPacket
 
 
 

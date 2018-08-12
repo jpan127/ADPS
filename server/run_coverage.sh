@@ -3,7 +3,7 @@
 # @ { Coverage command
 COVERAGE_PROGRAM="coverage"
 COVERAGE_MODE="run"
-COVERAGE_SOURCE_DIRS="app,jetson_io,tasks"
+COVERAGE_SOURCE_DIRS="app,jetson_io/uart/microcontroller,tasks"
 COVERAGE_UNITTEST="unittest discover -q"
 COVERAGE_TEST_DIR="tests"
 COVERAGE_COMMAND="$COVERAGE_PROGRAM $COVERAGE_MODE              \
